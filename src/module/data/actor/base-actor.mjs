@@ -264,6 +264,13 @@ export default class SFRPGActorBase extends SFRPGDocumentBase {
                     label: "SFRPG.VehicleSheet.Details.OtherAttributes.Complement"
                 })
             });
+        } else if (type === "mech") {
+            foundry.utils.mergeObject(schema, {
+                operator: SFRPGActorBase._crewPCField({
+                    init: 0,
+                    label: "SFRPG.MechSheet.Crew.Operator"
+                })
+            });
         } else if (type === "starship") {
             foundry.utils.mergeObject(schema, {
                 captain: SFRPGActorBase._crewPCField({

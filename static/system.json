@@ -313,6 +313,11 @@
           "details.description.unidentified",
           "details.description.value"
         ]
+      },
+      "mech": {
+        "htmlFields": [
+          "details.notes"
+        ]
       }
     },
     "Item": {
@@ -833,6 +838,54 @@
         ]
       },
       "vehicleSystem": {
+        "htmlFields": [
+          "description.value",
+          "description.gmNotes",
+          "description.chat",
+          "description.short",
+          "description.unidentified"
+        ],
+        "gmOnlyFields": [
+          "description.gmNotes"
+        ]
+      },
+      "mechFrame": {
+        "htmlFields": [
+          "description.value",
+          "description.gmNotes",
+          "description.chat",
+          "description.short",
+          "description.unidentified"
+        ],
+        "gmOnlyFields": [
+          "description.gmNotes"
+        ]
+      },
+      "mechWeapon": {
+        "htmlFields": [
+          "description.value",
+          "description.gmNotes",
+          "description.chat",
+          "description.short",
+          "description.unidentified"
+        ],
+        "gmOnlyFields": [
+          "description.gmNotes"
+        ]
+      },
+      "mechAuxiliary": {
+        "htmlFields": [
+          "description.value",
+          "description.gmNotes",
+          "description.chat",
+          "description.short",
+          "description.unidentified"
+        ],
+        "gmOnlyFields": [
+          "description.gmNotes"
+        ]
+      },
+      "mechUpgrade": {
         "htmlFields": [
           "description.value",
           "description.gmNotes",

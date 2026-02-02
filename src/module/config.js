@@ -19,7 +19,8 @@ SFRPG.actorTypes = {
     "npc": "TYPES.Actor.npc",
     "npc2": "TYPES.Actor.npc2",
     "starship": "TYPES.Actor.starship",
-    "vehicle": "TYPES.Actor.vehicle"
+    "vehicle": "TYPES.Actor.vehicle",
+    "mech": "TYPES.Actor.mech"
 };
 
 /**
@@ -968,6 +969,29 @@ SFRPG.starshipSizes = {
     "gargantuan": "SFRPG.SizeGargantuan",
     "colossal": "SFRPG.SizeColossal",
     "supercolossal": "SFRPG.SizeSupercolossal"
+};
+
+SFRPG.mechSizes = {
+    "huge": "SFRPG.SizeHuge",
+    "gargantuan": "SFRPG.SizeGargantuan",
+    "colossal": "SFRPG.SizeColossal"
+};
+
+SFRPG.mechSystemStatus = {
+    "nominal": "SFRPG.MechSheet.Systems.StatusNominal",
+    "malfunctioning": "SFRPG.MechSheet.Systems.StatusMalfunctioning",
+    "inoperable": "SFRPG.MechSheet.Systems.StatusInoperable"
+};
+
+SFRPG.mechWeaponTypes = {
+    "melee": "SFRPG.MechSheet.Weapon.TypeMelee",
+    "ranged": "SFRPG.MechSheet.Weapon.TypeRanged"
+};
+
+SFRPG.mechWeaponSlots = {
+    "frame": "SFRPG.MechSheet.Weapon.SlotFrame",
+    "upperLimb": "SFRPG.MechSheet.Weapon.SlotUpperLimb",
+    "lowerLimb": "SFRPG.MechSheet.Weapon.SlotLowerLimb"
 };
 
 SFRPG.itemSizes = {
@@ -2379,6 +2403,11 @@ SFRPG.itemTypes = {
     "vehicleAttack": "SFRPG.Items.Categories.VehicleAttacks",
     "vehicleSystem": "SFRPG.Items.Categories.VehicleSystems",
 
+    "mechFrame": "SFRPG.Items.Categories.MechFrames",
+    "mechWeapon": "SFRPG.Items.Categories.MechWeapons",
+    "mechAuxiliary": "SFRPG.Items.Categories.MechAuxiliarySystems",
+    "mechUpgrade": "SFRPG.Items.Categories.MechUpgrades",
+
     "ammunition": "SFRPG.Items.Categories.Ammunition",
     "augmentation": "SFRPG.Items.Categories.Augmentations",
     "consumable": "SFRPG.Items.Categories.Consumables",
@@ -2443,6 +2472,13 @@ SFRPG.starshipDefinitionItemTypes = [
 SFRPG.vehicleDefinitionItemTypes = [
     "vehicleAttack",
     "vehicleSystem"
+];
+
+SFRPG.mechDefinitionItemTypes = [
+    "mechFrame",
+    "mechWeapon",
+    "mechAuxiliary",
+    "mechUpgrade"
 ];
 
 SFRPG.physicalItemTypes = [
