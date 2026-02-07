@@ -32,6 +32,16 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         const tiers = { 0: "0", 0.25: "1/4", [1 / 3]: "1/3", 0.5: "1/2" };
         data.labels["tier"] = tier >= 1 ? String(tier) : tiers[tier] || 1;
 
+        // Compute frame label from equipped frame item: "Size FrameName"
+        const frameItem = this.actor.items.find(i => i.type === "mechFrame");
+        if (frameItem) {
+            const sizeKey = CONFIG.SFRPG.mechSizes[frameItem.system.size];
+            const sizeLabel = sizeKey ? game.i18n.localize(sizeKey) : "";
+            data.labels["frame"] = sizeLabel ? `${sizeLabel} ${frameItem.name}` : frameItem.name;
+        } else {
+            data.labels["frame"] = "";
+        }
+
         this._getCrewData(data);
 
         // Enrich text editors
@@ -51,46 +61,22 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
      */
     async _getCrewData(data) {
         const crewData = this.actor.system.crew;
-
-        const pilotActors = crewData.pilot.actorIds.map(crewId => game.actors.get(crewId));
-        const operatorActors = crewData.operator.actorIds.map(crewId => game.actors.get(crewId));
-        const passengerActors = crewData.passenger.actorIds.map(crewId => game.actors.get(crewId));
-
-        const localizedNoLimit = game.i18n.format("SFRPG.MechSheet.Crew.UnlimitedMax");
+        const operatorActors = crewData.operator.actorIds.map(crewId => game.actors.get(crewId)).filter(Boolean);
+        const operatorMin = data.system.attributes.operators?.min || 1;
+        const operatorMax = crewData.operator.limit || data.system.attributes.operators?.max || 2;
 
         const crew = {
-            pilots: {
-                label:
-                    game.i18n.format("SFRPG.MechSheet.Crew.Pilot")
-                    + " "
-                    + game.i18n.format("SFRPG.MechSheet.Crew.AssignedCount", {
-                        current: pilotActors.length,
-                        max: crewData.pilot.limit > -1 ? crewData.pilot.limit : localizedNoLimit
-                    }),
-                actors: pilotActors,
-                dataset: { type: "mechCrew", role: "pilot" }
-            },
             operators: {
                 label:
                     game.i18n.format("SFRPG.MechSheet.Crew.Operators")
                     + " "
                     + game.i18n.format("SFRPG.MechSheet.Crew.AssignedCount", {
                         current: operatorActors.length,
-                        max: crewData.operator.limit > -1 ? crewData.operator.limit : localizedNoLimit
+                        max: operatorMax
                     }),
                 actors: operatorActors,
-                dataset: { type: "mechCrew", role: "operator" }
-            },
-            passengers: {
-                label:
-                    game.i18n.format("SFRPG.MechSheet.Crew.Passengers")
-                    + " "
-                    + game.i18n.format("SFRPG.MechSheet.Crew.AssignedCount", {
-                        current: passengerActors.length,
-                        max: crewData.passenger.limit > -1 ? crewData.passenger.limit : localizedNoLimit
-                    }),
-                actors: passengerActors,
-                dataset: { type: "mechCrew", role: "passenger" }
+                dataset: { type: "mechCrew", role: "operator" },
+                cssClass: operatorActors.length < operatorMin ? "crew-warning" : ""
             }
         };
 
@@ -110,19 +96,31 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             inventory: { label: game.i18n.localize("SFRPG.MechSheet.Inventory.Inventory"), items: [], dataset: { type: this.acceptedItemTypes }, allowAdd: true }
         };
 
+        // First pass: Find the active mission pod and get IDs of items it created
+        const activePodItem = data.items.find(i => i.type === "mechMissionPod" && i.system?.isActive);
+        const podCreatedIds = new Set(activePodItem?.system?.createdItemIds || []);
+
         const [
             weapons,
             frames,
             auxiliarySystems,
             upgrades,
+            powerCores,
+            lowerLimbs,
+            upperLimbs,
             cargo,
-            actorResources
+            actorResources,
+            missionPods
         ] = data.items.reduce((arr, item) => {
             item.img = item.img || DEFAULT_TOKEN;
             if (!item.config) item.config = {};
             const hasAttack = item.type === "mechWeapon";
             const hasDamage = item.system.damage?.parts
                 && item.system.damage.parts.length > 0;
+
+            // Mark items created by active mission pod
+            const isFromPod = podCreatedIds.has(item._id);
+            item.isFromPod = isFromPod;
 
             if (item.type === "actorResource") {
                 this._prepareActorResource(item, actorData);
@@ -143,56 +141,115 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             } else if (item.type === "mechFrame") arr[1].push(item);
             else if (item.type === "mechAuxiliary") arr[2].push(item);
             else if (item.type === "mechUpgrade") arr[3].push(item);
-            else if (item.type === "actorResource") arr[5].push(item);
-            else if (this.acceptedItemTypes.includes(item.type)) arr[4].push(item);
+            else if (item.type === "mechPowerCore") arr[4].push(item);
+            else if (item.type === "mechLowerLimb") arr[5].push(item);
+            else if (item.type === "mechUpperLimb") arr[6].push(item);
+            else if (item.type === "actorResource") arr[8].push(item);
+            else if (item.type === "mechMissionPod") arr[9].push(item);
+            else if (this.acceptedItemTypes.includes(item.type)) arr[7].push(item);
 
             return arr;
-        }, [[], [], [], [], [], []]);
+        }, [[], [], [], [], [], [], [], [], [], []]);
 
         this.processItemContainment(cargo, function(itemType, itemData) {
             inventory.inventory.items.push(itemData);
         });
         data.inventory = inventory;
 
-        const weaponItems = [];
-        this.processItemContainment(weapons, function(itemType, itemData) {
-            weaponItems.push(itemData);
-        });
+        // Organize weapons by slot
+        const frameWeapons = weapons.filter(w => w.system.slot === "frame");
+        const upperLimbWeapons = weapons.filter(w => w.system.slot === "upperLimb");
+        const lowerLimbWeapons = weapons.filter(w => w.system.slot === "lowerLimb");
+        const lockerWeapons = weapons.filter(w => w.system.slot === "locker");
+
+        // Get slot capacities
+        const frameSlots = actorData.attributes?.slots?.frame || 0;
+        const upperLimbSlots = actorData.attributes?.slots?.upperLimb || 0;
+        const lowerLimbSlots = actorData.attributes?.slots?.lowerLimb || 0;
+
+        // Check if components exist
+        const hasFrame = frames.length > 0;
+        const hasUpperLimb = upperLimbs.length > 0;
+        const hasLowerLimb = lowerLimbs.length > 0;
 
         const features = {
             frame: {
                 category: game.i18n.format("SFRPG.MechSheet.Features.Frame", { current: frames.length }),
                 items: frames,
                 hasActions: false,
-                dataset: { type: "mechFrame" }
+                dataset: { type: "mechFrame" },
+                allowAdd: frames.length < 1,
+                weapons: frameWeapons,
+                weaponSlots: { used: frameWeapons.length, max: frameSlots },
+                slotType: "frame",
+                hasComponent: hasFrame,
+                allowAddWeapon: hasFrame && frameWeapons.length < frameSlots
             },
-            weapons: {
-                category: game.i18n.format("SFRPG.MechSheet.Features.Weapons"),
-                items: weapons,
-                hasActions: true,
-                dataset: { type: "mechWeapon" }
+            powerCores: {
+                category: game.i18n.format("SFRPG.MechSheet.Features.PowerCores", { current: powerCores.length }),
+                items: powerCores,
+                hasActions: false,
+                dataset: { type: "mechPowerCore" },
+                allowAdd: powerCores.length < 1
+            },
+            lowerLimbs: {
+                category: game.i18n.format("SFRPG.MechSheet.Features.LowerLimbs", { current: lowerLimbs.length }),
+                items: lowerLimbs,
+                hasActions: false,
+                dataset: { type: "mechLowerLimb" },
+                allowAdd: lowerLimbs.length < 1,
+                weapons: lowerLimbWeapons,
+                weaponSlots: { used: lowerLimbWeapons.length, max: lowerLimbSlots },
+                slotType: "lowerLimb",
+                hasComponent: hasLowerLimb,
+                allowAddWeapon: hasLowerLimb && lowerLimbWeapons.length < lowerLimbSlots
+            },
+            upperLimbs: {
+                category: game.i18n.format("SFRPG.MechSheet.Features.UpperLimbs", { current: upperLimbs.length }),
+                items: upperLimbs,
+                hasActions: false,
+                dataset: { type: "mechUpperLimb" },
+                allowAdd: upperLimbs.length < 1,
+                weapons: upperLimbWeapons,
+                weaponSlots: { used: upperLimbWeapons.length, max: upperLimbSlots },
+                slotType: "upperLimb",
+                hasComponent: hasUpperLimb,
+                allowAddWeapon: hasUpperLimb && upperLimbWeapons.length < upperLimbSlots
             },
             auxiliarySystems: {
                 category: game.i18n.format("SFRPG.MechSheet.Features.AuxiliarySystems"),
                 items: auxiliarySystems,
                 hasActions: false,
-                dataset: { type: "mechAuxiliary" }
+                dataset: { type: "mechAuxiliary" },
+                allowAdd: true
             },
             upgrades: {
                 category: game.i18n.format("SFRPG.MechSheet.Features.Upgrades"),
                 items: upgrades,
                 hasActions: false,
-                dataset: { type: "mechUpgrade" }
-            },
-            resources: {
-                category: game.i18n.format("SFRPG.ActorSheet.Features.Categories.ActorResources"),
-                items: actorResources,
-                hasActions: false,
-                dataset: { type: "actorResource" }
+                dataset: { type: "mechUpgrade" },
+                allowAdd: true
             }
         };
 
-        data.features = Object.values(features);
+        data.featuresTop = [features.frame];
+        data.featuresBottom = [features.powerCores, features.lowerLimbs, features.upperLimbs, features.auxiliarySystems, features.upgrades];
+
+        // Weapons locker data
+        data.weaponsLocker = {
+            weapons: lockerWeapons,
+            label: game.i18n.localize("SFRPG.MechSheet.WeaponsLocker.Title")
+        };
+        data.hasLockerWeapons = lockerWeapons.length > 0;
+
+        // Mission pods data
+        const activePod = missionPods.find(p => p.system.isActive);
+        data.missionPods = {
+            items: missionPods,
+            activePod: activePod || null,
+            label: game.i18n.localize("SFRPG.MechSheet.MissionPod.Title"),
+            allowAdd: true
+        };
     }
 
     /**
@@ -225,6 +282,146 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
 
         // Operator Tab
         html.find('.crew-view').click(event => this._onActorView(event));
+
+        // Mission Pods
+        html.find('.pod-activate').click(event => this._onMissionPodActivate(event));
+        html.find('.pod-deactivate').click(event => this._onMissionPodDeactivate(event));
+
+        // PP Controls
+        html.find('.pp-control').click(event => this._onPPControl(event));
+    }
+
+    /**
+     * Handle PP increment/decrement controls.
+     * @param {Event} event The click event
+     */
+    _onPPControl(event) {
+        event.preventDefault();
+        const action = event.currentTarget.dataset.action;
+        const currentPP = this.actor.system.attributes.pp.value || 0;
+        const maxPP = this.actor.system.attributes.pp.max || 0;
+
+        let newValue;
+        if (action === "increase") {
+            newValue = Math.min(currentPP + 1, maxPP);
+        } else {
+            newValue = Math.max(currentPP - 1, 0);
+        }
+
+        this.actor.update({ "system.attributes.pp.value": newValue });
+    }
+
+    /**
+     * Handle activating a mission pod.
+     * @param {Event} event The click event
+     */
+    async _onMissionPodActivate(event) {
+        event.preventDefault();
+        const li = $(event.currentTarget).parents(".item");
+        const podId = li.data("item-id");
+        const pod = this.actor.items.get(podId);
+
+        if (!pod) return;
+
+        // Check if another pod is already active
+        const activePod = this.actor.items.find(i => i.type === "mechMissionPod" && i.system.isActive);
+        if (activePod) {
+            ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.MissionPod.OnlyOne"));
+            return;
+        }
+
+        // Confirm activation
+        const confirmed = await Dialog.confirm({
+            title: game.i18n.localize("SFRPG.MechSheet.MissionPod.ActivateConfirmTitle"),
+            content: `<p>${game.i18n.format("SFRPG.MechSheet.MissionPod.ActivateConfirmPrompt", { pod: pod.name })}</p>`,
+            yes: () => true,
+            no: () => false,
+            defaultYes: false
+        });
+
+        if (!confirmed) return;
+
+        // Create items from pod's item templates
+        const itemTemplates = pod.system.itemTemplates || [];
+        const createdItemIds = [];
+
+        if (itemTemplates.length > 0) {
+            // Prepare item data from templates
+            const itemsToCreate = itemTemplates.map(template => {
+                const itemData = foundry.utils.deepClone(template);
+                // Remove _id so Foundry generates a new one
+                delete itemData._id;
+                // Mark as from mission pod
+                itemData.flags = itemData.flags || {};
+                itemData.flags.sfrpg = itemData.flags.sfrpg || {};
+                itemData.flags.sfrpg.fromMissionPod = pod.id;
+                return itemData;
+            });
+
+            // Create the items on the actor
+            const createdItems = await this.actor.createEmbeddedDocuments("Item", itemsToCreate);
+            for (const item of createdItems) {
+                createdItemIds.push(item.id);
+            }
+        }
+
+        // Activate the pod and store created item IDs
+        await pod.update({
+            "system.isActive": true,
+            "system.createdItemIds": createdItemIds
+        });
+
+        // Force actor data re-preparation and sheet re-render
+        this.actor.prepareData();
+        this.render(false);
+
+        ui.notifications.info(`${pod.name} activated.`);
+    }
+
+    /**
+     * Handle deactivating a mission pod.
+     * @param {Event} event The click event
+     */
+    async _onMissionPodDeactivate(event) {
+        event.preventDefault();
+        const li = $(event.currentTarget).parents(".item");
+        const podId = li.data("item-id");
+        const pod = this.actor.items.get(podId);
+
+        if (!pod) return;
+
+        // Confirm deactivation
+        const confirmed = await Dialog.confirm({
+            title: game.i18n.localize("SFRPG.MechSheet.MissionPod.DeactivateConfirmTitle"),
+            content: `<p>${game.i18n.format("SFRPG.MechSheet.MissionPod.DeactivateConfirmPrompt", { pod: pod.name })}</p>`,
+            yes: () => true,
+            no: () => false,
+            defaultYes: false
+        });
+
+        if (!confirmed) return;
+
+        // Remove items that were created from this pod's templates
+        const createdItemIds = pod.system.createdItemIds || [];
+        if (createdItemIds.length > 0) {
+            // Filter to only IDs that still exist
+            const idsToDelete = createdItemIds.filter(id => this.actor.items.has(id));
+            if (idsToDelete.length > 0) {
+                await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
+            }
+        }
+
+        // Deactivate the pod and clear created item IDs
+        await pod.update({
+            "system.isActive": false,
+            "system.createdItemIds": []
+        });
+
+        // Force actor data re-preparation and sheet re-render
+        this.actor.prepareData();
+        this.render(false);
+
+        ui.notifications.info(`${pod.name} deactivated.`);
     }
 
     /**
@@ -258,7 +455,41 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             const rawItemData = (await Item.fromDropData(data)).toObject();
 
             if (CONFIG.SFRPG.mechDefinitionItemTypes.includes(rawItemData.type)) {
+                // Only allow one frame per mech
+                if (rawItemData.type === "mechFrame") {
+                    const existingFrame = this.actor.items.find(i => i.type === "mechFrame");
+                    if (existingFrame) {
+                        ui.notifications.error(game.i18n.format("SFRPG.MechSheet.Frame.OnlyOne"));
+                        return false;
+                    }
+                }
+                // Only allow one power core per mech
+                if (rawItemData.type === "mechPowerCore") {
+                    const existingPowerCore = this.actor.items.find(i => i.type === "mechPowerCore");
+                    if (existingPowerCore) {
+                        ui.notifications.error(game.i18n.format("SFRPG.MechSheet.PowerCore.OnlyOne"));
+                        return false;
+                    }
+                }
+                // Only allow one lower limb per mech
+                if (rawItemData.type === "mechLowerLimb") {
+                    const existingLowerLimb = this.actor.items.find(i => i.type === "mechLowerLimb");
+                    if (existingLowerLimb) {
+                        ui.notifications.error(game.i18n.format("SFRPG.MechSheet.LowerLimb.OnlyOne"));
+                        return false;
+                    }
+                }
+                // Only allow one upper limb per mech
+                if (rawItemData.type === "mechUpperLimb") {
+                    const existingUpperLimb = this.actor.items.find(i => i.type === "mechUpperLimb");
+                    if (existingUpperLimb) {
+                        ui.notifications.error(game.i18n.format("SFRPG.MechSheet.UpperLimb.OnlyOne"));
+                        return false;
+                    }
+                }
                 return this.actor.createEmbeddedDocuments("Item", [rawItemData]);
+            } else if (rawItemData.type === "mechWeapon") {
+                return this._onWeaponDrop(event, rawItemData);
             } else if (this.acceptedItemTypes.includes(rawItemData.type)) {
                 return this.processDroppedItems(event, data);
             } else {
@@ -271,6 +502,210 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
     }
 
     /**
+     * Handle dropping a mech weapon onto the sheet.
+     * Shows a slot selection dialog if multiple valid slots are available.
+     *
+     * @param {Event} event The drop event
+     * @param {Object} itemData The weapon item data
+     * @returns {Promise}
+     */
+    async _onWeaponDrop(event, itemData) {
+        const validSlots = itemData.system.validSlots || ["frame"];
+        const actorData = this.actor.system;
+
+        // Check which slots have components and available capacity
+        const availableSlots = [];
+        for (const slot of validSlots) {
+            const hasComponent = this._hasComponentForSlot(slot);
+            const slotsUsed = this._getWeaponsInSlot(slot).length;
+            const maxSlots = actorData.attributes?.slots?.[slot] || 0;
+
+            if (hasComponent && slotsUsed < maxSlots) {
+                availableSlots.push({
+                    slot,
+                    label: game.i18n.localize(CONFIG.SFRPG.mechWeaponMountableSlots[slot]),
+                    used: slotsUsed,
+                    max: maxSlots
+                });
+            }
+        }
+
+        // If no slots available, add to locker
+        if (availableSlots.length === 0) {
+            itemData.system.slot = "locker";
+            ui.notifications.info(game.i18n.localize("SFRPG.MechSheet.WeaponsLocker.AddedToLocker"));
+            return this.actor.createEmbeddedDocuments("Item", [itemData]);
+        }
+
+        // If only one slot available, use it
+        if (availableSlots.length === 1) {
+            itemData.system.slot = availableSlots[0].slot;
+            return this.actor.createEmbeddedDocuments("Item", [itemData]);
+        }
+
+        // Multiple slots available - show selection dialog
+        const selectedSlot = await this._showSlotSelectionDialog(itemData.name, availableSlots);
+        if (selectedSlot === null) {
+            return false; // User cancelled
+        }
+
+        itemData.system.slot = selectedSlot;
+        return this.actor.createEmbeddedDocuments("Item", [itemData]);
+    }
+
+    /**
+     * Check if the mech has a component installed for the given slot type.
+     *
+     * @param {string} slotType The slot type (frame, upperLimb, lowerLimb)
+     * @returns {boolean}
+     */
+    _hasComponentForSlot(slotType) {
+        const componentTypes = {
+            frame: "mechFrame",
+            upperLimb: "mechUpperLimb",
+            lowerLimb: "mechLowerLimb"
+        };
+        const componentType = componentTypes[slotType];
+        return componentType ? this.actor.items.some(i => i.type === componentType) : false;
+    }
+
+    /**
+     * Get all weapons assigned to a specific slot.
+     *
+     * @param {string} slotType The slot type
+     * @returns {Array}
+     */
+    _getWeaponsInSlot(slotType) {
+        return this.actor.items.filter(i => i.type === "mechWeapon" && i.system.slot === slotType);
+    }
+
+    /**
+     * Show a dialog for selecting which slot to mount a weapon in.
+     *
+     * @param {string} weaponName The name of the weapon
+     * @param {Array} availableSlots Array of available slot options
+     * @returns {Promise<string|null>} The selected slot or null if cancelled
+     */
+    async _showSlotSelectionDialog(weaponName, availableSlots) {
+        const content = `
+            <form>
+                <p>${game.i18n.format("SFRPG.MechSheet.WeaponsLocker.SelectSlotPrompt", { weapon: weaponName })}</p>
+                <div class="form-group">
+                    <label>${game.i18n.localize("SFRPG.MechSheet.Weapon.Slot")}</label>
+                    <select name="slot">
+                        ${availableSlots.map(s => `<option value="${s.slot}">${s.label} (${s.used}/${s.max})</option>`).join("")}
+                    </select>
+                </div>
+            </form>
+        `;
+
+        return new Promise((resolve) => {
+            new Dialog({
+                title: game.i18n.localize("SFRPG.MechSheet.WeaponsLocker.SelectSlotTitle"),
+                content,
+                buttons: {
+                    ok: {
+                        icon: '<i class="fas fa-check"></i>',
+                        label: game.i18n.localize("SFRPG.Accept"),
+                        callback: (html) => {
+                            const slot = html.find('[name="slot"]').val();
+                            resolve(slot);
+                        }
+                    },
+                    locker: {
+                        icon: '<i class="fas fa-box"></i>',
+                        label: game.i18n.localize("SFRPG.MechSheet.WeaponsLocker.SendToLocker"),
+                        callback: () => resolve("locker")
+                    },
+                    cancel: {
+                        icon: '<i class="fas fa-times"></i>',
+                        label: game.i18n.localize("SFRPG.Cancel"),
+                        callback: () => resolve(null)
+                    }
+                },
+                default: "ok"
+            }).render(true);
+        });
+    }
+
+    /**
+     * Handle deleting an Owned Item for the actor.
+     * Overrides base to add confirmation for components with attached weapons.
+     *
+     * @param {Event} event The originating click event
+     */
+    async _onItemDelete(event) {
+        event.preventDefault();
+
+        const li = $(event.currentTarget).parents(".item");
+        const itemId = li.attr("data-item-id");
+        const item = this.actor.items.get(itemId);
+
+        if (!item) return;
+
+        // If deleting a mission pod, also delete its created items
+        if (item.type === "mechMissionPod") {
+            const createdItemIds = item.system.createdItemIds || [];
+            if (createdItemIds.length > 0) {
+                const idsToDelete = createdItemIds.filter(id => this.actor.items.has(id));
+                if (idsToDelete.length > 0) {
+                    await this.actor.deleteEmbeddedDocuments("Item", idsToDelete);
+                }
+            }
+        }
+
+        // Check if this is a component with attached weapons
+        const proceed = await this._confirmComponentDeletion(item);
+        if (!proceed) return;
+
+        // Call parent implementation
+        return super._onItemDelete(event);
+    }
+
+    /**
+     * Handle deleting a mech component. If weapons are attached, prompt to move them to locker.
+     *
+     * @param {Item} item The item being deleted
+     * @returns {Promise<boolean>} Whether to proceed with deletion
+     */
+    async _confirmComponentDeletion(item) {
+        const slotTypes = {
+            mechFrame: "frame",
+            mechUpperLimb: "upperLimb",
+            mechLowerLimb: "lowerLimb"
+        };
+
+        const slotType = slotTypes[item.type];
+        if (!slotType) return true; // Not a component with weapon slots
+
+        const attachedWeapons = this._getWeaponsInSlot(slotType);
+        if (attachedWeapons.length === 0) return true; // No weapons attached
+
+        // Show confirmation dialog
+        const confirmed = await Dialog.confirm({
+            title: game.i18n.localize("SFRPG.MechSheet.WeaponsLocker.RemoveComponentTitle"),
+            content: `<p>${game.i18n.format("SFRPG.MechSheet.WeaponsLocker.RemoveComponentPrompt", {
+                component: item.name,
+                count: attachedWeapons.length
+            })}</p>`,
+            yes: () => true,
+            no: () => false,
+            defaultYes: false
+        });
+
+        if (confirmed) {
+            // Move all attached weapons to locker
+            const updates = attachedWeapons.map(w => ({
+                _id: w.id,
+                "system.slot": "locker"
+            }));
+            await this.actor.updateEmbeddedDocuments("Item", updates);
+        }
+
+        return confirmed;
+    }
+
+    /**
      * Handles drop events for the Crew list
      *
      * @param {Event}  event The originating drop event
@@ -279,26 +714,24 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
     async _onCrewDrop(event, actorId) {
         $(event.target).css('background', '');
 
-        const targetRole = event.target.dataset.role;
-        if (!targetRole || !actorId) return false;
+        const targetRole = event.target.dataset.role || "operator";
+        if (!actorId) return false;
 
         const crew = foundry.utils.deepClone(this.actor.system.crew);
         const crewRole = crew[targetRole];
-        const oldRole = this.actor.getCrewRoleForActor(actorId);
+        if (!crewRole) return false;
+
+        // Check if this actor is already assigned
+        if (crewRole.actorIds.includes(actorId)) return false;
 
         if (crewRole.limit === -1 || crewRole.actorIds.length < crewRole.limit) {
             crewRole.actorIds.push(actorId);
-
-            if (oldRole) {
-                const originalRole = crew[oldRole];
-                originalRole.actorIds = originalRole.actorIds.filter(x => x !== actorId);
-            }
 
             await this.actor.update({
                 "system.crew": crew
             }).then(this.render(false));
         } else {
-            ui.notifications.error(game.i18n.format("SFRPG.MechSheet.Crew.CrewLimitReached", {targetRole: targetRole}));
+            ui.notifications.error(game.i18n.format("SFRPG.MechSheet.Crew.CrewLimitReached", {max: crewRole.limit}));
         }
 
         return true;

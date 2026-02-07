@@ -282,6 +282,10 @@ Hooks.once('init', async function() {
         mechWeapon: models.SFRPGItemMechWeapon,
         mechAuxiliary: models.SFRPGItemMechAuxiliary,
         mechUpgrade: models.SFRPGItemMechUpgrade,
+        mechPowerCore: models.SFRPGItemMechPowerCore,
+        mechLowerLimb: models.SFRPGItemMechLowerLimb,
+        mechUpperLimb: models.SFRPGItemMechUpperLimb,
+        mechMissionPod: models.SFRPGItemMechMissionPod,
         weapon: models.SFRPGItemWeapon,
         weaponAccessory: models.SFRPGItemWeaponAccessory
     };

@@ -16,7 +16,6 @@ export default class SFRPGItemMechUpgrade extends SFRPGItemBase {
             mpCost: new fields.NumberField({
                 initial: 0,
                 min: 0,
-                integer: true,
                 required: true,
                 label: "SFRPG.MechSheet.Upgrade.MpCost"
             })

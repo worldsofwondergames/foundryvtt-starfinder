@@ -52,6 +52,24 @@ export default class SFRPGItemMechFrame extends SFRPGItemBase {
                 required: true,
                 label: "SFRPG.MechSheet.Frame.Kac"
             }),
+            fort: new fields.NumberField({
+                initial: 0,
+                integer: true,
+                required: true,
+                label: "SFRPG.MechSheet.Frame.Fort"
+            }),
+            ref: new fields.NumberField({
+                initial: 0,
+                integer: true,
+                required: true,
+                label: "SFRPG.MechSheet.Frame.Ref"
+            }),
+            strength: new fields.NumberField({
+                initial: 0,
+                integer: true,
+                required: true,
+                label: "SFRPG.MechSheet.Frame.Strength"
+            }),
             speed: new fields.StringField({
                 initial: "60 ft.",
                 blank: true,
@@ -88,7 +106,6 @@ export default class SFRPGItemMechFrame extends SFRPGItemBase {
             mpCost: new fields.NumberField({
                 initial: 0,
                 min: 0,
-                integer: true,
                 required: true,
                 label: "SFRPG.MechSheet.Frame.MpCost"
             })

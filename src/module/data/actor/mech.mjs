@@ -29,7 +29,8 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         integer: true,
                         nullable: false,
                         required: true
-                    })
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
                 }, {label: "SFRPG.Health"}),
                 sp: new fields.SchemaField({
                     max: new fields.NumberField({
@@ -45,7 +46,8 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         integer: true,
                         nullable: false,
                         required: true
-                    })
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
                 }, {label: "SFRPG.MechSheet.Attributes.ShieldPoints"}),
                 hardness: new fields.NumberField({
                     initial: 0,
@@ -62,7 +64,8 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         integer: true,
                         nullable: false,
                         required: true
-                    })
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
                 }, {label: "SFRPG.EnergyArmorClassShort", hint: "SFRPG.EnergyArmorClass"}),
                 kac: new fields.SchemaField({
                     value: new fields.NumberField({
@@ -71,7 +74,8 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         integer: true,
                         nullable: false,
                         required: true
-                    })
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
                 }, {label: "SFRPG.KineticArmorClassShort", hint: "SFRPG.KineticArmorClass"}),
                 strength: new fields.SchemaField({
                     value: new fields.NumberField({
@@ -79,7 +83,8 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         integer: true,
                         nullable: false,
                         required: true
-                    })
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
                 }, {label: "SFRPG.MechSheet.Attributes.EffectiveStrength"}),
                 attackBonus: new fields.SchemaField({
                     value: new fields.NumberField({
@@ -87,8 +92,70 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         integer: true,
                         nullable: false,
                         required: true
-                    })
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
                 }, {label: "SFRPG.MechSheet.Attributes.AttackBonus"}),
+                meleeAttackMod: new fields.NumberField({
+                    initial: 0,
+                    integer: true,
+                    nullable: false,
+                    required: true,
+                    label: "SFRPG.MechSheet.Attributes.MeleeAttackMod"
+                }),
+                rangedAttackMod: new fields.NumberField({
+                    initial: 0,
+                    integer: true,
+                    nullable: false,
+                    required: true,
+                    label: "SFRPG.MechSheet.Attributes.RangedAttackMod"
+                }),
+                meleeAttackBonus: new fields.NumberField({
+                    initial: 0,
+                    integer: true,
+                    nullable: false,
+                    required: true,
+                    label: "SFRPG.MechSheet.Attributes.MeleeAttackBonus"
+                }),
+                rangedAttackBonus: new fields.NumberField({
+                    initial: 0,
+                    integer: true,
+                    nullable: false,
+                    required: true,
+                    label: "SFRPG.MechSheet.Attributes.RangedAttackBonus"
+                }),
+                damageModifier: new fields.SchemaField({
+                    melee: new fields.NumberField({
+                        initial: 0,
+                        integer: true,
+                        nullable: false,
+                        required: true
+                    }),
+                    ranged: new fields.NumberField({
+                        initial: 0,
+                        integer: true,
+                        nullable: false,
+                        required: true
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
+                }, {label: "SFRPG.MechSheet.Attributes.DamageModifier"}),
+                fort: new fields.SchemaField({
+                    value: new fields.NumberField({
+                        initial: 0,
+                        integer: true,
+                        nullable: false,
+                        required: true
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
+                }, {label: "SFRPG.MechSheet.Attributes.FortSave"}),
+                ref: new fields.SchemaField({
+                    value: new fields.NumberField({
+                        initial: 0,
+                        integer: true,
+                        nullable: false,
+                        required: true
+                    }),
+                    tooltip: new fields.ArrayField(new fields.StringField())
+                }, {label: "SFRPG.MechSheet.Attributes.RefSave"}),
                 pp: new fields.SchemaField({
                     initial: new fields.NumberField({
                         initial: 3,
@@ -134,6 +201,11 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         initial: "",
                         blank: true,
                         label: "SFRPG.MechSheet.Attributes.Speed.Swim"
+                    }),
+                    burrow: new fields.StringField({
+                        initial: "",
+                        blank: true,
+                        label: "SFRPG.MechSheet.Attributes.Speed.Burrow"
                     })
                 }),
                 reach: new fields.StringField({
@@ -142,7 +214,7 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                     label: "SFRPG.Reach"
                 }),
                 senses: new fields.StringField({
-                    initial: "darkvision 120 ft., low-light vision, blindsense (vibration) 30 ft.",
+                    initial: "blindsense (vibration) 30 ft., darkvision 120 ft., low-light vision",
                     blank: true,
                     label: "SFRPG.MechSheet.Attributes.Senses"
                 }),
@@ -203,6 +275,22 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         integer: true,
                         nullable: false,
                         label: "SFRPG.MechSheet.Attributes.Slots.Auxiliary"
+                    })
+                }),
+                operators: new fields.SchemaField({
+                    min: new fields.NumberField({
+                        initial: 1,
+                        min: 1,
+                        integer: true,
+                        nullable: false,
+                        label: "SFRPG.MechSheet.Attributes.OperatorsMin"
+                    }),
+                    max: new fields.NumberField({
+                        initial: 2,
+                        min: 1,
+                        integer: true,
+                        nullable: false,
+                        label: "SFRPG.MechSheet.Attributes.OperatorsMax"
                     })
                 })
             }),

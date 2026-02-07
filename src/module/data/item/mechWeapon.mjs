@@ -22,6 +22,18 @@ export default class SFRPGItemMechWeapon extends SFRPGItemBase {
                     {required: true}
                 )
             }),
+            damageLevel: new fields.StringField({
+                initial: "medium",
+                blank: false,
+                required: true,
+                choices: Object.keys(CONFIG.SFRPG?.mechWeaponDamageLevels || {
+                    "low": "SFRPG.MechSheet.Weapon.DamageLevelLow",
+                    "medium": "SFRPG.MechSheet.Weapon.DamageLevelMedium",
+                    "high": "SFRPG.MechSheet.Weapon.DamageLevelHigh",
+                    "extreme": "SFRPG.MechSheet.Weapon.DamageLevelExtreme"
+                }),
+                label: "SFRPG.MechSheet.Weapon.DamageLevel"
+            }),
             weaponType: new fields.StringField({
                 initial: "melee",
                 blank: false,
@@ -29,11 +41,25 @@ export default class SFRPGItemMechWeapon extends SFRPGItemBase {
                 label: "SFRPG.MechSheet.Weapon.Type"
             }),
             slot: new fields.StringField({
-                initial: "frame",
+                initial: "locker",
                 blank: false,
                 required: true,
                 label: "SFRPG.MechSheet.Weapon.Slot"
             }),
+            validSlots: new fields.ArrayField(
+                new fields.StringField({
+                    choices: Object.keys(CONFIG.SFRPG?.mechWeaponMountableSlots || {
+                        "frame": "SFRPG.MechSheet.Weapon.SlotFrame",
+                        "upperLimb": "SFRPG.MechSheet.Weapon.SlotUpperLimb",
+                        "lowerLimb": "SFRPG.MechSheet.Weapon.SlotLowerLimb"
+                    })
+                }),
+                {
+                    initial: ["frame"],
+                    required: true,
+                    label: "SFRPG.MechSheet.Weapon.ValidSlots"
+                }
+            ),
             range: new fields.StringField({
                 initial: "",
                 blank: true,
@@ -68,7 +94,6 @@ export default class SFRPGItemMechWeapon extends SFRPGItemBase {
             mpCost: new fields.NumberField({
                 initial: 0,
                 min: 0,
-                integer: true,
                 required: true,
                 label: "SFRPG.MechSheet.Weapon.MpCost"
             }),

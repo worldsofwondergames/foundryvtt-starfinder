@@ -38,6 +38,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
      */
     get hasAttack() {
         if (this.type === "starshipWeapon") return true;
+        if (this.type === "mechWeapon") return true;
         return SFRPG.attackActions.includes(this.system.actionType);
     }
 
@@ -871,6 +872,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
 
         if (this.type === "starshipWeapon") return this._rollStarshipAttack(options);
         if (this.type === "vehicleAttack") return this._rollVehicleAttack(options);
+        if (this.type === "mechWeapon") return this._rollMechAttack(options);
 
         // Determine ability score modifier
         // TODO: This chunk is the same code as in base.js's _prepareAttackString(), probably good practice to combine these into one method somewhere
@@ -1154,6 +1156,141 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
     }
 
     /**
+     * Place an attack roll for a mech using a mechWeapon item.
+     * Attack = base attack (tier) + operator's BAB or Piloting ranks + upper limb bonuses.
+     * The operator is whoever is rolling (selected at roll time).
+     * @param {Object} options Options to pass to the attack roll
+     * @returns {Promise<RollResult?>}
+     */
+    async _rollMechAttack(options = {}) {
+        const isMelee = this.system.weaponType === "melee";
+        const attackKey = isMelee ? "meleeAttackBonus" : "rangedAttackBonus";
+
+        // Base attack (tier) + upper limb mods are pre-calculated on the mech
+        // Operator's BAB or Piloting ranks are added here at roll time
+        const parts = [
+            `@mech.attributes.${attackKey}`,
+            "max(@operator.attributes.baseAttackBonus.value, @operator.skills.pil.ranks)"
+        ];
+
+        const title = game.settings.get('sfrpg', 'useCustomChatCards')
+            ? game.i18n.format("SFRPG.Rolls.AttackRoll")
+            : game.i18n.format("SFRPG.Rolls.AttackRollFull", {name: this.name});
+
+        /** Build the roll context */
+        const rollContext = new RollContext();
+        rollContext.addContext("mech", this.actor);
+        rollContext.addContext("item", this, this.system);
+        rollContext.addContext("weapon", this, this.system);
+        rollContext.addTargetContext();
+        rollContext.setMainContext("");
+
+        this.actor?.setupRollContexts(rollContext, ["operator"]);
+
+        /** Create additional modifiers. */
+        const additionalModifiers = [];
+
+        if (additionalModifiers.length > 0) {
+            rollContext.addContext("additional", {name: "additional"}, {modifiers: { bonus: "n/a", rolledMods: additionalModifiers } });
+            parts.push("@additional.modifiers.bonus");
+        }
+
+        const rollOptions = {};
+
+        return DiceSFRPG.d20Roll({
+            event: options.event,
+            parts: parts,
+            rollContext: rollContext,
+            title: title,
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            critical: 20,
+            chatMessage: options.chatMessage,
+            dialogOptions: {
+                skipUI: options.skipUI,
+                left: options.event ? options.event.clientX - 80 : null,
+                top: options.event ? options.event.clientY - 80 : null
+            },
+            rollOptions: rollOptions,
+            actorContextKey: "operator",
+            rollType: "attack",
+            onClose: (roll, formula, finalFormula) => {
+                if (roll) {
+                    const rollDamageWithAttack = game.settings.get("sfrpg", "rollDamageWithAttack");
+                    if (rollDamageWithAttack && !options.disableDamageAfterAttack) {
+                        this.rollDamage({});
+                    }
+
+                    Hooks.callAll("attackRolled", {actor: this.actor, item: this, roll: roll, formula: {base: formula, final: finalFormula}, rollMetadata: options?.rollMetadata});
+                }
+            }
+        });
+    }
+
+    /**
+     * Place a damage roll for a mech using a mechWeapon item.
+     * Adds the mech's tier-based damage modifier (+ Strength for melee).
+     * @param {Object} options Options to pass to the damage roll
+     * @returns {Promise<RollResult?>}
+     */
+    async _rollMechDamage({ event } = {}, options = {}) {
+        const itemData = this.system;
+
+        if (!this.hasDamage) {
+            ui.notifications.error(game.i18n.localize("SFRPG.ActorSheet.Inventory.Interface.DamageNotAvailable"));
+            return;
+        }
+
+        const isMelee = itemData.weaponType === "melee";
+        const damageModKey = isMelee ? "melee" : "ranged";
+
+        const parts = foundry.utils.deepClone(itemData.damage.parts);
+        for (const part of parts) {
+            part.isDamageSection = true;
+        }
+
+        // Add mech damage modifier (tier + strength for melee, tier for ranged)
+        // Added directly to the first damage part's formula so the roll parser handles it correctly
+        const damageModValue = this.actor.system.attributes?.damageModifier?.[damageModKey] || 0;
+        if (damageModValue && parts.length > 0) {
+            parts[0].formula = `${parts[0].formula} + ${damageModValue}`;
+        }
+
+        let title = '';
+        if (game.settings.get('sfrpg', 'useCustomChatCards')) {
+            title = game.i18n.localize("SFRPG.Rolls.DamageRoll");
+        } else {
+            title = game.i18n.format("SFRPG.Rolls.DamageRollFull", {name: this.name});
+        }
+
+        /** Build the roll context */
+        const rollContext = new RollContext();
+        rollContext.addContext("mech", this.actor);
+        rollContext.addContext("item", this, this.system);
+        rollContext.addContext("weapon", this, this.system);
+        rollContext.setMainContext("");
+
+        return DiceSFRPG.damageRoll({
+            event: event,
+            parts: parts,
+            rollContext: rollContext,
+            title: title,
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            chatMessage: options.chatMessage,
+            dialogOptions: {
+                skipUI: options.skipUI,
+                width: 400,
+                top: event ? event.clientY - 80 : null,
+                left: window.innerWidth - 710
+            },
+            onClose: (roll, formula, finalFormula, isCritical) => {
+                if (roll) {
+                    Hooks.callAll("damageRolled", {actor: this.actor, item: this, roll: roll, isCritical: isCritical, formula: {base: formula, final: finalFormula}, rollMetadata: options?.rollMetadata});
+                }
+            }
+        });
+    }
+
+    /**
      * Place an attack roll for a starship using an item.
      * @param {Object} options Options to pass to the attack roll
      *
@@ -1326,6 +1463,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
 
         if (this.type === "starshipWeapon") return this._rollStarshipDamage({ event: event });
         if (this.type === "vehicleAttack") return this._rollVehicleDamage({ event: event});
+        if (this.type === "mechWeapon") return this._rollMechDamage({ event: event });
 
         // Determine ability score modifier
         let abl = itemData.ability;
