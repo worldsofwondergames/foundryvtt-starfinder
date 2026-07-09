@@ -168,8 +168,17 @@ export default function(engine) {
         // Attack Bonus: Base attack (tier table) + upper limb bonuses
         // Operator's BAB/Piloting is added at roll time (depends on who rolls)
         // ========================================
-        const meleeAttackMod = upperLimb?.system.meleeAttack || 0;
-        const rangedAttackMod = upperLimb?.system.rangedAttack || 0;
+        let meleeAttackMod = upperLimb?.system.meleeAttack || 0;
+        let rangedAttackMod = upperLimb?.system.rangedAttack || 0;
+
+        // If both melee and ranged bonuses exist, only apply the chosen one
+        if (meleeAttackMod && rangedAttackMod && upperLimb?.system.attackBonusChoice) {
+            if (upperLimb.system.attackBonusChoice === "melee") {
+                rangedAttackMod = 0;
+            } else {
+                meleeAttackMod = 0;
+            }
+        }
 
         data.attributes.attackBonus.tooltip.push(`Base Attack (Tier ${tier}): +${tierStats.baseAttackBonus}`);
         data.attributes.attackBonus.value = tierStats.baseAttackBonus;

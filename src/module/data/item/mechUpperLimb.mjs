@@ -32,6 +32,12 @@ export default class SFRPGItemMechUpperLimb extends SFRPGItemBase {
                 required: true,
                 label: "SFRPG.MechSheet.UpperLimb.RangedAttack"
             }),
+            attackBonusChoice: new fields.StringField({
+                initial: "melee",
+                blank: false,
+                required: true,
+                label: "SFRPG.MechSheet.UpperLimb.AttackBonusChoice"
+            }),
             eac: new fields.NumberField({
                 initial: 0,
                 integer: true,

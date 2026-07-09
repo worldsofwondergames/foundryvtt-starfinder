@@ -55,6 +55,17 @@
                             <input type="text" name="system.rangedAttack" value="{{itemData.rangedAttack}}" data-dtype="Number" />
                         </div>
                     </div>
+                    {{#if itemData.showAttackBonusChoice}}
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.MechSheet.UpperLimb.AttackBonusChoice" }}</label>
+                        <div class="form-fields">
+                            <select name="system.attackBonusChoice">
+                                <option value="melee" {{#if itemData.isMeleeChosen}}selected{{/if}}>{{ localize "SFRPG.MechSheet.UpperLimb.ChoiceMelee" }}</option>
+                                <option value="ranged" {{#if itemData.isRangedChosen}}selected{{/if}}>{{ localize "SFRPG.MechSheet.UpperLimb.ChoiceRanged" }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    {{/if}}
                     <div class="form-group">
                         <label>{{ localize "SFRPG.MechSheet.UpperLimb.Strength" }}</label>
                         <div class="form-fields">
