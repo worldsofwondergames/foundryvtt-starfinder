@@ -110,7 +110,6 @@ export class ItemSheetSFRPG extends foundry.appv1.sheets.ItemSheet {
         data.labels = this.item.labels;
 
         if (data.item.type === "mechUpperLimb") {
-            data.itemData.showAttackBonusChoice = (data.itemData.meleeAttack || 0) > 0 && (data.itemData.rangedAttack || 0) > 0;
             data.itemData.isMeleeChosen = data.itemData.attackBonusChoice === "melee";
             data.itemData.isRangedChosen = data.itemData.attackBonusChoice === "ranged";
         }

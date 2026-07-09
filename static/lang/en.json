@@ -2353,6 +2353,7 @@
             },
             "UpperLimb": {
                 "AttackBonusChoice": "Attack Bonus",
+                "ShowAttackBonusChoice": "Choose Attack Bonus",
                 "BaseHp": "Base HP",
                 "CanBeActivated": "Has Special Ability",
                 "ChoiceMelee": "+1 Melee",

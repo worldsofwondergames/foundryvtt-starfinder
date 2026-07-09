@@ -171,12 +171,12 @@ export default function(engine) {
         let meleeAttackMod = upperLimb?.system.meleeAttack || 0;
         let rangedAttackMod = upperLimb?.system.rangedAttack || 0;
 
-        // If both melee and ranged bonuses exist, only apply the chosen one
-        if (meleeAttackMod && rangedAttackMod && upperLimb?.system.attackBonusChoice) {
+        // Upper limbs marked with * let you choose +1 melee or +1 ranged
+        if (upperLimb?.system.showAttackBonusChoice) {
             if (upperLimb.system.attackBonusChoice === "melee") {
-                rangedAttackMod = 0;
+                meleeAttackMod += 1;
             } else {
-                meleeAttackMod = 0;
+                rangedAttackMod += 1;
             }
         }
 
