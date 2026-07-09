@@ -36,6 +36,11 @@ export default class SFRPGItemMechAuxiliary extends SFRPGItemBase {
                 required: true,
                 label: "SFRPG.MechSheet.Auxiliary.MpCost"
             }),
+            speed: new fields.StringField({
+                initial: "",
+                required: false,
+                label: "SFRPG.MechSheet.Auxiliary.Speed"
+            }),
             actions: new fields.ArrayField(
                 new fields.SchemaField(SFRPGItemBase.mechActionTemplate()),
                 { initial: [], required: true, label: "SFRPG.MechSheet.Action.Actions" }

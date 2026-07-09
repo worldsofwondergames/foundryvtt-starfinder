@@ -15,6 +15,7 @@
 - MP displayed as used/max in a styled box in the mech sheet header with tooltip breakdown per component
 - MP max calculated from Tech Revolution Table 4-2: (tier + 1) × 15
 - Auxiliary systems section header shows current/max count with add button hidden at capacity
+- Thrusters auxiliary system grants fly speed when activated
 
 ## Bugfixes
 - Fix mech item sheets failing to render due to missing mech-actions.hbs partial registration

@@ -216,6 +216,15 @@ export default function(engine) {
             addSpeedTooltips(lowerLimb.system.speed, data.attributes.speedTooltip, lowerLimb.name);
         }
 
+        // Apply speeds from active auxiliary systems (e.g., thrusters grant fly speed)
+        const auxiliarySystems = items.filter(i => i.type === "mechAuxiliary");
+        for (const aux of auxiliarySystems) {
+            if (aux.system.isActive && aux.system.speed) {
+                applySpeedModifiers(aux.system.speed, data.attributes.speed);
+                addSpeedTooltips(aux.system.speed, data.attributes.speedTooltip, aux.name);
+            }
+        }
+
         // ========================================
         // Power Points: From power core
         // ========================================
