@@ -139,6 +139,8 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             if (item.type === "mechWeapon") {
                 item.config.hasAttack = true;
                 item.config.hasDamage = hasDamage;
+                const effectiveLevel = item.system.levelOverride || actorData.details?.tier || 1;
+                item.config.levelLabel = `(${game.i18n.localize("SFRPG.MechSheet.Weapon.LevelShort")} ${effectiveLevel})`;
                 arr[0].push(item);
             } else if (item.type === "mechFrame") arr[1].push(item);
             else if (item.type === "mechAuxiliary") arr[2].push(item);

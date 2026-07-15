@@ -2383,6 +2383,7 @@
                 "DamageLevelMedium": "Medium",
                 "LevelOverride": "Weapon Level",
                 "LevelOverridePlaceholder": "Mech tier",
+                "LevelShort": "level",
                 "MpCost": "MP Cost",
                 "PpCost": "PP Cost",
                 "Range": "Range",
