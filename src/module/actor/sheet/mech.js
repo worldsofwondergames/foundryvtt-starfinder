@@ -272,9 +272,10 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         actionsTab.enabledWeapons = weapons.filter(w => w.system.slot !== "locker");
 
         for (const weapon of actionsTab.enabledWeapons) {
+            const weaponLevel = weapon.system.levelOverride || tier;
             const save = weapon.system.save;
             if (save?.type) {
-                const dc = save.dc || (12 + Math.floor(tier / 2));
+                const dc = save.dc || (12 + Math.floor(weaponLevel / 2));
                 weapon.config.saveLabel = `${saveTypeLabels[save.type] || save.type} DC ${dc}`;
             }
         }
