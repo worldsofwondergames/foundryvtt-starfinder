@@ -29,7 +29,6 @@ Brings the mech automation work forward onto the Foundry v14 codebase, including
 - Add ownership check before setting compendium flags
 
 ## Core System Improvements
-- Manifest and download URLs updated to point to development branch
 - Power Points automatically regenerate each turn during mech combat
 
 ## Compendium Updates
