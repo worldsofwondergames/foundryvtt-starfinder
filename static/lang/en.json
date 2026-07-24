@@ -951,6 +951,7 @@
                     "Repair": "Repair"
                 },
                 "Defense": "Defense",
+                "DropToSetOwner": "Drop an actor here to set the drone's owner.<br>Click to open the owner's sheet, right-click to clear owner.",
                 "Owner": "Owner"
             },
             "Inventory": {
@@ -1220,6 +1221,7 @@
         },
         "ItemMacro": {
             "Activate": "Activate",
+            "AdjustResource": "Adjust Actor Resource",
             "Attack": "Attack",
             "Cast": "Cast",
             "Damage": "Damage",

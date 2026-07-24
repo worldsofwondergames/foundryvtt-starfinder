@@ -1,3 +1,36 @@
+# Version 14.0.2
+Fixes conditions not showing up on tokens and adds hotbar dragging macros for actor resource adjustment.
+
+## Bugfixes
+- Re-enable showing of condition icons overtop of tokens by @danimrath
+
+## Core System Improvements
+- Actor Resources can now be dragged to a hotbar to allow for quick adjustment up or down with a Click/Ctrl+Click by @ian612
+
+# Version 14.0.1
+Addresses a couple of bugs that popped up in the v14 transition.
+
+## Bugfixes
+- Allow CRs with fractional values (and fix compendium actor errors)
+- Fix trait selector apps (languages, weapon properties, etc.)
+- Patch Foundry core bug not allowing players to create items
+
+# Version 14.0.0
+This update adds support for Foundry VTT Version 14, while addressing a couple of other small bugs.
+
+## Breaking Changes
+- Starfinder's Compendium Art Mapping functionality has been removed in favor of Foundry's native compendium art map support.
+- Enriched description html for chat cards is now located at `description.enrichedShort` and `description.enrichedValue` instead of `description.short` and `description.value`, respectively
+
+## Core System Improvements
+- Added support for Foundry v14
+- Documentation updated for version 14 development dependencies and install versions
+- Drones can now have their owner set by dragging and dropping an actor onto the drone sheet
+
+## Bugfixes
+- Document expanded fields on sheets now stay open when combat state or turn is updated
+- The Spellcasting Ability field at the top of the spellbook page for characters and drones now works correctly
+- Inline links' and enrichers' dynamic formulas no longer break once sent to chat
 # Version 0.32.0
 
 ## New Features
