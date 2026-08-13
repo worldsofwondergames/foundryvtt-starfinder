@@ -5,6 +5,23 @@
   "folder": "ulDGrCBGNQ6h0P8w",
   "img": "systems/sfrpg/icons/equipment/technological%20items/emergency_defense_sphere.webp",
   "system": {
+    "actions": [
+      {
+        "name": "Bullet Time",
+        "actionType": "reaction",
+        "description": "As a reaction when it would take damage from a ranged attack, the mech can try to dodge the hit, attempting a Reflex saving throw with a DC equal to 15 + the enemy creature's CR or mech tier. On a success, the attack misses.",
+        "ppCost": 2
+      },
+      {
+        "name": "Temporal Pulse",
+        "actionType": "standard",
+        "description": "As a standard action, the mech emanates a burst of chronological energy in an 80-foot radius. Allied creatures and mechs within the area can take an extra move action on their turn, while enemy creatures and mechs within the area must succeed at a Will save or lose their move action for the turn. This effect lasts for 1 round.",
+        "ppCost": 4,
+        "saveDCBase": 12,
+        "saveDCScaling": "halfTier",
+        "saveType": "will"
+      }
+    ],
     "canBeActivated": true,
     "description": {
       "chat": "",
@@ -15,7 +32,7 @@
     },
     "isActive": false,
     "mpCost": 2.5,
-    "ppCost": 2,
-    "source": "Tech Revolution pg. 107"
+    "ppCost": 4,
+    "source": "To Defy the Dragon pg. 60"
   }
 }
