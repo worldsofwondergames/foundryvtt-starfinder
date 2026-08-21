@@ -54,6 +54,7 @@
         "AbilityStr": "Força",
         "AbilityWis": "Sabedoria",
         "About": "Sobre",
+        "AcceptButtonLabel": "Accept",
         "ActionAbil": "Teste Habilidade",
         "ActionHeal": "Cura",
         "ActionMSAK": "Ataque Magia C.Corpo",
@@ -1109,6 +1110,7 @@
             "temp": "Temp"
         },
         "FortitudeSave": "Fortitude",
+        "FortitudeSaveShort": "Fort",
         "Ft": "Pés",
         "GreatFortitudeHint": "Talento de personagem que adiciona 2 aos salvamentos de Fortitude",
         "GreatFortitudeLabel": "Fortitude Maior",
@@ -2106,6 +2108,8 @@
                 "ActionType": "Action Type",
                 "Actions": "Special Actions",
                 "AddAction": "Add Action",
+                "DamageLevel": "Fires At Damage Level",
+                "DamageLevelNone": "Weapon's own",
                 "Description": "Description",
                 "Name": "Action Name",
                 "PpCost": "PP Cost",
@@ -2130,6 +2134,7 @@
                 },
                 "CombatResetConditions": "Removed conditions from {name}: {conditions}",
                 "CombatResetPP": "{name} PP reset to {value}/{max}",
+                "CombatResetSP": "{name} shields restored to {value} SP",
                 "CombatResetTitle": "<strong>Mech Combat Start</strong>",
                 "EnabledWeapons": "Enabled Weapons",
                 "GearActions": "Gear Actions",
@@ -2178,6 +2183,16 @@
                 },
                 "SpecialActions": "Special Actions"
             },
+            "AttackBonusOverride": {
+                "AlreadyArmed": "{source} is already armed for +{value} to the next attack roll.",
+                "Armed": "{source} is armed — the next attack roll gains +{value}.",
+                "Cancelled": "{source} cancelled, {amount} PP refunded.",
+                "LinkTooltip": "Roll {formula} and add it to this mech's next attack roll.",
+                "NoMech": "The mech this action was used by is no longer available.",
+                "NotOwner": "You do not have permission to roll this mech's bonus.",
+                "RollFlavor": "{source} — bonus to the next attack roll",
+                "Tag": "{source} (+{value})"
+            },
             "Attributes": {
                 "AttackBonus": "Attack Bonus",
                 "CombatTitle": "Combat",
@@ -2213,12 +2228,17 @@
                     "Land": "Land Speed",
                     "Swim": "Swim Speed"
                 },
-                "SpeedTitle": "Speed"
+                "SpeedTitle": "Speed",
+                "WillSave": "Will Save"
             },
             "Auxiliary": {
                 "CanBeActivated": "Can be Activated",
                 "MpCost": "MP Cost",
                 "PpCost": "PP Cost"
+            },
+            "Conditions": {
+                "DefenseTooltip": "{source}: {mod}",
+                "FromOperator": "{condition} (operator)"
             },
             "Crew": {
                 "AssignedCount": "({current} / {max})",
@@ -2398,6 +2418,8 @@
                 "DamageLevelMedium": "Medium",
                 "LevelOverride": "Weapon Level",
                 "LevelOverridePlaceholder": "Mech tier",
+                "LevelOverrideTooHigh": "{weapon} cannot be level {level} on a tier {tier} mech, which allows level {max} at most.",
+                "LevelOverrideTracksTier": "Mech tier",
                 "LevelShort": "level",
                 "MpCost": "MP Cost",
                 "PpCost": "PP Cost",
@@ -2419,15 +2441,24 @@
                 "AddedToLocker": "Weapon added to locker (no valid slots available).",
                 "Description": "Weapons stored here are not mounted and cannot be used in combat. Drag weapons to mounted slots in the Components tab to use them.",
                 "Empty": "No weapons in locker",
+                "InvalidSlotForWeapon": "{weapon} cannot be mounted in the {slot} slot.",
+                "LevelTooHigh": "{weapon} is level {level}. A tier {tier} mech cannot carry a weapon above level {max}.",
                 "MountedWeapons": "Mounted Weapons",
+                "NoComponentForSlot": "This mech has no component providing the {slot} slot.",
                 "NoComponentInstalled": "No component installed",
                 "NoWeaponsMounted": "No weapons mounted",
+                "NotEnoughSlots": "The {slot} slot does not have room for {weapon}.",
                 "RemoveComponentPrompt": "Removing {component} will move {count} weapon(s) to the Weapons Locker. They will be unusable until mounted to a valid slot. Continue?",
                 "RemoveComponentTitle": "Remove Component",
                 "SelectSlotPrompt": "Select where to mount {weapon}:",
                 "SelectSlotTitle": "Select Weapon Slot",
                 "SendToLocker": "Send to Locker",
-                "Title": "Weapons Locker"
+                "Title": "Weapons Locker",
+                "UnknownSlot": "{slot} is not a weapon mount."
+            },
+            "WillSave": {
+                "NoOperatorTooltip": "No operator assigned",
+                "OperatorTooltip": "Operator ({name}): {mod}"
             }
         },
         "Medium": "Médio",
@@ -2608,6 +2639,7 @@
         "RangeMedium": "Medium (100 ft. + 10 ft./level)",
         "Reach": "Alcance",
         "ReflexSave": "Reflexo",
+        "ReflexSaveShort": "Refl",
         "RepairDroneChatMessage": "{name} foi reparado para {regainedHP} pontos de vida.",
         "RepairDroneDialogCancelButton": "Cancelar",
         "RepairDroneDialogDescription": "Consertar seu drone? A taxa padrão é de até 10% do HP máximo do drone a cada 10 minutos, se você tiver o talento Reparar Drone (Ex), você pode reparar até 25% do PV máximo do drone.",
