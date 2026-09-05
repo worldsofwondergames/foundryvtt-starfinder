@@ -1,3 +1,22 @@
+# Version 14.1.2
+
+## New Features
+- A mech that drops below two-thirds and then below one-third of its Hit Points suffers a system failure. Each threshold posts a card carrying a 1d20; rolling it picks the component that failed from the printed table, and a component that fails twice goes from malfunctioning to inoperable. A single hit that crosses both thresholds posts both cards
+- A failed component tells on what the mech can do. A malfunctioning mount subtracts 2 from the weapons it carries and an inoperable one cannot fire them at all; a damaged frame halves and then removes the mech's hardness; damaged lower limbs halve and then stop its speeds; and a damaged power core halves and then stops the Power and Shield Points that come back at the end of a turn
+- A failing power core, cockpit or auxiliary component costs something the moment it fails, and each cost is a die on the card: the Power Points a failing core drains, a Reflex save and its damage for each operator a failing cockpit throws about, and the roll that picks which auxiliary system stops working
+- A failing auxiliary component gives each system it carries a 25% or 50% chance of doing nothing. A system that has to be activated is checked when it is used, and one giving a constant benefit at the start of each of the mech's turns. Inoperable controls put the same check on the mech sheet, for the pilot to press when they spend a full action on them
+- A mech carrying a failure can spend Power Points to work around it: 2 to ignore a malfunctioning component for the turn, or 4 to treat an inoperable one as merely malfunctioning. What it buys lasts until the start of the mech's next turn
+- The card that announces a failure says what the new condition does - the attack penalty, the halved speed, the chance of a system doing nothing - so the consequence is read where the roll is
+- The mech sheet shows a banner when a mech is wrecked at 0 Hit Points or destroyed past twice its Hit Points, and strikes through a weapon whose mount can no longer fire it
+- Every random outcome in all of this is a button somebody presses. Nothing is rolled for the player behind their back
+- The Replenish action now rolls its own dice. Its card reads "you gain 2d8 SP" with the dice written for the mech's own tier, and clicking them rolls and restores that many Shield Points, up to the mech's maximum. The result is whispered to the mech's owners and the GM the way the end-of-turn regeneration message is, and is not posted when the mech was already too close to full to gain anything. The dice can only be clicked by an owner or the GM, and they grey out once rolled so the 2 Power Points buy one roll
+- A token dropped onto a scene is now sized to that scene's grid scale rather than always to a 5 ft square. A token drawn at 3x3 squares is 15 ft across, so it becomes 1x1 on a 15 ft map and 1.5x1.5 on a 10 ft one. A mech is sized from the frame it has equipped instead, and follows the Tech Revolution rule: a mech's space rounds down to whole squares, so a Huge mech's 15 ft space fills a single square at the 10 ft scale mech encounters use, and it never shrinks below one square. A mech with no frame falls back to the squares its token was drawn at. A world setting, "Scale token sizes to the grid?", turns this off
+- A token that does not fill whole squares now moves in 5 ft steps rather than in the quarter squares Foundry places it by. A Medium creature on a 15 ft map steps in thirds and finishes flush with the far edge of the square instead of stopping short of it. Tokens that fill whole squares are placed as they always were
+
+## Bugfixes
+- A mech could not be damaged at all through the Apply Damage option on a chat card. Checking a mech against damage immunities read a block of traits that mechs do not have and threw, and the temporary Hit Point arithmetic produced a value the Hit Point field then refused. Damage dealt past 0 Hit Points is now kept as well, since a mech is destroyed once it has taken more than twice its Hit Points
+- A mech's Power and Shield Points now regenerate at the end of its turn rather than the start, in every round including the first, and once per round. Power Points were previously held back through the first round, and stepping back through the initiative order and forward again handed the mech its regeneration a second time
+
 # Version 14.1.1
 
 ## New Features

@@ -2,8 +2,44 @@ import { SFRPG } from "../../config.js";
 import { actionAttackBonus } from "../../rules/mech-attack-bonus.js";
 import { actionDamageOverride } from "../../rules/mech-damage-level.js";
 import { promoteDiceLinkToBonus } from "../../system/mech-bonus-link.js";
+import { promoteDiceLinkToReplenish } from "../../system/mech-replenish-link.js";
+import { replenishFormula } from "../../rules/mech-replenish.js";
+import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effects.js";
+import { auxiliarySystemUsable, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
 
 export const ActorMechMixin = (superclass) => class extends superclass {
+    /**
+     * Spend Power Points to shrug off one component's system failure.
+     *
+     * The override holds until the start of the mech's next turn. Because
+     * regeneration is worked out at the end of a turn, an override bought at the
+     * start of that turn is still standing when the power core's rate is read -
+     * which is the point of buying it.
+     *
+     * @param {string} component The component to overcome.
+     * @returns {Promise<boolean>} True when the Power Points were spent.
+     */
+    async useOvercomeAction(component) {
+        const held = this.getFlag("sfrpg", "systemOverrides") ?? {};
+        const statuses = effectiveSystems(this.system.attributes.systems, held);
+        const action = overcomeActions(statuses, held).find(entry => entry.component === component);
+        if (!action) return false;
+
+        const currentPP = this.system.attributes.pp.value || 0;
+        if (currentPP < action.ppCost) {
+            ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.Actions.InsufficientPP"));
+            return false;
+        }
+
+        const overrides = { ...held, [component]: action.override };
+        await this.update({
+            "system.attributes.pp.value": currentPP - action.ppCost,
+            "flags.sfrpg.systemOverrides": overrides
+        });
+
+        return true;
+    }
+
     /**
      * Perform one of the mech's actions: spend its Power Points, arm any damage
      * level override it declares, and post its chat card.
@@ -22,7 +58,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      *                                      action could not be performed
      */
     async useMechAction(category, index, { itemId = null, itemActionIndex = null } = {}) {
-        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus;
+        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, restoresShields;
         // Set for gear actions so the override they arm is spent by the weapon it
         // is printed on and not by whatever the mech fires next.
         let overrideItemId = null;
@@ -32,10 +68,18 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             const action = SFRPG.mechPPActions[index];
             if (!action) return null;
             name = game.i18n.localize(action.name);
-            description = game.i18n.localize(action.description);
             ppCost = action.ppCost;
             armsOverride = action.armsOverride;
             armsAttackBonus = actionAttackBonus(action);
+            restoresShields = action.restoresShields;
+
+            // An action whose dice depend on the mech writes them into its own
+            // sentence, so the card reads as this mech's version of the ability.
+            description = restoresShields
+                ? game.i18n.format(action.description, {
+                    formula: replenishFormula(this.system.details.tier, restoresShields)
+                })
+                : game.i18n.localize(action.description);
         } else if (category === "special") {
             const action = SFRPG.mechSpecialActions[index];
             if (!action) return null;
@@ -47,6 +91,15 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             if (!item) return null;
             const action = item.system.actions?.[itemActionIndex];
             if (!action) return null;
+
+            // A system stopped by the failure roll, or by a check it failed
+            // earlier this turn, does nothing at all - so it takes no payment.
+            if (item.type === "mechAuxiliary" && !auxiliarySystemUsable(item)) {
+                ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.SystemFailure.SystemStopped", {
+                    name: item.name
+                }));
+                return null;
+            }
             name = `${action.name} (${item.name})`;
             description = action.description;
             ppCost = action.ppCost;
@@ -72,6 +125,20 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 return null;
             }
             await this.update({ "system.attributes.pp.value": currentPP - ppCost });
+        }
+
+        // A failing auxiliary component may stop the system from doing anything.
+        // The check comes after the Power Points are deducted, because they are
+        // spent whether or not the system works.
+        if (category === "gear") {
+            const item = this.items.get(itemId);
+            if (item?.type === "mechAuxiliary") {
+                const statuses = effectiveSystems(
+                    this.system.attributes.systems,
+                    this.getFlag("sfrpg", "systemOverrides") ?? {}
+                );
+                await postAuxiliaryCheck(this, item, statuses.auxSystem);
+            }
         }
 
         // Actions like Devastating Hit are declared before damage is rolled, so they arm an
@@ -107,6 +174,22 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             if (promoted) descriptionHTML = wrapper.innerHTML;
         }
 
+        // Replenish's dice are not rolled here either. The card hands the player
+        // the roll, and clicking it restores the shields - see onMechReplenishClick.
+        if (restoresShields) {
+            const formula = replenishFormula(this.system.details.tier, restoresShields);
+            const enriched = await foundry.applications.ux.TextEditor.implementation.enrichHTML(description);
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = enriched;
+
+            const promoted = promoteDiceLinkToReplenish(wrapper, formula, {
+                source: name,
+                tooltip: game.i18n.format("SFRPG.MechSheet.Replenish.LinkTooltip", { formula })
+            });
+
+            if (promoted) descriptionHTML = wrapper.innerHTML;
+        }
+
         const ppSpent = (ppCost !== null && ppCost !== undefined && ppCost > 0)
             ? game.i18n.format("SFRPG.MechSheet.Actions.PPSpent", { amount: ppCost })
             : null;
@@ -133,6 +216,28 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             speaker: ChatMessage.getSpeaker({ actor: this }),
             content: html,
             style: CONST.CHAT_MESSAGE_STYLES.OTHER
+        });
+    }
+
+    /**
+     * Post the check unreliable controls owe when the pilot spends a full action.
+     *
+     * The system has no notion of that action, so it cannot be detected. The
+     * button on the sheet is the operator saying they took it.
+     *
+     * @returns {Promise<ChatMessage|null>} The card, or null when the cockpit is sound.
+     */
+    async rollCockpitControlCheck() {
+        const statuses = effectiveSystems(
+            this.system.attributes.systems,
+            this.getFlag("sfrpg", "systemOverrides") ?? {}
+        );
+        if (statuses.cockpit !== "inoperable") return null;
+
+        return postChanceCard(this, {
+            chance: 50,
+            purpose: "cockpit",
+            label: game.i18n.localize("SFRPG.MechSheet.SystemFailure.CockpitCheckLabel")
         });
     }
 
