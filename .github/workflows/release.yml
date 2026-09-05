@@ -76,6 +76,19 @@ jobs:
                   tag: ${{ github.event.release.tag_name }}
                   body: ${{ github.event.release.body }}
 
+            # The release event checks out the tag, which is usually behind the
+            # tip of development. Move the regenerated files onto the current
+            # development tip so the push below is a fast-forward.
+            - name: Move generated files onto development
+              run: |
+                  mkdir -p ../generated
+                  cp -R static/lang ../generated/lang
+                  cp static/system.json ../generated/system.json
+                  git fetch --depth=1 origin development
+                  git checkout -f -B development FETCH_HEAD
+                  cp -R ../generated/lang/. static/lang/
+                  cp ../generated/system.json static/system.json
+
             # Commit and push the local changes made to development
             - name: Commit & Push changes
               uses: actions-js/push@master
