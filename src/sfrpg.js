@@ -57,6 +57,7 @@ import registerSystemRules from "./module/rules.js";
 import { registerSystemSettings } from "./module/system/settings.js";
 import TooltipManagerSFRPG from "./module/tooltip.js";
 import { generateUUID, rerenderApps } from "./module/utils/utilities.js";
+import { clearSystemFlag } from "./module/utils/flags.js";
 
 import BaseEnricher from "./module/system/enrichers/base.js";
 import BrowserEnricher from "./module/system/enrichers/browser.js";
@@ -67,6 +68,8 @@ import TemplateEnricher from "./module/system/enrichers/template.js";
 import { onMechAttackBonusClick } from "./module/system/mech-bonus-link.js";
 import { onMechReplenishClick, onSpendMechReplenish } from "./module/system/mech-replenish-link.js";
 import {
+    DICE_ICON,
+    componentName,
     failureRecipients,
     onMechAuxiliaryPickClick,
     onMechChanceCheckClick,
@@ -896,10 +899,10 @@ Hooks.on("combatStart", async (combat) => {
         // The thresholds already crossed belong to the encounter just ended. A
         // mech repaired between fights has to be able to fail again.
         if (actor.getFlag("sfrpg", "systemFailures")) {
-            await actor.unsetFlag("sfrpg", "systemFailures");
+            await clearSystemFlag(actor, "systemFailures");
         }
         for (const claim of announcedFailures) {
-            if (claim.startsWith(`${actor.id}:`)) announcedFailures.delete(claim);
+            if (claim.startsWith(`${actor.uuid}:`)) announcedFailures.delete(claim);
         }
         await actor.setFlag("sfrpg", "failureEpoch", foundry.utils.randomID(8));
 
@@ -988,10 +991,10 @@ Hooks.on("onAfterUpdateCombat", async (eventData) => {
     const arriving = eventData.newCombatant?.actor;
     if (arriving?.type === "mech" && eventData.direction > 0) {
         if (arriving.getFlag("sfrpg", "systemOverrides")) {
-            await arriving.unsetFlag("sfrpg", "systemOverrides");
+            await clearSystemFlag(arriving, "systemOverrides");
         }
         for (const system of arriving.items.filter(item => item.getFlag("sfrpg", "failedThisTurn"))) {
-            await system.unsetFlag("sfrpg", "failedThisTurn");
+            await clearSystemFlag(system, "failedThisTurn");
         }
     }
 
@@ -1138,14 +1141,15 @@ async function postMechFailureCard(actor, threshold) {
     // world both reach this, and neither has seen the other's flag write yet.
     // The card says which mech, which threshold and which fight it belongs to; a
     // session that finds one already posted leaves it alone. The fight is part of
-    // it so that a card from an earlier encounter does not silence this one.
-    const stamp = `${actor.id}:${actor.getFlag("sfrpg", "failureEpoch") ?? "none"}:${threshold}`;
+    // it so that a card from an earlier encounter does not silence this one. The
+    // uuid tells two unlinked tokens of the same mech apart.
+    const stamp = `${actor.uuid}:${actor.getFlag("sfrpg", "failureEpoch") ?? "none"}:${threshold}`;
     if (game.messages.some(message => message.getFlag("sfrpg", "mechFailure") === stamp)) return null;
 
     const formula = "1d20";
     const tooltip = game.i18n.format("SFRPG.MechSheet.SystemFailure.RollTooltip", { formula });
     const button = `<a class="enriched-link" data-action="mechFailureRoll" data-formula="${formula}"`
-        + ` data-threshold="${threshold}" data-tooltip="${tooltip}">${formula}</a>`;
+        + ` data-threshold="${threshold}" data-tooltip="${tooltip}">${DICE_ICON}${formula}</a>`;
     const prompt = game.i18n
         .format("SFRPG.MechSheet.SystemFailure.Prompt", { name: actor.name, formula })
         .replace(formula, button);
@@ -1165,13 +1169,16 @@ async function postMechFailureCard(actor, threshold) {
 }
 
 /**
- * The thresholds a card has already been posted for, as `<actor id>:<threshold>`.
+ * The thresholds a card has already been posted for, as
+ * `<actor uuid>:<failure epoch>:<threshold>`.
  *
  * The flag on the actor is the durable record, but writing it is asynchronous:
  * one damage roll can reach the handler below twice within the same few
  * milliseconds, and both passes read the flag before either has written it. This
  * is claimed synchronously, so the second pass finds the threshold taken and
- * posts nothing. Cleared with the flag when the next fight starts.
+ * posts nothing. The epoch is part of the key so that starting a fight or
+ * resetting the mech, which both write a new epoch, frees every threshold again
+ * in every GM session, not only the one that made the change.
  */
 const announcedFailures = new Set();
 
@@ -1203,7 +1210,7 @@ Hooks.on("updateActor", async (actor, changes, options) => {
     // it is repaired to full, what it took past zero is repaired with it, so a
     // later beating is not added to one the mech has already recovered from.
     if (value >= actor.system.attributes.hp.max && actor.getFlag("sfrpg", "overkill")) {
-        await actor.unsetFlag("sfrpg", "overkill");
+        await clearSystemFlag(actor, "overkill");
     }
 
     const fired = actor.getFlag("sfrpg", "systemFailures") ?? [];
@@ -1217,13 +1224,50 @@ Hooks.on("updateActor", async (actor, changes, options) => {
 
     // Claimed here, before the first await, so a second pass arriving while the
     // flag is still being written has nothing left to announce.
-    const unclaimed = triggered.filter(threshold => !announcedFailures.has(`${actor.id}:${threshold}`));
+    const epoch = actor.getFlag("sfrpg", "failureEpoch") ?? "none";
+    const claim = threshold => `${actor.uuid}:${epoch}:${threshold}`;
+    const unclaimed = triggered.filter(threshold => !announcedFailures.has(claim(threshold)));
     if (unclaimed.length === 0) return;
-    for (const threshold of unclaimed) announcedFailures.add(`${actor.id}:${threshold}`);
+    for (const threshold of unclaimed) announcedFailures.add(claim(threshold));
 
     await actor.setFlag("sfrpg", "systemFailures", [...fired, ...unclaimed]);
 
     for (const threshold of unclaimed) {
         await postMechFailureCard(actor, threshold);
     }
+});
+
+// A player who resets a mech's System Damage leaves a report on the mech in the
+// same update. The GM's session posts it, whispered to GMs only, so the player
+// who made the change does not see it.
+Hooks.on("updateActor", async (actor, changes) => {
+    if (!game.users.activeGM?.isSelf) return;
+    if (actor.type !== "mech") return;
+
+    const report = foundry.utils.getProperty(changes, "flags.sfrpg.resetReport");
+    if (!report?.id) return;
+
+    const nominal = game.i18n.localize(CONFIG.SFRPG.mechSystemStatus.nominal);
+    const lines = [game.i18n.format("SFRPG.MechSheet.SystemFailure.ResetReport", {
+        user: game.users.get(report.user)?.name ?? "",
+        name: actor.name,
+        from: report.hpFrom,
+        to: report.hpTo
+    })];
+    for (const [component, status] of report.systems ?? []) {
+        lines.push(game.i18n.format("SFRPG.MechSheet.SystemFailure.ResetReportSystem", {
+            component: componentName(component),
+            status: game.i18n.localize(CONFIG.SFRPG.mechSystemStatus[status] ?? status),
+            nominal
+        }));
+    }
+
+    const title = game.i18n.localize("SFRPG.MechSheet.SystemFailure.ResetReportTitle");
+    await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: `<div class="sfrpg chat-card mech-failure-card">`
+            + `<header class="card-header flexrow"><h3 class="action-name">${title}</h3></header>`
+            + `<div class="card-content">${lines.map(line => `<p>${line}</p>`).join("")}</div></div>`,
+        whisper: game.users.filter(user => user.isGM).map(user => user.id)
+    });
 });

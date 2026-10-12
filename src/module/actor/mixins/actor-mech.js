@@ -5,7 +5,9 @@ import { promoteDiceLinkToBonus } from "../../system/mech-bonus-link.js";
 import { promoteDiceLinkToReplenish } from "../../system/mech-replenish-link.js";
 import { replenishFormula } from "../../rules/mech-replenish.js";
 import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effects.js";
+import { systemResetUpdate } from "../../rules/mech-system-failure.js";
 import { auxiliarySystemUsable, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
+import { clearSystemFlag } from "../../utils/flags.js";
 
 export const ActorMechMixin = (superclass) => class extends superclass {
     /**
@@ -394,6 +396,42 @@ export const ActorMechMixin = (superclass) => class extends superclass {
     }
 
     /**
+     * Put the mech back to full Hit Points with every component Nominal, and let
+     * its Hit Point thresholds post System Failure cards again.
+     *
+     * A player's reset carries a report in the same update, which the GM's
+     * session turns into a message only GMs can see. The player's own session
+     * cannot post it, because a user always sees the whispers they write.
+     *
+     * @returns {Promise<Actor|null>} The mech, or null when the user does not own it.
+     */
+    async resetSystemFailures() {
+        if (!this.isOwner) return null;
+
+        const { update, changed } = systemResetUpdate({
+            systems: this.system.attributes.systems,
+            hpMax: this.system.attributes.hp.max
+        });
+        if (!game.user.isGM) {
+            update["flags.sfrpg.resetReport"] = {
+                id: foundry.utils.randomID(8),
+                user: game.user.id,
+                hpFrom: this.system.attributes.hp.value,
+                hpTo: this.system.attributes.hp.max,
+                systems: changed
+            };
+        }
+        // Hit Points go up here, so this update cannot post a failure card.
+        await this.update(update);
+
+        if (this.getFlag("sfrpg", "systemFailures")) await clearSystemFlag(this, "systemFailures");
+        await this.setFlag("sfrpg", "failureEpoch", foundry.utils.randomID(8));
+
+        ui.notifications.info(game.i18n.format("SFRPG.MechSheet.SystemFailure.ResetDone", { name: this.name }));
+        return this;
+    }
+
+    /**
      * Clear one of the mech's armed overrides and hand back what it cost.
      *
      * The refund is capped at the mech's maximum so replenishing Power Points
@@ -408,7 +446,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         const override = this.getFlag("sfrpg", flag);
         if (!override) return null;
 
-        await this.unsetFlag("sfrpg", flag);
+        await clearSystemFlag(this, flag);
 
         const refund = override.ppSpent || 0;
         if (refund > 0) {

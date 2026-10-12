@@ -20,6 +20,12 @@ import { RPC } from "../rpc.js";
 export const SPENT_CLASS = "replenish-spent";
 
 /**
+ * The die shown at the front of every roll button on a failure card, matching
+ * the icon Foundry puts on its own inline rolls.
+ */
+export const DICE_ICON = `<i class="fas fa-dice-d20"></i> `;
+
+/**
  * Who sees a mech's system failure.
  *
  * The same audience as the regeneration and Replenish messages: the mech's
@@ -287,7 +293,7 @@ function transitionMarkup(actor, component, status) {
         return `<p><a class="enriched-link" data-action="${button.action}"`
             + ` data-formula="${button.formula}" data-index="${button.index}" data-dc="${dc}"`
             + (operator ? ` data-operator-uuid="${operator.uuid}"` : "")
-            + ` data-tooltip="${tooltip}">${label}</a></p>`;
+            + ` data-tooltip="${tooltip}">${DICE_ICON}${label}</a></p>`;
     }).join("");
 }
 
@@ -474,7 +480,7 @@ export async function postChanceCard(actor, { chance, purpose, label, systemId =
     const prompt = `<p><a class="enriched-link" data-action="mechChanceCheck"`
         + ` data-formula="1d100" data-chance="${chance}" data-purpose="${purpose}"`
         + (systemId ? ` data-system-id="${systemId}"` : "")
-        + ` data-index="0" data-tooltip="${tooltip}">${label}</a></p>`;
+        + ` data-index="0" data-tooltip="${tooltip}">${DICE_ICON}${label}</a></p>`;
 
     return ChatMessage.create({
         user: game.user.id,

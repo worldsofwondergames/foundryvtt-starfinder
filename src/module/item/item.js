@@ -23,6 +23,7 @@ import { Mix } from "../utils/custom-mixer.js";
 import { ItemActivationMixin } from "./mixins/item-activation.js";
 import { ItemCapacityMixin } from "./mixins/item-capacity.js";
 import { ItemChatMixin } from "./mixins/item-chat.js";
+import { clearSystemFlag } from "../utils/flags.js";
 
 /**
  * @import { RollResult } from '../dice.js'
@@ -1435,7 +1436,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
                 if (roll) {
                     // Only spend the bonus once a roll actually resolved - cancelling the
                     // attack dialog leaves it armed rather than eating the PP.
-                    if (attackBonusApplies) this.actor.unsetFlag("sfrpg", "attackBonusOverride");
+                    if (attackBonusApplies) clearSystemFlag(this.actor, "attackBonusOverride");
 
                     const rollDamageWithAttack = game.settings.get("sfrpg", "rollDamageWithAttack");
                     if (rollDamageWithAttack && !options.disableDamageAfterAttack) {
@@ -1532,7 +1533,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
                 if (roll) {
                     // Only spend the override once a roll actually resolved - cancelling the
                     // damage dialog leaves it armed rather than eating the PP.
-                    if (overrideApplied) this.actor.unsetFlag("sfrpg", "damageLevelOverride");
+                    if (overrideApplied) clearSystemFlag(this.actor, "damageLevelOverride");
 
                     Hooks.callAll("damageRolled", {actor: this.actor, item: this, roll: roll, isCritical: isCritical, formula: {base: formula, final: finalFormula}, rollMetadata: options?.rollMetadata});
                 }
