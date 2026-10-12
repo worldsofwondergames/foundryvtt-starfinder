@@ -1,6 +1,6 @@
 import { ActorSFRPG } from "../actor.js";
 import { armedOverrideBanners } from "../../rules/mech-attack-bonus.js";
-import { COMPONENT_LABELS, damageState } from "../../rules/mech-system-failure.js";
+import { COMPONENT_LABELS, damageState, systemHint } from "../../rules/mech-system-failure.js";
 import { effectiveSystems, overcomeActions, weaponUsable } from "../../rules/mech-system-effects.js";
 import { ActorSheetSFRPG } from "./base.js";
 import { LOCKER_SLOT, SLOT_COMPONENT_TYPES, droppedSlot, maxWeaponLevel, mountRefusal, weaponDropPlacement } from "./mech-weapon-slots.js";
@@ -49,6 +49,13 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         }
 
         this._getCrewData(data);
+
+        // What each component's current status does, for the hint beside its dropdown
+        const systems = data.system.attributes.systems ?? {};
+        data.systemHints = Object.fromEntries(Object.keys(COMPONENT_LABELS).map(component => [
+            component,
+            systemHint(component, systems[component]?.value, key => game.i18n.localize(key))
+        ]));
 
         // Enrich text editors
         data.enrichedDescription = await foundry.applications.ux.TextEditor.enrichHTML(this.actor.system.details.notes, {
@@ -472,6 +479,9 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
 
         // Cancel an armed damage level override
         html.find('.mech-override-cancel').click(event => this._onCancelOverride(event));
+
+        // Restore Hit Points, clear System Damage and let the thresholds fire again
+        html.find('.mech-reset-failures').click(() => this.actor.resetSystemFailures());
 
         // Mech weapon action button dragging (for creating hotbar macros)
         const attackButtons = html[0].querySelectorAll('button.attack, button.damage');

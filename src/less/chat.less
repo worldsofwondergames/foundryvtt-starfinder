@@ -322,3 +322,13 @@
     font-style: italic;
     color: var(--color-text-dark-secondary);
 }
+
+/* A failure card ends on its last paragraph, without the paragraph's margin
+   adding a gap below it. */
+.sfrpg.chat-card.mech-failure-card .card-content {
+    margin-bottom: 0;
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+}

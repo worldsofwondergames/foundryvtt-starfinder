@@ -559,3 +559,29 @@
         text-decoration: line-through;
     }
 }
+
+/* System Damage: the reset control sits flush right in the section header, and
+   each dropdown has a hint icon explaining its current status. */
+.sfrpg.sheet.actor.mech {
+    .mech-systems-header {
+        display: flex;
+        align-items: center;
+
+        .mech-reset-failures {
+            flex: 0 0 auto;
+            width: auto;
+            height: auto;
+            margin: 0 0 0 auto;
+            padding: 0 6px;
+            font-size: var(--font-size-12);
+            line-height: 20px;
+        }
+    }
+
+    .mech-system-hint {
+        flex: 0 0 auto;
+        margin-left: 4px;
+        cursor: help;
+        color: var(--color-text-dark-secondary);
+    }
+}

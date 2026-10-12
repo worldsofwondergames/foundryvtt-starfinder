@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMPONENT_LABELS, COMPONENT_TABLE, FAILURE_THRESHOLDS, componentForRoll, damageState, failuresTriggered, isFailed, nextStatus } from "./mech-system-failure.js";
+import { COMPONENT_LABELS, COMPONENT_TABLE, FAILURE_THRESHOLDS, componentForRoll, damageState, failuresTriggered, isFailed, nextStatus, systemHint, systemResetUpdate } from "./mech-system-failure.js";
 
 /** A mech's Hit Points as the damage hook reads them. */
 function hp({ value = 100, previousValue = 120, max = 120, fired = [] } = {}) {
@@ -142,5 +142,52 @@ describe("COMPONENT_LABELS", () => {
 
         expect(components.every(component => COMPONENT_LABELS[component])).toBe(true);
         expect(Object.keys(COMPONENT_LABELS)).toHaveLength(components.length);
+    });
+});
+
+describe("systemResetUpdate", () => {
+    it("restores Hit Points to the maximum and sets every component Nominal", () => {
+        const { update } = systemResetUpdate({
+            systems: { upperLimbs: { value: "inoperable" }, frame: { value: "nominal" } },
+            hpMax: 59
+        });
+        expect(update).toEqual({
+            "system.attributes.hp.value": 59,
+            "system.attributes.systems.upperLimbs.value": "nominal",
+            "system.attributes.systems.frame.value": "nominal"
+        });
+    });
+
+    it("reports only the components that were not already Nominal", () => {
+        const { changed } = systemResetUpdate({
+            systems: {
+                upperLimbs: { value: "inoperable" },
+                lowerLimbs: { value: "nominal" },
+                cockpit: { value: "malfunctioning" }
+            },
+            hpMax: 50
+        });
+        expect(changed).toEqual([["upperLimbs", "inoperable"], ["cockpit", "malfunctioning"]]);
+    });
+});
+
+describe("systemHint", () => {
+    const localize = key => `[${key}]`;
+
+    it("gives the Nominal hint for a working component", () => {
+        expect(systemHint("frame", "nominal", localize)).toBe("[SFRPG.MechSheet.Systems.NominalHint]");
+    });
+
+    it("gives the malfunctioning effect for a malfunctioning component", () => {
+        expect(systemHint("frame", "malfunctioning", localize)).toBe(
+            "[SFRPG.MechSheet.Systems.StatusMalfunctioning]: [SFRPG.MechSheet.SystemFailure.EffectFrameMalfunctioning]"
+        );
+    });
+
+    it("lists the malfunctioning effect before the inoperable one for an inoperable component", () => {
+        expect(systemHint("auxSystem", "inoperable", localize)).toBe(
+            "[SFRPG.MechSheet.Systems.StatusMalfunctioning]: [SFRPG.MechSheet.SystemFailure.EffectAuxSystemMalfunctioning]"
+            + "<br>[SFRPG.MechSheet.Systems.StatusInoperable]: [SFRPG.MechSheet.SystemFailure.EffectAuxSystemInoperable]"
+        );
     });
 });

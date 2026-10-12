@@ -132,3 +132,47 @@ export function nextStatus(status) {
 export function isFailed(status) {
     return status === "malfunctioning" || status === "inoperable";
 }
+
+/**
+ * The update that puts a mech back to full Hit Points with every component
+ * Nominal, and the components it changes.
+ *
+ * @param {object} options
+ * @param {Object<string, {value: string}>} [options.systems] The mech's components.
+ * @param {number} [options.hpMax] The mech's maximum Hit Points.
+ * @returns {{update: object, changed: Array<[string, string]>}} The update, and
+ *          each component that was not Nominal with the status it had.
+ */
+export function systemResetUpdate({ systems = {}, hpMax = 0 } = {}) {
+    const update = { "system.attributes.hp.value": hpMax };
+    const changed = [];
+    for (const [component, data] of Object.entries(systems)) {
+        const status = data?.value ?? "nominal";
+        if (status !== "nominal") changed.push([component, status]);
+        update[`system.attributes.systems.${component}.value`] = "nominal";
+    }
+
+    return { update, changed };
+}
+
+/**
+ * What a component's status does to it, for the hint beside its dropdown.
+ *
+ * The inoperable effects are written as a step on from the malfunctioning ones
+ * ("That chance rises to 50%"), so an inoperable component lists both.
+ *
+ * @param {string} component The component key.
+ * @param {string} status The component's status.
+ * @param {Function} localize Turns a localization key into text.
+ * @returns {string} The hint, as HTML.
+ */
+export function systemHint(component, status, localize) {
+    const label = COMPONENT_LABELS[component];
+    if (!label || !isFailed(status)) return localize("SFRPG.MechSheet.Systems.NominalHint");
+
+    const line = state => `${localize(`SFRPG.MechSheet.Systems.Status${state}`)}: `
+        + localize(`SFRPG.MechSheet.SystemFailure.Effect${label}${state}`);
+    const malfunctioning = line("Malfunctioning");
+
+    return status === "inoperable" ? `${malfunctioning}<br>${line("Inoperable")}` : malfunctioning;
+}

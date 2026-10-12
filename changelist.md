@@ -1,3 +1,16 @@
+# Version 14.1.3
+
+## New Features
+- The System Damage section of the mech sheet has a Reset button at the right of its header. It restores the mech to full Hit Points, sets every component to Nominal, and lets the two-thirds and one-third Hit Point thresholds post System Failure cards again. The mech's owners can press it as well as the GM. When a player resets a mech, the GMs get a whispered message naming the player and the mech, the Hit Points before and after, and each component that was not Nominal
+- Each System Damage dropdown has an info icon whose tooltip says what the component's current status does to the mech. An inoperable component lists its malfunctioning effect too, since the inoperable effects build on it
+
+## Bugfixes
+- An unlinked mech token could not clear a flag that its base actor also held. Unsetting it on the token let the base actor's value show through, so a token whose failures had been cleared still counted its thresholds as spent and never posted another System Failure card. Overrides, overkill and failed auxiliary checks had the same problem. The token now records the flag as cleared
+- Two unlinked tokens of the same mech shared their System Failure cards. Cards were keyed by the base actor, so the second token's card counted as already posted
+- The System Failure card showed the mech's portrait beside its title and left empty paragraphs and a gap around its text
+- The roll buttons on System Failure cards show a d20 icon, matching Foundry's own inline rolls
+- The Activated label on a mech auxiliary system's sheet, and the warning that a mech can have only one frame, showed their localization keys instead of text
+
 # Version 14.1.2
 
 ## New Features

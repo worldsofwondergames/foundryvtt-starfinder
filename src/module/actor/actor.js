@@ -19,6 +19,7 @@ import { ActorRestMixin } from "./mixins/actor-rest.js";
 import { ItemSFRPG } from "../item/item.js";
 import { ItemSheetSFRPG } from "../item/sheet.js";
 import SFRPGTimedEffect from "../timedEffect/timedEffect.js";
+import { clearSystemFlag } from "../utils/flags.js";
 import { } from "./crew-update.js";
 
 /**
@@ -975,7 +976,7 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         // to get it back before the turn ends.
         if (this.type === "mech") {
             for (const flag of ["damageLevelOverride", "attackBonusOverride"]) {
-                if (this.getFlag("sfrpg", flag)) this.unsetFlag("sfrpg", flag);
+                if (this.getFlag("sfrpg", flag)) clearSystemFlag(this, flag);
             }
         }
 

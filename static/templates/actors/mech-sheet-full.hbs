@@ -276,7 +276,12 @@
             </div>
 
             <div class="flexcol">
-                <h3 class="form-header noborder">{{ localize "SFRPG.MechSheet.Systems.Title" }}</h3>
+                <h3 class="form-header noborder mech-systems-header">
+                    <span>{{ localize "SFRPG.MechSheet.Systems.Title" }}</span>
+                    {{#if editable}}
+                    <button type="button" class="mech-reset-failures" data-tooltip="{{ localize "SFRPG.MechSheet.SystemFailure.ResetTooltip" }}"><i class="fas fa-rotate-left"></i> {{ localize "SFRPG.MechSheet.SystemFailure.Reset" }}</button>
+                    {{/if}}
+                </h3>
                 <div class="flexrow">
                     <div class="flexcol">
                         <div class="form-group">
@@ -285,6 +290,7 @@
                                 <select name="system.attributes.systems.upperLimbs.value">
                                     {{selectOptions (sfrpg "mechSystemStatus") selected=system.attributes.systems.upperLimbs.value localize=true}}
                                 </select>
+                                <i class="fas fa-circle-info mech-system-hint" data-tooltip="{{lookup systemHints "upperLimbs"}}"></i>
                             </div>
                         </div>
                         <div class="form-group">
@@ -293,6 +299,7 @@
                                 <select name="system.attributes.systems.lowerLimbs.value">
                                     {{selectOptions (sfrpg "mechSystemStatus") selected=system.attributes.systems.lowerLimbs.value localize=true}}
                                 </select>
+                                <i class="fas fa-circle-info mech-system-hint" data-tooltip="{{lookup systemHints "lowerLimbs"}}"></i>
                             </div>
                         </div>
                         <div class="form-group">
@@ -301,6 +308,7 @@
                                 <select name="system.attributes.systems.frame.value">
                                     {{selectOptions (sfrpg "mechSystemStatus") selected=system.attributes.systems.frame.value localize=true}}
                                 </select>
+                                <i class="fas fa-circle-info mech-system-hint" data-tooltip="{{lookup systemHints "frame"}}"></i>
                             </div>
                         </div>
                         <div class="form-group">
@@ -309,6 +317,7 @@
                                 <select name="system.attributes.systems.powerCore.value">
                                     {{selectOptions (sfrpg "mechSystemStatus") selected=system.attributes.systems.powerCore.value localize=true}}
                                 </select>
+                                <i class="fas fa-circle-info mech-system-hint" data-tooltip="{{lookup systemHints "powerCore"}}"></i>
                             </div>
                         </div>
                         <div class="form-group">
@@ -317,6 +326,7 @@
                                 <select name="system.attributes.systems.auxSystem.value">
                                     {{selectOptions (sfrpg "mechSystemStatus") selected=system.attributes.systems.auxSystem.value localize=true}}
                                 </select>
+                                <i class="fas fa-circle-info mech-system-hint" data-tooltip="{{lookup systemHints "auxSystem"}}"></i>
                             </div>
                         </div>
                         <div class="form-group">
@@ -325,6 +335,7 @@
                                 <select name="system.attributes.systems.cockpit.value">
                                     {{selectOptions (sfrpg "mechSystemStatus") selected=system.attributes.systems.cockpit.value localize=true}}
                                 </select>
+                                <i class="fas fa-circle-info mech-system-hint" data-tooltip="{{lookup systemHints "cockpit"}}"></i>
                             </div>
                         </div>
                     </div>
