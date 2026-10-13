@@ -28,7 +28,7 @@
         "damage": null,
         "effectType": "all-attacks",
         "enabled": false,
-        "limitTo": null,
+        "limitTo": "container",
         "max": 2,
         "modifier": "2",
         "modifierType": "formula",

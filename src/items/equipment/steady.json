@@ -28,7 +28,7 @@
         "damage": null,
         "effectType": "ranged-damage",
         "enabled": false,
-        "limitTo": null,
+        "limitTo": "container",
         "max": 0,
         "modifier": "@abilities.str.mod",
         "modifierType": "formula",
