@@ -1,4 +1,4 @@
-import { getItemContainer } from "../actor/actor-inventory-utils.js";
+import { isInsideContainer } from "../rules/item-containment.js";
 import { SFRPG } from "../config.js";
 import { DiceSFRPG } from "../dice.js";
 import SFRPGModifier from "../modifiers/modifier.js";
@@ -1122,10 +1122,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             if (!mod.enabled && mod.modifierType !== SFRPGModifierType.FORMULA) return false;
 
             if (mod.limitTo === "parent" && mod.item !== this) return false;
-            if (mod.limitTo === "container") {
-                const parentItem = getItemContainer(this.actor.items, mod.item);
-                if (parentItem?.id !== this.id) return false;
-            }
+            if (mod.limitTo === "container" && !isInsideContainer(this.actor.items, mod.item, this)) return false;
 
             if (mod.effectType === SFRPGEffectType.WEAPON_ATTACKS) {
                 if (mod.valueAffected !== this.system?.weaponType) {
@@ -1161,10 +1158,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             if (!mod.enabled || mod.modifierType !== SFRPGModifierType.CONSTANT) return false;
 
             if (mod.limitTo === "parent" && mod.item !== this) return false;
-            if (mod.limitTo === "container") {
-                const parentItem = getItemContainer(this.actor.items, mod.item);
-                if (parentItem?.id !== this.id) return false;
-            }
+            if (mod.limitTo === "container" && !isInsideContainer(this.actor.items, mod.item, this)) return false;
 
             if (mod.effectType === SFRPGEffectType.WEAPON_AMMO_USAGE_MULTIPLIER) {
                 if (mod.valueAffected !== this.system?.weaponType) {
@@ -1888,10 +1882,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             }
 
             if (mod.limitTo === "parent" && mod.item !== this) return false;
-            if (mod.limitTo === "container") {
-                const parentItem = getItemContainer(this.actor.items, mod.item);
-                if (parentItem?.id !== this.id) return false;
-            }
+            if (mod.limitTo === "container" && !isInsideContainer(this.actor.items, mod.item, this)) return false;
 
             if (mod.effectType === SFRPGEffectType.WEAPON_DAMAGE) {
                 if (mod.valueAffected !== this.system.weaponType) {

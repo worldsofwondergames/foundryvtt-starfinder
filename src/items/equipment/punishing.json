@@ -28,7 +28,7 @@
         "damage": null,
         "effectType": "all-damage",
         "enabled": false,
-        "limitTo": null,
+        "limitTo": "container",
         "max": 1,
         "modifier": "1",
         "modifierType": "formula",
