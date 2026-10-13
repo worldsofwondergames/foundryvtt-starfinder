@@ -8,6 +8,7 @@ import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effec
 import { systemResetUpdate } from "../../rules/mech-system-failure.js";
 import { auxiliarySystemUsable, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
 import { clearSystemFlag } from "../../utils/flags.js";
+import { HURL_DAMAGE_LEVELS, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
 
 export const ActorMechMixin = (superclass) => class extends superclass {
     /**
@@ -88,6 +89,12 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             name = game.i18n.localize(action.name);
             description = game.i18n.localize(action.description);
             actionType = action.actionType;
+
+            if (action.grantsHurl) {
+                const granted = await this._grantHurlAttack();
+                if (!granted) return null;
+                description = `${description} ${game.i18n.format(`SFRPG.MechSheet.Hurl.Thrown.${granted.damageLevel}`, { size: granted.sizeLabel })}`;
+            }
         } else if (category === "gear") {
             const item = this.items.get(itemId);
             if (!item) return null;
@@ -371,6 +378,101 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         });
 
         return roll.total;
+    }
+
+    /**
+     * Ask what Hurl picks up, then grant the attack until the end of the mech's turn.
+     *
+     * Hurl can only be used on the mech's own turn. Outside combat there are no
+     * turns, so it is always allowed and lasts until it is cancelled.
+     *
+     * The choices are object sizes worked out from the mech's own size, which
+     * comes from its frame. A mech with no frame size gets the two damage levels
+     * described in words instead.
+     *
+     * @returns {Promise<{damageLevel: string, sizeLabel: string}|null>} What was granted, or null if Hurl was refused or the dialog was closed.
+     */
+    async _grantHurlAttack() {
+        if (!isActorsTurn(game.combat, this)) {
+            ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.Hurl.NotYourTurn", { name: this.name }));
+            return null;
+        }
+
+        const sizeName = size => game.i18n.localize(SFRPG.actorSizes[size]);
+        const sizes = hurlSizeOptions(this.system.attributes?.size, Object.keys(SFRPG.actorSizes));
+        const choices = sizes
+            ? sizes.map(o => ({
+                damageLevel: o.damageLevel,
+                sizeLabel: o.orSmaller
+                    ? game.i18n.format("SFRPG.MechSheet.Hurl.OrSmaller", { size: sizeName(o.size) })
+                    : sizeName(o.size)
+            }))
+            : [
+                { damageLevel: HURL_DAMAGE_LEVELS.large, sizeLabel: game.i18n.localize("SFRPG.MechSheet.Hurl.SizeLarge") },
+                { damageLevel: HURL_DAMAGE_LEVELS.small, sizeLabel: game.i18n.localize("SFRPG.MechSheet.Hurl.SizeSmall") }
+            ];
+
+        const picked = await foundry.applications.api.DialogV2.wait({
+            window: { title: game.i18n.localize("SFRPG.MechSheet.Hurl.SizeTitle") },
+            content: `<p>${game.i18n.localize("SFRPG.MechSheet.Hurl.SizePrompt")}</p>`,
+            buttons: choices.map((c, i) => ({
+                action: String(i),
+                label: game.i18n.format("SFRPG.MechSheet.Hurl.Choice", {
+                    size: c.sizeLabel,
+                    damage: game.i18n.localize(`SFRPG.MechSheet.Hurl.Damage.${c.damageLevel}`)
+                }),
+                default: i === 0
+            })),
+            rejectClose: false
+        });
+        const choice = choices[Number(picked)];
+        if (picked === null || picked === undefined || !choice) return null;
+
+        const combat = game.combat?.started ? game.combat : null;
+        await this.setFlag("sfrpg", "hurlAttack", {
+            damageLevel: choice.damageLevel,
+            sizeLabel: choice.sizeLabel,
+            round: combat ? combat.round : null,
+            turn: combat ? combat.turn : null
+        });
+        return choice;
+    }
+
+    /**
+     * The weapon a granted Hurl attack rolls with, or null if none is granted.
+     *
+     * It is never saved to the mech. It is built fresh from the flag each time, as
+     * an unsaved item whose parent is the mech, so the normal mech attack and damage
+     * rolls handle it.
+     *
+     * @returns {Item|null}
+     */
+    getHurlWeapon() {
+        const flag = this.getFlag("sfrpg", "hurlAttack");
+        if (!hurlStillActive(flag, game.combat)) return null;
+
+        const system = hurlWeaponSystem({
+            tier: this.system.details?.tier,
+            damageLevel: flag.damageLevel,
+            damageTable: SFRPG.mechWeaponDamageByTier
+        });
+        if (!system) return null;
+
+        return new CONFIG.Item.documentClass({
+            name: game.i18n.localize("SFRPG.MechSheet.Actions.Special.Hurl.Name"),
+            type: "mechWeapon",
+            img: "icons/svg/barrel.svg",
+            system
+        }, { parent: this });
+    }
+
+    /**
+     * Give up a granted Hurl attack before the turn ends.
+     *
+     * @returns {Promise<void>}
+     */
+    async cancelHurlAttack() {
+        if (this.getFlag("sfrpg", "hurlAttack")) await clearSystemFlag(this, "hurlAttack");
     }
 
     /**

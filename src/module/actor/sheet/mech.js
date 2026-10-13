@@ -312,6 +312,24 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             }
         }
 
+        // A granted Hurl attack is listed with the weapons until the turn ends.
+        const hurl = this.actor.getHurlWeapon?.();
+        if (hurl) {
+            // The attack string is worked out the same way as for a mounted weapon.
+            const view = { type: hurl.type, system: hurl.system, actor: this.actor, config: {} };
+            this._prepareAttackString(view);
+            actionsTab.hurl = {
+                name: hurl.name,
+                img: hurl.img,
+                attackString: view.config.attackString,
+                attackTooltip: view.config.attackTooltip,
+                damageString: `${hurl.system.damage.parts[0].formula} + ${actorData.attributes?.damageModifier?.melee || 0} B`,
+                throwTooltip: game.i18n.format("SFRPG.MechSheet.Weapon.ThrowTooltip", { range: hurl.system.range }),
+                sizeLabel: this.actor.getFlag("sfrpg", "hurlAttack")?.sizeLabel
+                    ?? game.i18n.localize(`SFRPG.MechSheet.Hurl.Level.${hurl.system.damageLevel}`)
+            };
+        }
+
         // PP Actions (universal, always available)
         const currentPP = actorData.attributes?.pp?.value || 0;
         const insufficientPPTooltip = game.i18n.localize("SFRPG.MechSheet.Actions.InsufficientPP");
@@ -470,6 +488,9 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         // Operator Tab
         html.find('.crew-view').click(event => this._onActorView(event));
         html.find('.item-action .attack-thrown').click(event => this._onThrownAttack(event));
+        html.find('.hurl-attack').click(event => { event.preventDefault(); this.actor.getHurlWeapon()?.rollAttack({ event, thrown: true }); });
+        html.find('.hurl-damage').click(event => { event.preventDefault(); this.actor.getHurlWeapon()?.rollDamage({ event }); });
+        html.find('.hurl-cancel').click(event => { event.preventDefault(); this.actor.cancelHurlAttack(); });
 
         // Mission Pods
         html.find('.pod-activate').click(event => this._onMissionPodActivate(event));
