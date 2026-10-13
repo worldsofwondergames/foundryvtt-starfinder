@@ -12,6 +12,7 @@
 - Every list on a character sheet's Features and Inventory tabs is sorted by name, including the contents of containers. Numbers in names sort by value, so a Mk 2 laser pistol comes before a Mk 10. Classes still list highest level first
 
 ## Bugfixes
+- A player who owned a mech got the error "may only be modified by a GM or Assistant GM user" when dragging a frame, weapon or other mech component onto it, and the component was not added. Mech components marked their GM Notes field as GM-only, which stops a player creating the item at all. Other item types had the same marking removed earlier
 - Every condition and other permanent effect was switched off whenever world time moved outside combat, such as when a combat was created or ended. Its modifiers stopped applying and its turn events stopped rolling, while the condition still showed on the token. A permanent effect's end time worked out to NaN, and the world time check now leaves effects that never run out alone
 - An unlinked mech token could not clear a flag that its base actor also held. Unsetting it on the token let the base actor's value show through, so a token whose failures had been cleared still counted its thresholds as spent and never posted another System Failure card. Overrides, overkill and failed auxiliary checks had the same problem. The token now records the flag as cleared
 - Two unlinked tokens of the same mech shared their System Failure cards. Cards were keyed by the base actor, so the second token's card counted as already posted
