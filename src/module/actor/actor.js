@@ -975,7 +975,7 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         // rolled against expires here. The PP stays spent - use the sheet's disarm control
         // to get it back before the turn ends.
         if (this.type === "mech") {
-            for (const flag of ["damageLevelOverride", "attackBonusOverride"]) {
+            for (const flag of ["damageLevelOverride", "attackBonusOverride", "hurlAttack"]) {
                 if (this.getFlag("sfrpg", flag)) clearSystemFlag(this, flag);
             }
         }

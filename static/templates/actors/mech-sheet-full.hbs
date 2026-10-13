@@ -547,8 +547,31 @@
                 </li>
                 {{/each}}
                 {{else}}
+                {{#unless actionsTab.hurl}}
                 <li class="mech-action-item flexrow empty-slot">
                     <span>{{ localize "SFRPG.MechSheet.Actions.NoEnabledWeapons" }}</span>
+                </li>
+                {{/unless}}
+                {{/if}}
+
+                {{!-- A thrown attack granted by Hurl, until the end of the mech's turn --}}
+                {{#if actionsTab.hurl}}
+                <li class="mech-action-item flexrow mech-hurl-attack">
+                    <div class="mech-action-name flexrow">
+                        <div class="item-image small" style="background-image: url({{actionsTab.hurl.img}})"></div>
+                        <h4>{{actionsTab.hurl.name}} ({{actionsTab.hurl.sizeLabel}})</h4>
+                    </div>
+                    {{#if @root.isOwner}}
+                    <div class="mech-action-buttons">
+                        <button type="button" class="tag attack-thrown hurl-attack" data-tooltip="{{actionsTab.hurl.throwTooltip}}">
+                            {{ localize "SFRPG.MechSheet.Weapon.Throw" }} {{actionsTab.hurl.attackString}}
+                        </button>
+                        <button type="button" class="tag damage hurl-damage" data-tooltip="{{localize "SFRPG.Damage.Title"}}">
+                            {{actionsTab.hurl.damageString}}
+                        </button>
+                        <button type="button" class="tag mech-override-cancel hurl-cancel">{{ localize "SFRPG.MechSheet.DamageLevelOverride.Cancel" }}</button>
+                    </div>
+                    {{/if}}
                 </li>
                 {{/if}}
             </ol>

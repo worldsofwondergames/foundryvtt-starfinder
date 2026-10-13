@@ -2294,6 +2294,27 @@
                 "OperatorTooltip": "Operator ({name}): {mod}",
                 "TierBonusTooltip": "Tier {tier} bonus: {mod}"
             },
+            "Hurl": {
+                "Choice": "{size} ({damage})",
+                "Damage": {
+                    "low": "light damage",
+                    "medium": "medium damage"
+                },
+                "Level": {
+                    "low": "Light",
+                    "medium": "Medium"
+                },
+                "NotYourTurn": "{name} can only Hurl on its own turn.",
+                "OrSmaller": "{size} or smaller",
+                "SizeLarge": "Maximum or next-smallest size",
+                "SizePrompt": "How big is the object the mech picks up?",
+                "SizeSmall": "Smaller",
+                "SizeTitle": "Hurl",
+                "Thrown": {
+                    "low": "It picks up a {size} object, which deals light damage, and can throw it until the end of its turn.",
+                    "medium": "It picks up a {size} object, which deals medium damage, and can throw it until the end of its turn."
+                }
+            },
             "InvalidItem": "{name} is not a valid mech item.",
             "Inventory": {
                 "Inventory": "Cargo"

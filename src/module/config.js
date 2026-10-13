@@ -1064,7 +1064,9 @@ SFRPG.mechSpecialActions = [
     {
         name: "SFRPG.MechSheet.Actions.Special.Hurl.Name",
         description: "SFRPG.MechSheet.Actions.Special.Hurl.Description",
-        actionType: "full"
+        actionType: "full",
+        // Using it grants a thrown attack until the end of the mech's turn - see mech-hurl.js.
+        grantsHurl: true
     },
     {
         name: "SFRPG.MechSheet.Actions.Special.Scan.Name",
