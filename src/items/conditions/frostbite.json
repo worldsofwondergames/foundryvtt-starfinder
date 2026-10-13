@@ -1,0 +1,46 @@
+{
+  "_id": "Fr0stb1teCold7Xq",
+  "name": "Frostbite",
+  "type": "effect",
+  "img": "icons/svg/frozen.svg",
+  "system": {
+    "type": "condition",
+    "abilityMods": {
+      "parts": []
+    },
+    "activeDuration": {
+      "activationTime": 0,
+      "endsOn": "onTurnStart",
+      "expiryInit": 0,
+      "expiryMode": {
+        "type": "turn",
+        "turn": "parent"
+      },
+      "unit": "permanent",
+      "value": 0
+    },
+    "context": {},
+    "critical": {
+      "effect": "",
+      "parts": []
+    },
+    "damage": {
+      "parts": []
+    },
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>&gt;@UUID[Compendium.sfrpg.rules.Item.0yJjfyvWg5pDLcVR]{Conditions}</p>\n<hr />\n<p>Applied by the frostbite weapon critical hit effect: “The weapon rimes the target, draining their heat and causing frostbite damage equal to the amount listed. This functions as the burning condition but deals cold damage rather than fire damage.”</p>\n<p>At the start of your turn each round, before you take any actions, you take the listed amount of damage as cold damage, or 1d6 cold damage if the effect lists no amount. Damage from multiple sources that inflict this condition is cumulative, as it is for burning.</p>\n<p>See @UUID[Compendium.sfrpg.conditions.Item.8LdyXZl9PeXXFE8O]{Burning} for the saving throw that ends the condition.</p>"
+    },
+    "enabled": true,
+    "modifiers": [],
+    "requirements": "Condition",
+    "showOnToken": true,
+    "slug": "frostbite",
+    "source": "Interstellar Species pg. 79",
+    "sourceActorId": null,
+    "turnEvents": []
+  }
+}

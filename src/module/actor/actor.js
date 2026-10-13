@@ -20,6 +20,7 @@ import { ItemSFRPG } from "../item/item.js";
 import { ItemSheetSFRPG } from "../item/sheet.js";
 import SFRPGTimedEffect from "../timedEffect/timedEffect.js";
 import { clearSystemFlag } from "../utils/flags.js";
+import { tickOngoingConditions } from "../system/ongoing-condition.js";
 import { } from "./crew-update.js";
 
 /**
@@ -961,13 +962,15 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         }
     }
 
-    _onTurnStart() {
+    async _onTurnStart() {
         // A mech's Power and Shield Point regeneration belongs to the end of its
         // turn, and is handled by the onAfterUpdateCombat hook, which reports what
         // it restored. Doing it here as well regenerated both pools twice a turn.
-        for (const item of this.items) {
-            item._onTurnStart?.();
-        }
+        await Promise.all(this.items.map(item => item._onTurnStart?.()));
+
+        // Ongoing damage was just rolled by the conditions' turn events, so a
+        // condition on its last round is removed only now.
+        await tickOngoingConditions(this);
     }
 
     _onTurnEnd() {
