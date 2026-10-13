@@ -528,6 +528,11 @@
                         <button type="button" class="tag attack" data-tooltip="{{weapon.config.attackTooltip}}">
                             {{weapon.config.attackString}}
                         </button>
+                        {{#if weapon.config.throwTooltip}}
+                        <button type="button" class="tag attack-thrown" data-tooltip="{{weapon.config.throwTooltip}}">
+                            {{ localize "SFRPG.MechSheet.Weapon.Throw" }} {{weapon.config.attackString}}
+                        </button>
+                        {{/if}}
                         {{/if}}
                         {{#if weapon.config.hasDamage}}
                         <button type="button" class="tag damage" data-tooltip="{{localize "SFRPG.Damage.Title"}}">

@@ -2,6 +2,7 @@ import { ActorSFRPG } from "../actor.js";
 import { armedOverrideBanners } from "../../rules/mech-attack-bonus.js";
 import { COMPONENT_LABELS, damageState, systemHint } from "../../rules/mech-system-failure.js";
 import { effectiveSystems, overcomeActions, weaponUsable } from "../../rules/mech-system-effects.js";
+import { canThrow, thrownRange } from "../../rules/mech-thrown.js";
 import { ActorSheetSFRPG } from "./base.js";
 import { LOCKER_SLOT, SLOT_COMPONENT_TYPES, droppedSlot, maxWeaponLevel, mountRefusal, weaponDropPlacement } from "./mech-weapon-slots.js";
 
@@ -303,6 +304,12 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             }
 
             weapon.config.unusable = !weaponUsable(systemStatuses, weapon.system.slot);
+
+            if (canThrow(weapon.system)) {
+                weapon.config.throwTooltip = game.i18n.format("SFRPG.MechSheet.Weapon.ThrowTooltip", {
+                    range: thrownRange(weapon.system.special)
+                });
+            }
         }
 
         // PP Actions (universal, always available)
@@ -462,6 +469,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
 
         // Operator Tab
         html.find('.crew-view').click(event => this._onActorView(event));
+        html.find('.item-action .attack-thrown').click(event => this._onThrownAttack(event));
 
         // Mission Pods
         html.find('.pod-activate').click(event => this._onMissionPodActivate(event));
@@ -1051,6 +1059,17 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         const actorId = $(event.currentTarget).parents('.crew')
             .data('actorId');
         this.actor.removeFromCrew(actorId);
+    }
+
+    /**
+     * Throws a melee weapon that has the thrown property.
+     *
+     * @param {Event} event The originating click event
+     */
+    _onThrownAttack(event) {
+        event.preventDefault();
+        const itemId = event.currentTarget.closest('.item').dataset.itemId;
+        return this.actor.items.get(itemId)?.rollAttack({ event, thrown: true });
     }
 
     /**
