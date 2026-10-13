@@ -3,6 +3,8 @@
 ## New Features
 - The System Damage section of the mech sheet has a Reset button at the right of its header. It restores the mech to full Hit Points, sets every component to Nominal, and lets the two-thirds and one-third Hit Point thresholds post System Failure cards again. The mech's owners can press it as well as the GM. When a player resets a mech, the GMs get a whispered message naming the player and the mech, the Hit Points before and after, and each component that was not Nominal
 - Each System Damage dropdown has an info icon whose tooltip says what the component's current status does to the mech. An inoperable component lists its malfunctioning effect too, since the inoperable effects build on it
+- A mech melee weapon with the thrown property, such as the Spear or Plasma Sword, has a Throw button beside its attack button on the Actions tab. The throw uses the weapon's melee attack bonus and adds Strength to damage, since a thrown attack uses Strength rather than Dexterity, and the chat card shows the thrown range
+- A wrecked mech's name and tier bar turns red, and a destroyed mech's turns a darker red, in place of the banner that took up the top of the sheet. Hovering over the bar names the state and what it means
 
 ## Bugfixes
 - An unlinked mech token could not clear a flag that its base actor also held. Unsetting it on the token let the base actor's value show through, so a token whose failures had been cleared still counted its thresholds as spent and never posted another System Failure card. Overrides, overkill and failed auxiliary checks had the same problem. The token now records the flag as cleared
@@ -10,6 +12,9 @@
 - The System Failure card showed the mech's portrait beside its title and left empty paragraphs and a gap around its text
 - The roll buttons on System Failure cards show a d20 icon, matching Foundry's own inline rolls
 - The Activated label on a mech auxiliary system's sheet, and the warning that a mech can have only one frame, showed their localization keys instead of text
+- A solarian weapon crystal with the Soulfire fusion did not add the solarian's Charisma bonus to solar weapon damage. The fusion's bonus was switched off, and a bonus limited to the weapon holding it stopped at the crystal instead of reaching the Solar Weapon around it
+- The Accurate, Agile, Defending, Opportunistic, Punishing, Steady and Sundering fusions offered their bonus in the roll dialog of every weapon the character carried. Each now appears only for the weapon it is fused to, still unchecked, since each depends on a choice or a trigger
+- A mech frame or limb with no weapon slots showed an empty Mounted Weapons line and a "No weapons mounted" row on the Components tab. Both are hidden for a mount with no slots, and the gap between the two lines is smaller where they still appear
 
 # Version 14.1.2
 
