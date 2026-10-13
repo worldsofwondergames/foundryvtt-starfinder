@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addOngoingSource, averageOf, mergeRounds, ongoingFromCritical, tickRounds } from "./ongoing-damage.js";
+import { addOngoingSource, averageOf, mergeRounds, ongoingConditionOf, ongoingFromCritical, ongoingSources, remainingHealth, sourceOf, tickRounds } from "./ongoing-damage.js";
 
 describe("ongoingFromCritical", () => {
     it("reads Corrode's amount from its critical damage part", () => {
@@ -121,5 +121,53 @@ describe("tickRounds", () => {
 
     it("never expires a condition with no timer", () => {
         expect(tickRounds(null)).toEqual({ rounds: null, expired: false });
+    });
+});
+
+describe("ongoingConditionOf", () => {
+    it("finds the condition by slug", () => {
+        expect(ongoingConditionOf({ type: "effect", name: "Corroded", system: { slug: "corrode" } })).toBe("corrode");
+    });
+
+    it("falls back to the name for items without a slug", () => {
+        expect(ongoingConditionOf({ type: "effect", name: "Burning", system: {} })).toBe("burning");
+    });
+
+    it("ignores other conditions and other item types", () => {
+        expect(ongoingConditionOf({ type: "effect", name: "Shaken", system: { slug: "shaken" } })).toBeNull();
+        expect(ongoingConditionOf({ type: "feat", name: "Burning", system: { slug: "burning" } })).toBeNull();
+    });
+});
+
+describe("ongoingSources", () => {
+    it("keeps only the damage rolled at the start of the turn", () => {
+        const events = [
+            { type: "roll", trigger: "onTurnStart", formula: "1d6", name: "Corrode" },
+            { type: "note", trigger: "onTurnStart", content: "x", formula: "1d4" },
+            { type: "roll", trigger: "onTurnEnd", formula: "1d4" },
+            { type: "roll", trigger: "onTurnStart", formula: "" }
+        ];
+        expect(ongoingSources(events)).toEqual([events[0]]);
+    });
+});
+
+describe("remainingHealth", () => {
+    it("adds Hit Points, Stamina Points and temporary Hit Points", () => {
+        expect(remainingHealth({ hp: { value: 20, temp: "5" }, sp: { value: 7 } })).toBe(32);
+    });
+
+    it("counts a creature with no Stamina or temporary Hit Points", () => {
+        expect(remainingHealth({ hp: { value: 20 } })).toBe(20);
+    });
+});
+
+describe("sourceOf", () => {
+    it("reads the weapon from a source's name", () => {
+        expect(sourceOf("Corrode (Acid cannon)")).toBe("Acid cannon");
+    });
+
+    it("returns nothing for a source set by hand", () => {
+        expect(sourceOf("Corrode")).toBe("");
+        expect(sourceOf(undefined)).toBe("");
     });
 });

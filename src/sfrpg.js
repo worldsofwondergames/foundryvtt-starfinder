@@ -67,6 +67,7 @@ import PPAbilityEnricher from "./module/system/enrichers/pp-ability.js";
 import TemplateEnricher from "./module/system/enrichers/template.js";
 import { onMechAttackBonusClick } from "./module/system/mech-bonus-link.js";
 import { onApplyOngoingClick, onOngoingConditionSet } from "./module/system/ongoing-condition.js";
+import { onConditionItemDisabled, onTimedConditionSet } from "./module/system/condition-timer.js";
 import { onMechReplenishClick, onSpendMechReplenish } from "./module/system/mech-replenish-link.js";
 import {
     DICE_ICON,
@@ -722,6 +723,8 @@ Hooks.once("ready", async () => {
     BaseEnricher.addListeners();
     $("body").on("click", 'a[data-action="mechAttackBonus"]', onMechAttackBonusClick);
     Hooks.on("onActorSetCondition", onOngoingConditionSet);
+    Hooks.on("onActorSetCondition", onTimedConditionSet);
+    Hooks.on("updateItem", onConditionItemDisabled);
     $("body").on("click", 'a[data-action="mechReplenish"]', onMechReplenishClick);
     $("body").on("click", 'a[data-action="mechFailureRoll"]', onMechFailureRollClick);
     $("body").on("click", 'a[data-action="mechPowerCoreLoss"]', onMechPowerCoreLossClick);

@@ -20,7 +20,8 @@ import { ItemSFRPG } from "../item/item.js";
 import { ItemSheetSFRPG } from "../item/sheet.js";
 import SFRPGTimedEffect from "../timedEffect/timedEffect.js";
 import { clearSystemFlag } from "../utils/flags.js";
-import { tickOngoingConditions } from "../system/ongoing-condition.js";
+import { rollOngoingConditions } from "../system/ongoing-condition.js";
+import { tickConditionTimers } from "../system/condition-timer.js";
 import { } from "./crew-update.js";
 
 /**
@@ -968,9 +969,10 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         // it restored. Doing it here as well regenerated both pools twice a turn.
         await Promise.all(this.items.map(item => item._onTurnStart?.()));
 
-        // Ongoing damage was just rolled by the conditions' turn events, so a
-        // condition on its last round is removed only now.
-        await tickOngoingConditions(this);
+        // Burning, Bleeding, Corrode and Frostbite roll here rather than through
+        // their items' turn events, so their damage is applied and the card can
+        // say how many rounds are left.
+        await rollOngoingConditions(this);
     }
 
     _onTurnEnd() {
@@ -986,6 +988,10 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         for (const item of this.items) {
             item._onTurnEnd?.();
         }
+
+        // A condition given a number of rounds loses one at the end of the
+        // affected creature's turn.
+        tickConditionTimers(this);
     }
 
     /** Roll contexts */

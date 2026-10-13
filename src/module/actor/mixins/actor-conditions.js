@@ -1,3 +1,5 @@
+import { keepsOwnTimer } from "../../rules/condition-timer.js";
+
 export const ActorConditionsMixin = (superclass) => class extends superclass {
     /**
      * Check if the Actor has the condition.
@@ -35,9 +37,11 @@ export const ActorConditionsMixin = (superclass) => class extends superclass {
      * Updates the Actor's conditions. Either adds or removes a condition Item as necessary to match the enabled argument.
      * @param {String} conditionName The name of the condition. Must match any key from config.js SFRPG.statusEffects. Case sensitive.
      * @param {Boolean} enabled If this value is true it ensures the condition is present on the Actor.
+     * @param {Object} [options]
+     * @param {Boolean} [options.automatic] True when the system sets the condition because of another one, such as flat-footed from stunned, so nobody is asked how long it lasts.
      * @public
      */
-    async setCondition(conditionName, enabled) {
+    async setCondition(conditionName, enabled, { automatic = false } = {}) {
         if (!this._isStatusEffect(conditionName)) {
             ui.notifications.warn(`Trying to set condition ${conditionName} on actor ${this.name} but the condition is not valid. See CONFIG.SFRPG.statusEffects for all valid conditions.`);
             return;
@@ -60,7 +64,7 @@ export const ActorConditionsMixin = (superclass) => class extends superclass {
 
                     if (createdItems && createdItems.length > 0) {
                         await this._updateActorCondition(conditionName, true);
-                        Hooks.callAll("onActorSetCondition", {actor: this, item: createdItems[0], conditionName, enabled});
+                        Hooks.callAll("onActorSetCondition", {actor: this, item: createdItems[0], conditionName, enabled, automatic});
                     }
                 }
             }
@@ -70,7 +74,7 @@ export const ActorConditionsMixin = (superclass) => class extends superclass {
                 effect.delete();
                 await this.deleteEmbeddedDocuments("Item", [conditionItem.id]);
                 await this._updateActorCondition(conditionName, false);
-                Hooks.callAll("onActorSetCondition", {actor: this, item: conditionItem, conditionName: conditionName, enabled: enabled});
+                Hooks.callAll("onActorSetCondition", {actor: this, item: conditionItem, conditionName: conditionName, enabled: enabled, automatic});
             }
         }
 
@@ -112,7 +116,12 @@ export const ActorConditionsMixin = (superclass) => class extends superclass {
             shouldBeFlatFooted = hasCausingCondition || enabled;
         }
 
-        return this.setCondition("flat-footed", shouldBeFlatFooted);
+        // Flat-footed given rounds of its own outlasts the condition that caused it.
+        if (!shouldBeFlatFooted && keepsOwnTimer(this.getCondition("flat-footed")?.getFlag("sfrpg", "conditionTimer"))) {
+            shouldBeFlatFooted = true;
+        }
+
+        return this.setCondition("flat-footed", shouldBeFlatFooted, { automatic: true });
 
     }
 

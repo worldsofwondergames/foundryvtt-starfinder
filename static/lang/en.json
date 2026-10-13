@@ -719,6 +719,14 @@
             "Stunned": "You drop everything held, you can't take actions, and you're flat-footed.",
             "Unconscious": "You're knocked out and helpless."
         },
+        "ConditionTimer": {
+            "Apply": "Apply",
+            "Expired": "{name} is no longer {condition}.",
+            "Prompt": "How many rounds is {name} {condition}? It ends at the end of their turn once the last round is used. Leave it blank to keep it until removed.",
+            "Rounds": "Rounds",
+            "RoundsPlaceholder": "Until removed",
+            "Title": "Apply {condition}"
+        },
         "ConditionsAsleep": "Asleep",
         "ConditionsBleeding": "Bleeding",
         "ConditionsBlinded": "Blinded",
@@ -727,15 +735,23 @@
         "OngoingDamage": {
             "Apply": "Apply",
             "ApplyTooltip": "Give your targeted tokens this condition, rolling the weapon's amount at the start of each of their turns",
-            "Expired": "{name} is no longer affected by {condition}.",
+            "Dealt": "{condition} deals {amount} {type} damage to {name}.",
+            "DealtUntyped": "{condition} deals {amount} damage to {name}.",
             "Formula": "Damage each turn",
+            "LastRound": "That was the last round, and {condition} ends.",
+            "Lost": "{name} loses {lost} after immunity, resistance or vulnerability.",
             "NoFormula": "{condition} needs an amount of damage to roll each turn.",
+            "NoDamage": "{condition} on {name} has no damage to roll.",
             "NoTargets": "Target or select the tokens to give the condition to.",
             "NotOwner": "You do not own {names}. Ask the GM to apply the condition.",
+            "OneRoundLeft": "1 round left.",
             "Prompt": "{condition} on {targets}: the damage below is rolled at the start of each of their turns.",
+            "Rolled": "Rolled {rolls}.",
             "Rounds": "Rounds",
+            "RoundsLeft": "{rounds} rounds left.",
             "RoundsPlaceholder": "Until removed",
-            "Title": "Apply {condition}"
+            "Title": "Apply {condition}",
+            "UntilRemoved": "It lasts until removed."
         },
         "ConditionsConfused": "Confused",
         "ConditionsCorrode": "Corrode",
