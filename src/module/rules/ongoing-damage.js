@@ -143,3 +143,53 @@ export function tickRounds(rounds) {
     const left = rounds - 1;
     return { rounds: left, expired: left <= 0 };
 }
+
+/**
+ * The ongoing condition an item is, if any.
+ *
+ * The condition's own turn events are not rolled by the item when it is one of
+ * these, since rollOngoingConditions() rolls them, applies the damage and posts
+ * one card for the condition.
+ *
+ * @param {{type?: string, name?: string, system?: {slug?: string}}|null|undefined} item
+ * @returns {string|null} A key of ONGOING_CONDITIONS, or null.
+ */
+export function ongoingConditionOf(item) {
+    if (item?.type !== "effect") return null;
+    const key = item.system?.slug || item.name?.toLowerCase();
+    return ONGOING_CONDITIONS[key] ? key : null;
+}
+
+/**
+ * The sources of damage stored on an ongoing condition item.
+ *
+ * @param {Array<Object>|null|undefined} turnEvents The condition item's turn events.
+ * @returns {Array<{formula: string, name?: string}>} The events that roll damage at the start of the turn.
+ */
+export function ongoingSources(turnEvents) {
+    return (turnEvents ?? []).filter(e => e?.type === "roll" && e?.trigger === "onTurnStart" && e?.formula);
+}
+
+/**
+ * The Hit Points, Stamina Points and temporary Hit Points a creature has left,
+ * used to tell how much of the damage got through resistance.
+ *
+ * @param {{hp?: {value?: number, temp?: number|string}, sp?: {value?: number}}|null|undefined} attributes
+ * @returns {number}
+ */
+export function remainingHealth(attributes) {
+    return (Number(attributes?.hp?.value) || 0)
+        + (Number(attributes?.sp?.value) || 0)
+        + (parseInt(attributes?.hp?.temp) || 0);
+}
+
+/**
+ * The weapon or effect a source came from, which applyOngoingCondition writes
+ * into its name as "Corrode (Acid cannon)".
+ *
+ * @param {string} [name] The turn event's name.
+ * @returns {string} The part in parentheses, or "" if there is none.
+ */
+export function sourceOf(name) {
+    return name?.match(/\(([^)]+)\)$/)?.[1] ?? "";
+}

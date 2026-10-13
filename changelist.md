@@ -1,3 +1,12 @@
+# Version 14.1.5
+
+## New Features
+- Switching on a condition such as Stunned, Shaken or Invisible from the token HUD or the sheet asks how many rounds it lasts. Leaving it blank keeps the condition until someone removes it. A timed condition loses a round at the end of the affected creature's turn and is removed after its last round, with a chat message saying so, so a creature stunned for 1 round on an enemy's turn loses its next turn. One applied during the creature's own turn does not count that turn. Flat-footed that comes with Stunned or a similar condition is not asked about and ends with it, unless it was given rounds of its own. Conditions that end on something other than time, such as Prone, Dying or Encumbered, are not asked about
+
+## Bugfixes
+- Burning, Bleeding, Corrode and Frostbite posted a damage card with no context at the start of the affected creature's turn, showed its formula three times, and left the damage for someone to apply by hand. Each condition now applies its damage, with immunity, resistance and vulnerability counted, and posts one card saying which condition dealt how much damage of what type, the dice rolled and the weapon they came from, and how many rounds are left or that the condition has ended
+- Switching a condition off in an actor sheet's list of effects left it on the actor. Its icon stayed on the token and an ongoing condition's timer kept counting down. Switching it off now removes the condition
+
 # Version 14.1.4
 
 ## Bugfixes

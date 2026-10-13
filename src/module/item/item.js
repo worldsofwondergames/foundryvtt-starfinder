@@ -25,6 +25,7 @@ import { ItemActivationMixin } from "./mixins/item-activation.js";
 import { ItemCapacityMixin } from "./mixins/item-capacity.js";
 import { ItemChatMixin } from "./mixins/item-chat.js";
 import { clearSystemFlag } from "../utils/flags.js";
+import { ongoingConditionOf } from "../rules/ongoing-damage.js";
 
 /**
  * @import { RollResult } from '../dice.js'
@@ -2335,6 +2336,8 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
 
     _onTurnStart() {
         if (this.type !== "effect" || !this.system.enabled) return;
+        // The actor rolls an ongoing damage condition itself; see rollOngoingConditions.
+        if (ongoingConditionOf(this)) return;
 
         // Returned so the actor can wait for the rolls before acting on them.
         return Promise.all(this.system.turnEvents
