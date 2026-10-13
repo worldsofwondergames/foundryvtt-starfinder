@@ -1,10 +1,4 @@
 <form class="{{cssClass}} flexcol" autocomplete="off">
-    {{#unless (eq damageState "intact")}}
-    <div class="mech-damage-banner {{damageState}}" data-tooltip="{{#if (eq damageState "destroyed")}}{{ localize "SFRPG.MechSheet.SystemFailure.DestroyedHint" }}{{else}}{{ localize "SFRPG.MechSheet.SystemFailure.WreckedHint" }}{{/if}}">
-        {{#if (eq damageState "destroyed")}}{{ localize "SFRPG.MechSheet.SystemFailure.Destroyed" }}{{else}}{{ localize "SFRPG.MechSheet.SystemFailure.Wrecked" }}{{/if}}
-    </div>
-    {{/unless}}
-
     <header class="sheet-header flexrow">
         <div class="image-container">
             <img class="profile" src="{{actor.img}}" title="{{actor.name}}" data-edit="img" height="140" width="140" />
@@ -12,7 +6,9 @@
         </div>
 
         <div class="header-details flexcol">
-            <div class="header-background flexrow" style="flex: 0 0 60px;">
+            {{!-- A wrecked or destroyed mech turns the name bar red, and the
+                  tooltip says which state it is in. --}}
+            <div class="header-background flexrow{{#unless (eq damageState "intact")}} mech-damaged {{damageState}}{{/unless}}" style="flex: 0 0 60px;"{{#if (eq damageState "destroyed")}} data-tooltip="<strong>{{ localize "SFRPG.MechSheet.SystemFailure.Destroyed" }}</strong><br>{{ localize "SFRPG.MechSheet.SystemFailure.DestroyedHint" }}"{{else if (eq damageState "wrecked")}} data-tooltip="<strong>{{ localize "SFRPG.MechSheet.SystemFailure.Wrecked" }}</strong><br>{{ localize "SFRPG.MechSheet.SystemFailure.WreckedHint" }}"{{/if}}>
                 <h1 class="charname">
                     <input name="name" type="text" value="{{actor.name}}" placeholder="{{ localize "SFRPG.MechSheet.Header.NamePlaceholder" }}" title="{{ localize "SFRPG.MechSheet.Header.NameTooltip" }}" />
                 </h1>
