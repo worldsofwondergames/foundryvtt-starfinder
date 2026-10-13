@@ -9,6 +9,7 @@
 - A critical hit with the Burn, Corrode, Frostbite or Bleed effect shows an Apply link beside the effect on the attack card. It puts the matching condition on your targeted tokens, offering the weapon's critical damage as the amount, such as 3d4 for a dinergate acid cannon, and an optional number of rounds
 - Burning, Bleeding, and the new Corrode and Frostbite conditions roll their damage at the start of the affected creature's turn and post a normal damage card to apply. Corrode deals acid damage and Frostbite cold, each functioning as burning, as their critical hit effects say. Damage from several burning-style sources adds up, and only the worst bleed counts
 - A condition given a number of rounds is removed after its last turn of damage, with a chat message saying so. Switching one of these conditions on from the token HUD or the sheet asks for the amount and rounds the same way
+- Every list on a character sheet's Features and Inventory tabs is sorted by name, including the contents of containers. Numbers in names sort by value, so a Mk 2 laser pistol comes before a Mk 10. Classes still list highest level first
 
 ## Bugfixes
 - Every condition and other permanent effect was switched off whenever world time moved outside combat, such as when a combat was created or ended. Its modifiers stopped applying and its turn events stopped rolling, while the condition still showed on the token. A permanent effect's end time worked out to NaN, and the world time check now leaves effects that never run out alone

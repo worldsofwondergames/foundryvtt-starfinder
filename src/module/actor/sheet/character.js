@@ -1,5 +1,6 @@
 import { SFRPG } from "../../config.js";
 import { ActorSheetSFRPG } from "./base.js";
+import { sortByName, sortInventoryByName } from "../../rules/sort-by-name.js";
 
 export class ActorSheetSFRPGCharacter extends ActorSheetSFRPG {
     constructor(...args) {
@@ -227,6 +228,13 @@ export class ActorSheetSFRPGCharacter extends ActorSheetSFRPG {
             };
         }
 
+        // Every list except classes reads alphabetically. Classes stay highest
+        // level first, so the main class leads.
+        for (const [key, section] of Object.entries(features)) {
+            if (key !== "classes" && Array.isArray(section.items)) sortByName(section.items);
+        }
+        for (const list of [races, themes, archetypes, actorResources]) sortByName(list);
+
         classes.sort((a, b) => b.levels - a.levels);
         features.classes.items = classes;
         features.race.items = races;
@@ -234,6 +242,7 @@ export class ActorSheetSFRPGCharacter extends ActorSheetSFRPG {
         features.archetypes.items = archetypes;
         features.resources.items = actorResources;
 
+        for (const section of Object.values(inventory)) sortInventoryByName(section.items);
         data.inventory = Object.values(inventory);
         data.spellbook = spellbook;
         data.features = Object.values(features);
