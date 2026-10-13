@@ -1,5 +1,6 @@
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
+import { enabledAtWorldTime } from "../rules/effect-timing.js";
 
 function mkRemaining(value, unit, enabled) {
     const durFrom = CONFIG.SFRPG.effectDurationFrom;
@@ -427,9 +428,9 @@ Hooks.on("updateWorldTime", (worldTime) => {
         if (game.combat?.started) continue;
         // handling effects while in combat is handled in combat.js
 
-        const effectStart = effect.activeDuration.activationTime ?? -Infinity;
-        const effectFinish = effect.activeDuration.activationEnd ?? Infinity;
-        const shouldBeEnabled = effectStart <= worldTime && worldTime <= effectFinish;
+        const shouldBeEnabled = enabledAtWorldTime(effect.activeDuration, worldTime, CONFIG.SFRPG.effectDurationFrom);
+        // A permanent effect never runs out, so world time does not switch it.
+        if (shouldBeEnabled === null) continue;
         if (shouldBeEnabled !== effect.enabled) {
             effect.toggle(false);
         } else if (shouldBeEnabled) {

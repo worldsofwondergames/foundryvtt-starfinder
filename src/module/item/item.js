@@ -2336,13 +2336,10 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
     _onTurnStart() {
         if (this.type !== "effect" || !this.system.enabled) return;
 
-        for (const turnEvent of this.system.turnEvents) {
-            if (turnEvent.trigger !== "onTurnStart") continue;
-
-            this._handleTurnEvent(turnEvent);
-
-        }
-
+        // Returned so the actor can wait for the rolls before acting on them.
+        return Promise.all(this.system.turnEvents
+            .filter(turnEvent => turnEvent.trigger === "onTurnStart")
+            .map(turnEvent => this._handleTurnEvent(turnEvent)));
     }
 
     _onTurnEnd() {
@@ -2359,16 +2356,14 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
     _handleTurnEvent(turnEvent) {
         switch (turnEvent.type) {
             case "note":
-                this._handleEffectNoteEvent(turnEvent);
-                break;
+                return this._handleEffectNoteEvent(turnEvent);
             case "roll":
-                this._handleEffectRollEvent(turnEvent);
-                break;
+                return this._handleEffectRollEvent(turnEvent);
         }
     }
 
     _handleEffectNoteEvent(turnEvent) {
-        ChatMessage.create({
+        return ChatMessage.create({
             content: turnEvent.content,
             speaker: ChatMessage.getSpeaker({ actor: this.actor })
         });

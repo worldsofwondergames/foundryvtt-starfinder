@@ -2,6 +2,7 @@ import SFRPGCustomChatMessage from "./chat/chatbox.js";
 import { SFRPG } from "./config.js";
 import RollTree from "./rolls/rolltree.js";
 import StackModifiers from "./rules/closures/stack-modifiers.js";
+import { ongoingFromCritical } from "./rules/ongoing-damage.js";
 import SFRPGRoll from "./rolls/roll.js";
 
 /**
@@ -257,6 +258,14 @@ export class DiceSFRPG {
                             let critText = critEffectLabel ? game.i18n.localize(critEffectLabel) : criticalData.effect;
                             if (criticalData.dice?.trim()) {
                                 critText += ` <a class="inline-roll roll critical-dice-roll" data-mode="roll" data-formula="${criticalData.dice}" data-tooltip="${criticalData.dice}"><i class="fas fa-dice-d20"></i> ${criticalData.dice}</a>`;
+                            }
+
+                            // Effects that leave ongoing damage, such as Corrode, get a link
+                            // that puts the condition on the targets with the weapon's amount.
+                            const ongoing = ongoingFromCritical(criticalData);
+                            if (ongoing) {
+                                const source = foundry.utils.escapeHTML(rollContext.allContexts?.item?.entity?.name ?? "");
+                                critText += ` <a class="apply-ongoing-condition" data-condition="${ongoing.condition}" data-formula="${ongoing.formula ?? ""}" data-source="${source}" data-tooltip="${game.i18n.localize("SFRPG.OngoingDamage.ApplyTooltip")}"><i class="fas fa-bullseye"></i> ${game.i18n.localize("SFRPG.OngoingDamage.Apply")}</a>`;
                             }
                             tags.push({ tag: "critical-effect", text: game.i18n.format("SFRPG.Rolls.Dice.CriticalEffect", {"criticalEffect": critText })});
                         }

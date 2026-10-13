@@ -66,6 +66,7 @@ import IconEnricher from "./module/system/enrichers/icon.js";
 import PPAbilityEnricher from "./module/system/enrichers/pp-ability.js";
 import TemplateEnricher from "./module/system/enrichers/template.js";
 import { onMechAttackBonusClick } from "./module/system/mech-bonus-link.js";
+import { onApplyOngoingClick, onOngoingConditionSet } from "./module/system/ongoing-condition.js";
 import { onMechReplenishClick, onSpendMechReplenish } from "./module/system/mech-replenish-link.js";
 import {
     DICE_ICON,
@@ -720,6 +721,7 @@ Hooks.once("ready", async () => {
     console.log("Starfinder | [READY] Setting up event listeners");
     BaseEnricher.addListeners();
     $("body").on("click", 'a[data-action="mechAttackBonus"]', onMechAttackBonusClick);
+    Hooks.on("onActorSetCondition", onOngoingConditionSet);
     $("body").on("click", 'a[data-action="mechReplenish"]', onMechReplenishClick);
     $("body").on("click", 'a[data-action="mechFailureRoll"]', onMechFailureRollClick);
     $("body").on("click", 'a[data-action="mechPowerCoreLoss"]', onMechPowerCoreLossClick);
@@ -856,6 +858,13 @@ Hooks.on("renderChatMessageHTML", (app, html, data) => {
             if (e.target.closest('.dice-footer')) {
                 e.stopPropagation();
                 e.stopImmediatePropagation();
+                // This stops every click in the footer, so the critical effect's
+                // Apply link, which sits in the footer, is handled here.
+                const applyLink = e.target.closest('a.apply-ongoing-condition');
+                if (applyLink) {
+                    onApplyOngoingClick(e, applyLink);
+                    return;
+                }
                 const inlineRoll = e.target.closest('.inline-roll');
                 if (inlineRoll?.dataset?.formula) {
                     new Roll(inlineRoll.dataset.formula).toMessage();

@@ -1204,6 +1204,7 @@ SFRPG.conditionTypes = {
     "broken": "SFRPG.ConditionsBroken",
     "burning": "SFRPG.ConditionsBurning",
     "confused": "SFRPG.ConditionsConfused",
+    "corrode": "SFRPG.ConditionsCorrode",
     "cowering": "SFRPG.ConditionsCowering",
     "dazed": "SFRPG.ConditionsDazed",
     "dazzled": "SFRPG.ConditionsDazzled",
@@ -1217,6 +1218,7 @@ SFRPG.conditionTypes = {
     "fatigued": "SFRPG.ConditionsFatigued",
     "flat-footed": "SFRPG.ConditionsFlatFooted",
     "frightened": "SFRPG.ConditionsFrightened",
+    "frostbite": "SFRPG.ConditionsFrostbite",
     "grappled": "SFRPG.ConditionsGrappled",
     "helpless": "SFRPG.ConditionsHelpless",
     "invisible": "SFRPG.ConditionsInvisible",
@@ -2083,6 +2085,12 @@ SFRPG.statusEffects = [
         compendiumKey: "8rIj0ewW4bL8Uph5"
     },
     {
+        id: "corrode",
+        name: "SFRPG.ConditionsCorrode",
+        img: "icons/svg/acid.svg",
+        compendiumKey: "Kq7mCorrodeAc1d0"
+    },
+    {
         id: "cowering",
         name: "SFRPG.ConditionsCowering",
         img: "systems/sfrpg/icons/conditions/cowering.webp",
@@ -2159,6 +2167,12 @@ SFRPG.statusEffects = [
         name: "SFRPG.ConditionsFrightened",
         img: "systems/sfrpg/icons/conditions/frightened.webp",
         compendiumKey: "DtwiUWi8dpzkq4tM"
+    },
+    {
+        id: "frostbite",
+        name: "SFRPG.ConditionsFrostbite",
+        img: "icons/svg/frozen.svg",
+        compendiumKey: "Fr0stb1teCold7Xq"
     },
     {
         id: "grappled",
@@ -2289,6 +2303,10 @@ SFRPG.conditions = {
         modifiers: [],
         tooltip: "SFRPG.ConditionTooltips.Confused"
     },
+    "corrode": {
+        modifiers: [],
+        tooltip: "SFRPG.ConditionTooltips.Corrode"
+    },
     "cowering": {
         modifiers: [],
         tooltip: "SFRPG.ConditionTooltips.Cowering"
@@ -2336,6 +2354,10 @@ SFRPG.conditions = {
     "flat-footed": {
         modifiers: [],
         tooltip: "SFRPG.ConditionTooltips.FlatFooted"
+    },
+    "frostbite": {
+        modifiers: [],
+        tooltip: "SFRPG.ConditionTooltips.Frostbite"
     },
     "frightened": {
         modifiers: [],
