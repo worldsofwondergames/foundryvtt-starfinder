@@ -1,3 +1,8 @@
+# Version 14.1.4
+
+## Bugfixes
+- A player who owned a mech got the error "may only be modified by a GM or Assistant GM user" when dragging a frame, weapon or other mech component onto it, and the component was not added. Mech components marked their GM Notes field as GM-only, which stops a player creating the item at all. Other item types had the same marking removed earlier
+
 # Version 14.1.3
 
 ## New Features

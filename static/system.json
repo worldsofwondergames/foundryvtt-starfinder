@@ -2,7 +2,7 @@
   "id": "sfrpg",
   "title": "Starfinder First Edition",
   "description": "A game system for running Starfinder First Edition in Foundry VTT.",
-  "version": "14.1.3",
+  "version": "14.1.4",
   "authors": [
     {
       "name": "The Starfinder System Developers"
@@ -731,9 +731,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "mechWeapon": {
@@ -743,9 +740,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "mechAuxiliary": {
@@ -755,9 +749,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "mechUpgrade": {
@@ -767,9 +758,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "mechPowerCore": {
@@ -779,9 +767,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "mechLowerLimb": {
@@ -791,9 +776,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "mechUpperLimb": {
@@ -803,9 +785,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "mechMissionPod": {
@@ -815,9 +794,6 @@
           "description.chat",
           "description.short",
           "description.unidentified"
-        ],
-        "gmOnlyFields": [
-          "description.gmNotes"
         ]
       },
       "weapon": {
