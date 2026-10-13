@@ -205,6 +205,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 allowAdd: frames.length < 1,
                 weapons: frameWeapons,
                 weaponSlots: { used: frameSlotsUsed, max: frameSlots },
+                showWeaponSlots: frameSlots > 0 || frameWeapons.length > 0,
                 slotType: "frame",
                 hasComponent: hasFrame,
                 allowAddWeapon: hasFrame && frameSlotsUsed < frameSlots
@@ -224,6 +225,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 allowAdd: lowerLimbs.length < 1,
                 weapons: lowerLimbWeapons,
                 weaponSlots: { used: lowerLimbSlotsUsed, max: lowerLimbSlots },
+                showWeaponSlots: lowerLimbSlots > 0 || lowerLimbWeapons.length > 0,
                 slotType: "lowerLimb",
                 hasComponent: hasLowerLimb,
                 allowAddWeapon: hasLowerLimb && lowerLimbSlotsUsed < lowerLimbSlots
@@ -236,6 +238,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 allowAdd: upperLimbs.length < 1,
                 weapons: upperLimbWeapons,
                 weaponSlots: { used: upperLimbSlotsUsed, max: upperLimbSlots },
+                showWeaponSlots: upperLimbSlots > 0 || upperLimbWeapons.length > 0,
                 slotType: "upperLimb",
                 hasComponent: hasUpperLimb,
                 allowAddWeapon: hasUpperLimb && upperLimbSlotsUsed < upperLimbSlots

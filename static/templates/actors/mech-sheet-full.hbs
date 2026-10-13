@@ -370,8 +370,9 @@
                     {{/each}}
                 </ol>
 
-                {{!-- Weapons mounted to this component --}}
-                {{#if section.weaponSlots}}
+                {{!-- Weapons mounted to this component. A mount with no
+                      capacity and nothing in it is left out entirely. --}}
+                {{#if section.showWeaponSlots}}
                 <li class="inventory-header flexrow weapons-subheader" data-weapon-slot="{{section.slotType}}">
                     <h4 class="item-name noborder">
                         {{ localize "SFRPG.MechSheet.WeaponsLocker.MountedWeapons" }}
@@ -473,8 +474,9 @@
                     {{/each}}
                 </ol>
 
-                {{!-- Weapons mounted to this component --}}
-                {{#if section.weaponSlots}}
+                {{!-- Weapons mounted to this component. A mount with no
+                      capacity and nothing in it is left out entirely. --}}
+                {{#if section.showWeaponSlots}}
                 <li class="inventory-header flexrow weapons-subheader" data-weapon-slot="{{section.slotType}}">
                     <h4 class="item-name noborder">
                         {{ localize "SFRPG.MechSheet.WeaponsLocker.MountedWeapons" }}
