@@ -19,6 +19,7 @@ import {
 } from "../rules/mech-condition-modifiers.js";
 import { levelRefusal, maxWeaponLevel, updatedWeaponLevel } from "../actor/sheet/mech-weapon-slots.js";
 import { applyPerDieBonus, overrideAppliesTo, resolveDamageLevel } from "../rules/mech-damage-level.js";
+import { canThrow, thrownRange } from "../rules/mech-thrown.js";
 import { Mix } from "../utils/custom-mixer.js";
 import { ItemActivationMixin } from "./mixins/item-activation.js";
 import { ItemCapacityMixin } from "./mixins/item-capacity.js";
@@ -1292,10 +1293,16 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
      * Attack = base attack (tier) + operator's BAB or Piloting ranks + upper limb bonuses.
      * The operator is whoever is rolling (selected at roll time).
      * @param {Object} options Options to pass to the attack roll
+     * @param {boolean} [options.thrown] Throw a melee weapon that has the thrown property
      * @returns {Promise<RollResult?>}
      */
     async _rollMechAttack(options = {}) {
         const isMelee = this.system.weaponType === "melee";
+        // A thrown attack is a ranged attack that uses Strength rather than
+        // Dexterity. A mech has no Dexterity to swap out, so a thrown melee weapon
+        // keeps its melee attack bonus, and its damage keeps the Strength that the
+        // melee damage modifier already includes.
+        const thrown = options.thrown === true && canThrow(this.system);
         const attackKey = isMelee ? "meleeAttackBonus" : "rangedAttackBonus";
 
         // A mount that has failed outright cannot fire what it carries, and a
@@ -1324,6 +1331,14 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
         const title = game.settings.get('sfrpg', 'useCustomChatCards')
             ? game.i18n.format("SFRPG.Rolls.AttackRoll")
             : game.i18n.format("SFRPG.Rolls.AttackRollFull", {name: this.name});
+
+        const tags = [];
+        if (thrown) {
+            tags.push({
+                tag: "thrown",
+                text: game.i18n.format("SFRPG.MechSheet.Weapon.ThrownTag", { range: thrownRange(this.system.special) })
+            });
+        }
 
         /** Build the roll context */
         const rollContext = new RollContext();
@@ -1426,6 +1441,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             rollOptions: rollOptions,
             actorContextKey: "operator",
             rollType: "attack",
+            tags: tags,
             onClose: (roll, formula, finalFormula) => {
                 if (roll) {
                     // Only spend the bonus once a roll actually resolved - cancelling the

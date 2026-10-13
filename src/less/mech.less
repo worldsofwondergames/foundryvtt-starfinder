@@ -334,7 +334,10 @@
                     white-space: nowrap;
                 }
 
-                button.attack {
+                // The thrown button looks like the attack button but keeps its own
+                // class, since the base sheet binds every .attack to a normal roll.
+                button.attack,
+                button.attack-thrown {
                     background: @sfrpgBlue;
                     color: white;
 
