@@ -168,7 +168,7 @@
             "unidentified": "",
             "value": "<p>An advanced eternal power core for mechs. Eternal cores provide high capacity and strong initial power but slower regeneration. Scrapper configuration.</p>"
           },
-          "mpCost": 0,
+          "mpCost": 2,
           "ppInitial": 6,
           "ppMax": 13,
           "ppRegen": 1,
@@ -216,7 +216,7 @@
             "value": "<p>Energy rods and heat sinks boost attack accuracy.</p><p>@PPAbility[cost:1]{Accurate Strikes} All operators are treated as having Piloting ranks equal to their levels for 1 round.</p>"
           },
           "isActive": false,
-          "mpCost": 1,
+          "mpCost": 0,
           "ppCost": 1,
           "source": "Tech Revolution"
         }
@@ -235,7 +235,7 @@
             "value": "<p>Powerful engines enable short-distance flight.</p><p>@PPAbility[cost:2]{Power Jump} Gain a fly speed of 60 feet with average maneuverability. Maximum height is 30 feet. You must land or continue jumping each round or fall.</p>"
           },
           "isActive": false,
-          "mpCost": 1,
+          "mpCost": 0,
           "ppCost": 2,
           "source": "Tech Revolution"
         }

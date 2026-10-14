@@ -87,7 +87,7 @@
             "unidentified": "",
             "value": "<p>An advanced eternal power core for mechs. Eternal cores provide high capacity and strong initial power but slower regeneration. Aeon configuration.</p>"
           },
-          "mpCost": 0,
+          "mpCost": 2,
           "ppInitial": 6,
           "ppMax": 13,
           "ppRegen": 1,
@@ -109,6 +109,7 @@
             "value": "<p>A pair of heavily armored arms designed for durability and defense.</p>"
           },
           "eac": 2,
+          "hpAdvancement": 1,
           "kac": 2,
           "meleeAttack": 0,
           "mpCost": 1,
@@ -116,8 +117,7 @@
           "rangedAttack": 0,
           "slots": 2,
           "source": "Tech Revolution",
-          "strength": 0,
-          "hpAdvancement": 1
+          "strength": 0
         }
       },
       {
@@ -134,7 +134,7 @@
             "value": "<p>Powerful engines enable short-distance flight.</p><p>@PPAbility[cost:2]{Power Jump} Gain a fly speed of 60 feet with average maneuverability. Maximum height is 30 feet. You must land or continue jumping each round or fall.</p>"
           },
           "isActive": false,
-          "mpCost": 1,
+          "mpCost": 0,
           "ppCost": 2,
           "source": "Tech Revolution"
         }
@@ -145,6 +145,7 @@
         "img": "systems/sfrpg/icons/equipment/technological%20items/emergency_defense_sphere.webp",
         "system": {
           "canBeActivated": true,
+          "choosesEnergyTypes": true,
           "description": {
             "chat": "",
             "gmnotes": "",
@@ -152,15 +153,14 @@
             "unidentified": "",
             "value": "<p>Energetic nodes connect to the mech's weapon mounts. Configured for cold and fire energy types.</p><p>@PPAbility[cost:2]{Energize Weapon} Convert half of a weapon's damage to cold or fire for 1 turn.</p><p>@PPAbility[cost:2]{Boomerang Strike} Grant the returning fusion to a thrown melee weapon for 1 minute.</p>"
           },
-          "isActive": false,
-          "mpCost": 1,
-          "ppCost": 2,
-          "source": "Tech Revolution",
-          "choosesEnergyTypes": true,
           "energyTypes": [
             "cold",
             "fire"
-          ]
+          ],
+          "isActive": false,
+          "mpCost": 0,
+          "ppCost": 2,
+          "source": "Tech Revolution"
         }
       },
       {

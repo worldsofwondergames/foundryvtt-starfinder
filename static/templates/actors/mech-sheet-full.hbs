@@ -32,12 +32,11 @@
                 <li>
                     <input type="text" name="system.details.source" value="{{system.details.source}}" placeholder="{{localize "SFRPG.NPCSheet.Header.SourcePlaceHolderText"}}" />
                 </li>
-                <li class="attribute mp-box" data-tooltip="{{#each system.currency.mpTooltip as |tip|}}{{tip}}<br>{{/each}}">
+                <li class="attribute mp-box{{#if system.currency.mpBelowMinimum}} below-minimum{{/if}}" data-tooltip="{{#each system.currency.mpTooltip as |tip|}}{{tip}}<br>{{/each}}{{#if system.currency.mpBelowMinimum}}<strong>{{localize "SFRPG.MechSheet.Attributes.MechPointsBelowMinimum" tier=system.details.tier minimum=system.currency.mpMinimum}}</strong>{{/if}}">
                     <h4 class="attribute-name box-title">{{ localize "SFRPG.MechSheet.Attributes.MechPoints" }}</h4>
-                    <div class="attribute-value multiple">
+                    <div class="attribute-value">
                         <span class="calculated-value">{{floor system.currency.mp}}</span>
-                        <span class="sep"> / </span>
-                        <span class="calculated-value">{{floor system.currency.mpMax}}</span>
+                        <span class="mp-minimum">{{localize "SFRPG.MechSheet.Attributes.MechPointsMinimum" minimum=system.currency.mpMinimum}}</span>
                     </div>
                 </li>
             </ul>

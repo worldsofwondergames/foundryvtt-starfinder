@@ -38,6 +38,21 @@
                 font-size: var(--font-size-24);
                 font-weight: bold;
             }
+
+            .mp-minimum {
+                margin-left: 4px;
+                font-size: var(--font-size-11);
+                opacity: 0.8;
+            }
+
+            &.below-minimum {
+                border-color: @sfrpgRed;
+
+                .attribute-value .calculated-value,
+                .mp-minimum {
+                    color: @sfrpgRed;
+                }
+            }
         }
     }
 
