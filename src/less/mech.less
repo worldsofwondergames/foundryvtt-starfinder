@@ -375,8 +375,14 @@
                     background: @sfrpgGreen;
                     color: white;
 
-                    &:hover {
+                    &:hover:not(:disabled) {
                         background: darken(@sfrpgGreen, 10%);
+                    }
+
+                    &:disabled, &.disabled {
+                        background: #999;
+                        cursor: not-allowed;
+                        opacity: 0.6;
                     }
                 }
 

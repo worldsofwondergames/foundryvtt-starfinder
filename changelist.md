@@ -12,6 +12,7 @@
 - Updating the system marks the Weapon Core copies already in a world, including those on mechs and inside mission pods. A name such as "Weapon Core (Cold, Fire)" fills in its types
 
 ## Bugfixes
+- A mech component's action that takes an action and costs Power Points showed only its blue PP button on the Actions tab, so Cloak didn't say it takes a standard action. It now shows a green action button beside the PP button, such as "Standard" and "4 PP", and either one uses the action. Fade, which costs no Power Points, showed a "0 PP" button and now shows only "Full". When the mech can't afford the action, the green button is dimmed like the PP button
 - A mech's tier added to its initiative. Tech Revolution says "A mech's initiative modifier equals the lowest initiative modifier among its operators (minimum +0). A mech's minimum initiative modifier increases by 1 at tier 5 and every 5 tiers thereafter," so the tier sets a minimum. A tier 5 mech whose lowest operator has +4 now has +4 instead of +5, and the tooltip reads "Tier 5 minimum: +1"
 - Initiative rolls showed their bonus as a data path, such as "+ 1[@combatant.attributes.init.total]" on the card and "1d20 + @combatant.attributes.init.total" in the roll dialog. Both now read "Initiative"
 - An NPC's initiative tooltip read "Base Armor Class: 7". It now reads "Base Initiative: 7"

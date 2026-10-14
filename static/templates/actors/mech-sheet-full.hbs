@@ -683,9 +683,16 @@
                         {{#if action.saveLabel}}
                         <span class="tag save-pill">{{action.saveLabel}}</span>
                         {{/if}}
-                        <button type="button" class="tag mech-gear-action {{#if action.hasPPCost}}pp-cost-button{{else}}action-type-button{{/if}}{{#unless action.canAfford}} disabled{{/unless}}" data-item-id="{{action.itemId}}" data-item-action-index="{{action.actionIndex}}" data-action-index="{{@index}}" {{#unless action.canAfford}}disabled data-tooltip="{{action.insufficientPPTooltip}}"{{/unless}}>
-                            {{action.buttonLabel}}
+                        {{#if action.actionTypeLabel}}
+                        <button type="button" class="tag mech-gear-action action-type-button{{#unless action.canAfford}} disabled{{/unless}}" data-item-id="{{action.itemId}}" data-item-action-index="{{action.actionIndex}}" data-action-index="{{@index}}" {{#unless action.canAfford}}disabled data-tooltip="{{action.insufficientPPTooltip}}"{{/unless}}>
+                            {{action.actionTypeLabel}}
                         </button>
+                        {{/if}}
+                        {{#if action.ppLabel}}
+                        <button type="button" class="tag mech-gear-action pp-cost-button{{#unless action.canAfford}} disabled{{/unless}}" data-item-id="{{action.itemId}}" data-item-action-index="{{action.actionIndex}}" data-action-index="{{@index}}" {{#unless action.canAfford}}disabled data-tooltip="{{action.insufficientPPTooltip}}"{{/unless}}>
+                            {{action.ppLabel}}
+                        </button>
+                        {{/if}}
                     </div>
                     {{/if}}
                 </li>
