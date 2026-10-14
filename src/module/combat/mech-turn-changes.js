@@ -2,6 +2,7 @@ import { auxiliaryFailureChance, effectiveSystems, regenerationRate } from "../r
 import { isRegenDue, regeneratedPowerPoints, regeneratedShieldPoints } from "../rules/mech-turn-regen.js";
 import { postAuxiliaryCheck } from "../system/mech-failure-link.js";
 import { clearSystemFlag } from "../utils/flags.js";
+import { asChatHtml } from "../utils/chat-content.js";
 
 /**
  * Applies a change of turn to the mechs involved. The mech whose turn ended
@@ -156,12 +157,12 @@ async function applyRegen(combatant, { flag, round, path, pool, value, message }
 
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({actor}),
-        content: game.i18n.format(message, {
+        content: asChatHtml(game.i18n.format(message, {
             name: actor.name,
             amount: value - pool.value,
             current: value,
             max: pool.max
-        }),
+        })),
         whisper: game.users.filter(u => u.isGM || actor.testUserPermission(u, "OWNER")).map(u => u.id)
     });
 }
