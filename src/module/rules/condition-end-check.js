@@ -44,17 +44,40 @@ export const END_CHECK_TIMINGS = ["turnStart", "turnEnd", "roundEnd"];
 /**
  * A save or check the GM set to end a condition.
  *
- * @param {{kind: string, id: string, dc: number, timing?: string}} options
+ * A timing of "fullAction" is a save the creature spends a full action on during
+ * its own turn, as Hold Person allows: "Each round on its turn, the target can
+ * spend a full action to attempt a new saving throw." It is offered at the start
+ * of the creature's turn and marked as costing a full action.
+ *
+ * @param {{kind: string, id: string, dc: number, timing?: string, cumulativeBonus?: number}} options
+ *     cumulativeBonus is added once for each earlier failed attempt, such as
+ *     Transmogrification's "cumulative +1 bonus".
  * @param {{saves: object, skills: object}} ids CONFIG.SFRPG.saves and CONFIG.SFRPG.skills.
- * @returns {object|null} The check, or null when the id, DC or timing is not usable.
+ * @returns {object|null} The check, or null when the id, DC, timing or bonus is not usable.
  */
-export function startEndCheck({ kind, id, dc, timing = "turnEnd" }, ids) {
+export function startEndCheck({ kind, id, dc, timing = "turnEnd", cumulativeBonus = 0 }, ids) {
     const table = kind === "save" ? ids.saves : kind === "skill" ? ids.skills : null;
     if (!table || !Object.hasOwn(table, id)) return null;
     if (!Number.isInteger(dc) || dc <= 0) return null;
-    if (!END_CHECK_TIMINGS.includes(timing)) return null;
+    if (!Number.isInteger(cumulativeBonus) || cumulativeBonus < 0) return null;
 
-    return { kind, id, dc, timing, attempts: 0, lastAttemptRound: null, consecutiveBonus: 0, smotherBonus: 0 };
+    const fullAction = timing === "fullAction";
+    const when = fullAction ? "turnStart" : timing;
+    if (!END_CHECK_TIMINGS.includes(when)) return null;
+
+    return {
+        kind,
+        id,
+        dc,
+        timing: when,
+        fullAction,
+        attempts: 0,
+        totalAttempts: 0,
+        lastAttemptRound: null,
+        consecutiveBonus: 0,
+        cumulativeBonus,
+        smotherBonus: 0
+    };
 }
 
 /**
@@ -83,7 +106,8 @@ function runContinues(check, round) {
 
 /**
  * The bonus on this attempt: the Burning family's +2 for each earlier attempt in
- * consecutive rounds, and +4 for spending a full action to smother the fire.
+ * consecutive rounds, a cumulative bonus for each earlier failed attempt however
+ * long ago, and +4 for spending a full action to smother the fire.
  *
  * @param {object} check
  * @param {number|null} round The current combat round, or null outside combat.
@@ -92,7 +116,9 @@ function runContinues(check, round) {
  */
 export function attemptBonus(check, round, { smother }) {
     const earlier = runContinues(check, round) ? check.attempts : 0;
-    return earlier * (check.consecutiveBonus || 0) + (smother ? check.smotherBonus || 0 : 0);
+    return earlier * (check.consecutiveBonus || 0)
+        + (check.totalAttempts || 0) * (check.cumulativeBonus || 0)
+        + (smother ? check.smotherBonus || 0 : 0);
 }
 
 /**
@@ -107,9 +133,11 @@ export function attemptBonus(check, round, { smother }) {
 export function recordAttempt(check, round, success) {
     if (success) return null;
 
+    const sameRound = check.lastAttemptRound === round && round !== null;
     const earlier = runContinues(check, round) ? check.attempts : 0;
-    const attempts = check.lastAttemptRound === round && round !== null ? earlier : earlier + 1;
-    return { ...check, attempts, lastAttemptRound: round };
+    const attempts = sameRound ? earlier : earlier + 1;
+    const totalAttempts = (check.totalAttempts || 0) + (sameRound ? 0 : 1);
+    return { ...check, attempts, totalAttempts, lastAttemptRound: round };
 }
 
 /**

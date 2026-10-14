@@ -31,7 +31,17 @@ describe("endCheckFor", () => {
 describe("startEndCheck", () => {
     it("builds a save at the end of the turn", () => {
         expect(startEndCheck({ kind: "save", id: "will", dc: 15 }, IDS)).toEqual({
-            kind: "save", id: "will", dc: 15, timing: "turnEnd", attempts: 0, lastAttemptRound: null, consecutiveBonus: 0, smotherBonus: 0
+            kind: "save",
+            id: "will",
+            dc: 15,
+            timing: "turnEnd",
+            fullAction: false,
+            attempts: 0,
+            totalAttempts: 0,
+            lastAttemptRound: null,
+            consecutiveBonus: 0,
+            cumulativeBonus: 0,
+            smotherBonus: 0
         });
     });
 
@@ -194,5 +204,45 @@ describe("attemptRound", () => {
 
     it("is null outside combat", () => {
         expect(attemptRound({ smother: false, cardRound: null, currentRound: null })).toBeNull();
+    });
+});
+
+describe("cumulative bonus", () => {
+    const transmogrification = () => startEndCheck({ kind: "save", id: "fort", dc: 18, timing: "turnEnd", cumulativeBonus: 1 }, IDS);
+
+    it("stores a bonus per attempt set when the condition is applied", () => {
+        expect(transmogrification()).toMatchObject({ cumulativeBonus: 1, totalAttempts: 0 });
+    });
+
+    it("refuses a negative or fractional bonus per attempt", () => {
+        expect(startEndCheck({ kind: "save", id: "fort", dc: 18, cumulativeBonus: -1 }, IDS)).toBeNull();
+        expect(startEndCheck({ kind: "save", id: "fort", dc: 18, cumulativeBonus: 1.5 }, IDS)).toBeNull();
+    });
+
+    it("adds the bonus once for each earlier failed attempt", () => {
+        expect(attemptBonus({ ...transmogrification(), totalAttempts: 3, lastAttemptRound: 4 }, 5, { smother: false })).toBe(3);
+    });
+
+    it("keeps the bonus after a round without an attempt", () => {
+        expect(attemptBonus({ ...transmogrification(), totalAttempts: 3, lastAttemptRound: 1 }, 5, { smother: false })).toBe(3);
+    });
+
+    it("counts each failed attempt, once per round", () => {
+        const once = recordAttempt(transmogrification(), 2, false);
+        expect(once.totalAttempts).toBe(1);
+        expect(recordAttempt(once, 2, false).totalAttempts).toBe(1);
+        expect(recordAttempt(once, 5, false).totalAttempts).toBe(2);
+    });
+});
+
+describe("full action", () => {
+    it("offers a full-action save at the start of the creature's turn", () => {
+        const hold = startEndCheck({ kind: "save", id: "will", dc: 16, timing: "fullAction" }, IDS);
+        expect(hold).toMatchObject({ timing: "turnStart", fullAction: true });
+        expect(isCheckDue(hold, "turnStart")).toBe(true);
+    });
+
+    it("marks other saves as costing no action", () => {
+        expect(startEndCheck({ kind: "save", id: "will", dc: 16, timing: "turnEnd" }, IDS).fullAction).toBe(false);
     });
 });
