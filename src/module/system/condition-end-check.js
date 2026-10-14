@@ -51,22 +51,24 @@ async function spendEarlierCards(actor, condition) {
 }
 
 /**
- * Post a card for each condition on the actor whose check is due at the end of
- * its turn. Runs for the active GM, after the condition timers count down, so a
- * condition whose rounds ran out has already gone.
+ * Post a card for each condition on the actor whose check is due at this moment
+ * in the combat. Runs for the active GM. At the end of a turn it runs after the
+ * condition timers count down, so a condition whose rounds ran out has already
+ * gone.
  *
  * @param {ActorSFRPG} actor The creature whose turn ended.
  * @param {number|null} round The round the turn belonged to. Foundry has already
  *     moved the combat on when the last creature in the order ends its turn.
+ * @param {string} [moment] "turnStart", "turnEnd" or "roundEnd".
  * @returns {Promise<void>}
  */
-export async function postEndCheckCards(actor, round) {
+export async function postEndCheckCards(actor, round, moment = "turnEnd") {
     for (const condition of Object.keys(CONFIG.SFRPG.conditionTypes)) {
         const item = actor.getCondition?.(condition);
         if (!item?.system.enabled) continue;
 
         const check = endCheckFor(condition, item.getFlag("sfrpg", "conditionEndCheck") ?? null);
-        if (!isCheckDue(check)) continue;
+        if (!isCheckDue(check, moment)) continue;
 
         const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
         const dc = dcFor(condition, item, check, round);
@@ -87,6 +89,20 @@ export async function postEndCheckCards(actor, round) {
             content: `<div class="sfrpg condition-end-check-card" data-actor-uuid="${actor.uuid}">${lines.map(line => `<p>${line}</p>`).join("")}<p>${links.join(" ")}</p></div>`,
             whisper: failureRecipients(game.users, actor)
         });
+    }
+}
+
+/**
+ * Post the cards owed at the end of a round, for every creature in the combat.
+ *
+ * @param {Combat} combat
+ * @param {number} round The round that ended.
+ * @returns {Promise<void>}
+ */
+export async function postRoundEndCheckCards(combat, round) {
+    const actors = new Set(combat.combatants.map(combatant => combatant.actor).filter(Boolean));
+    for (const actor of actors) {
+        await postEndCheckCards(actor, round, "roundEnd");
     }
 }
 

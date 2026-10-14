@@ -964,7 +964,10 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         }
     }
 
-    async _onTurnStart() {
+    /**
+     * @param {{round?: number}} [context] Foundry's context for the turn that started.
+     */
+    async _onTurnStart(context = {}) {
         // A mech's Power and Shield Point regeneration belongs to the end of its
         // turn, and is handled by the onAfterUpdateCombat hook, which reports what
         // it restored. Doing it here as well regenerated both pools twice a turn.
@@ -974,6 +977,9 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         // their items' turn events, so their damage is applied and the card can
         // say how many rounds are left.
         await rollOngoingConditions(this);
+
+        // A save set to be offered at the start of the creature's turn.
+        await postEndCheckCards(this, context.round ?? game.combat?.round ?? null, "turnStart");
     }
 
     /**

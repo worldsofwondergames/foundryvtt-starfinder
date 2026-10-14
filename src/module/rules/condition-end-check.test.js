@@ -47,6 +47,15 @@ describe("startEndCheck", () => {
         expect(startEndCheck({ kind: "save", id: "med", dc: 15 }, IDS)).toBeNull();
     });
 
+    it("offers the save at the start of the turn or the end of the round when asked", () => {
+        expect(startEndCheck({ kind: "save", id: "will", dc: 15, timing: "turnStart" }, IDS)).toMatchObject({ timing: "turnStart" });
+        expect(startEndCheck({ kind: "save", id: "will", dc: 15, timing: "roundEnd" }, IDS)).toMatchObject({ timing: "roundEnd" });
+    });
+
+    it("refuses a timing the system does not offer", () => {
+        expect(startEndCheck({ kind: "save", id: "will", dc: 15, timing: "onDemand" }, IDS)).toBeNull();
+    });
+
     it("refuses a blank, zero or fractional DC", () => {
         expect(startEndCheck({ kind: "save", id: "will", dc: null }, IDS)).toBeNull();
         expect(startEndCheck({ kind: "save", id: "will", dc: 0 }, IDS)).toBeNull();
@@ -136,6 +145,13 @@ describe("isCheckDue", () => {
 
     it("is not due without a check", () => {
         expect(isCheckDue(null)).toBe(false);
+    });
+
+    it("is due only at the moment the check was set for", () => {
+        const atStart = startEndCheck({ kind: "save", id: "will", dc: 15, timing: "turnStart" }, IDS);
+        expect(isCheckDue(atStart, "turnStart")).toBe(true);
+        expect(isCheckDue(atStart, "turnEnd")).toBe(false);
+        expect(isCheckDue(atStart, "roundEnd")).toBe(false);
     });
 });
 

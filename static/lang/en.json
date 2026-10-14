@@ -705,9 +705,13 @@
             "RoundsPlaceholder": "Until removed",
             "SaveDC": "Save DC",
             "SaveNone": "No save",
-            "SaveHint": "The save is offered at the end of each of their turns, and a success ends it early.",
+            "SaveHint": "A success on the save ends the condition early. Leave When blank to offer it at the end of each of their turns.",
             "SaveToEnd": "Save to end",
-            "Title": "Apply {condition}"
+            "SaveWhen": "When",
+            "Title": "Apply {condition}",
+            "WhenRoundEnd": "End of each round",
+            "WhenTurnEnd": "End of each of their turns",
+            "WhenTurnStart": "Start of each of their turns"
         },
         "ConditionTooltips": {
             "Asleep": "You take a -10 penalty to Perception checks to notice things.",

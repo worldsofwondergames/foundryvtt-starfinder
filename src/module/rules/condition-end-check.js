@@ -34,18 +34,27 @@ export function endCheckFor(condition, stored) {
 }
 
 /**
- * A save or check the GM set to end a condition at the end of the creature's turn.
+ * When a check the GM sets can be offered: at the start of each of the
+ * creature's turns, at the end of each of its turns, or at the end of each round.
  *
- * @param {{kind: string, id: string, dc: number}} options
- * @param {{saves: object, skills: object}} ids CONFIG.SFRPG.saves and CONFIG.SFRPG.skills.
- * @returns {object|null} The check, or null when the id or DC is not usable.
+ * @type {string[]}
  */
-export function startEndCheck({ kind, id, dc }, ids) {
+export const END_CHECK_TIMINGS = ["turnStart", "turnEnd", "roundEnd"];
+
+/**
+ * A save or check the GM set to end a condition.
+ *
+ * @param {{kind: string, id: string, dc: number, timing?: string}} options
+ * @param {{saves: object, skills: object}} ids CONFIG.SFRPG.saves and CONFIG.SFRPG.skills.
+ * @returns {object|null} The check, or null when the id, DC or timing is not usable.
+ */
+export function startEndCheck({ kind, id, dc, timing = "turnEnd" }, ids) {
     const table = kind === "save" ? ids.saves : kind === "skill" ? ids.skills : null;
     if (!table || !Object.hasOwn(table, id)) return null;
     if (!Number.isInteger(dc) || dc <= 0) return null;
+    if (!END_CHECK_TIMINGS.includes(timing)) return null;
 
-    return { kind, id, dc, timing: "turnEnd", attempts: 0, lastAttemptRound: null, consecutiveBonus: 0, smotherBonus: 0 };
+    return { kind, id, dc, timing, attempts: 0, lastAttemptRound: null, consecutiveBonus: 0, smotherBonus: 0 };
 }
 
 /**
@@ -137,11 +146,12 @@ export function checkSucceeds(check, { total, dc, natural }) {
 }
 
 /**
- * Whether the end of the creature's turn owes this check a card.
+ * Whether this moment in the combat owes the check a card.
  *
  * @param {object|null} check
+ * @param {string} [moment] "turnStart", "turnEnd" or "roundEnd".
  * @returns {boolean}
  */
-export function isCheckDue(check) {
-    return check?.timing === "turnEnd";
+export function isCheckDue(check, moment = "turnEnd") {
+    return Boolean(check) && check.timing === moment;
 }

@@ -20,7 +20,7 @@ function isActorsTurn(actor) {
  *
  * @param {string} condition A key of CONFIG.SFRPG.conditionTypes.
  * @param {string} name The affected creature's name, for the prompt.
- * @returns {Promise<{rounds: number|null, check: {kind: string, id: string, dc: number|null}|null}|null>}
+ * @returns {Promise<{rounds: number|null, check: {kind: string, id: string, dc: number|null, timing: string}|null}|null>}
  *     The rounds, or null to keep it until removed, and the save that ends it, or
  *     null for none. Null when the dialog is closed.
  */
@@ -46,6 +46,15 @@ export async function promptConditionRounds(condition, name) {
             <label>${game.i18n.localize("SFRPG.ConditionTimer.SaveDC")}</label>
             <input type="number" name="dc" min="1" step="1" />
         </div>
+        <div class="form-group">
+            <label>${game.i18n.localize("SFRPG.ConditionTimer.SaveWhen")}</label>
+            <select name="timing">
+                <option value=""></option>
+                <option value="turnEnd">${game.i18n.localize("SFRPG.ConditionTimer.WhenTurnEnd")}</option>
+                <option value="turnStart">${game.i18n.localize("SFRPG.ConditionTimer.WhenTurnStart")}</option>
+                <option value="roundEnd">${game.i18n.localize("SFRPG.ConditionTimer.WhenRoundEnd")}</option>
+            </select>
+        </div>
         <p class="hint">${game.i18n.localize("SFRPG.ConditionTimer.SaveHint")}</p>`;
 
     const number = value => (value === "" ? null : Number(value));
@@ -55,8 +64,8 @@ export async function promptConditionRounds(condition, name) {
         ok: {
             label: game.i18n.localize("SFRPG.ConditionTimer.Apply"),
             callback: (event, button) => {
-                const { rounds, save, dc } = button.form.elements;
-                return { rounds: number(rounds.value), save: save.value, dc: number(dc.value) };
+                const { rounds, save, dc, timing } = button.form.elements;
+                return { rounds: number(rounds.value), save: save.value, dc: number(dc.value), timing: timing.value };
             }
         },
         rejectClose: false
@@ -64,7 +73,8 @@ export async function promptConditionRounds(condition, name) {
     if (!answer) return null;
 
     const rounds = Number.isInteger(answer.rounds) && answer.rounds > 0 ? answer.rounds : null;
-    const check = answer.save ? { kind: "save", id: answer.save, dc: answer.dc } : null;
+    // A save with no time picked is offered at the end of each of the creature's turns.
+    const check = answer.save ? { kind: "save", id: answer.save, dc: answer.dc, timing: answer.timing || "turnEnd" } : null;
     return { rounds, check };
 }
 
@@ -104,8 +114,8 @@ export async function onTimedConditionSet({ actor, item, conditionName, enabled,
     if (!answer) return;
     if (answer.rounds) await setConditionTimer(actor, conditionName, answer.rounds);
 
-    // A save the GM gave the condition is offered at the end of each of the
-    // creature's turns. A save with no usable DC is left out.
+    // A save the GM gave the condition is offered at the moment they chose.
+    // A save with no usable DC is left out.
     const check = answer.check ? startEndCheck(answer.check, { saves: CONFIG.SFRPG.saves, skills: CONFIG.SFRPG.skills }) : null;
     if (check) await actor.getCondition(conditionName)?.setFlag("sfrpg", "conditionEndCheck", check);
 }

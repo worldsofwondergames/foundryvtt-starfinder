@@ -3,7 +3,7 @@
 ## New Features
 - At the end of a burning, corroded or frostbitten creature's turn, its owners and the GM get a card offering the Reflex save that ends the condition. The DC is 10 + the damage the condition dealt that round, each failed save in consecutive rounds adds +2 to the next one, and a Smother button gives the full-action attempt at +4. A success removes the condition, and nothing is rolled until someone presses a button
 - The damage card for Bleeding has a Stop bleeding link. It rolls a DC 15 Medicine check for the clicking player's character, or for their selected token, and a success removes Bleeding, even from a creature that player doesn't own
-- The rounds dialog for conditions such as Stunned and Shaken has a Save to end row. Pick Fortitude, Reflex or Will and a DC, and the save is offered at the end of each of the creature's turns until it succeeds or the rounds run out
+- The rounds dialog for conditions such as Stunned and Shaken has a Save to end row. Pick Fortitude, Reflex or Will, a DC, and when the save is offered: at the start of each of the creature's turns, at the end of each of its turns, or at the end of each round. Leaving When blank offers it at the end of the creature's turns. The save keeps being offered until it succeeds or the rounds run out, and leaving the save blank gives the condition no save
 - `docs/condition-end-states.md` lists how each of the 42 conditions ends, quoting its description
 
 ## Bugfixes
