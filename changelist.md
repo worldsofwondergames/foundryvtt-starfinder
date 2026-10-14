@@ -1,3 +1,9 @@
+# Version 14.1.7
+
+## Bugfixes
+- A mech regained its Shield Points at the end of its turn along with its Power Points. Shield Points now come back at the start of the mech's turn and Power Points at the end, each once per round, with a separate chat message for each
+- A malfunctioning power core halved Power Point and Shield Point regeneration after capping it at the maximum, so a mech close to full got less than half its regeneration back. The halving now comes first, rounded down, and the maximum caps the result
+
 # Version 14.1.6
 
 ## Bugfixes
