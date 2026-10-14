@@ -1,13 +1,16 @@
 import {
     ONGOING_CONDITIONS,
     addOngoingSource,
+    combinedFormula,
     mergeRounds,
     ongoingSources,
+    poolLosses,
     sourceOf,
     remainingHealth,
     tickRounds
 } from "../rules/ongoing-damage.js";
 import { BURNING_FAMILY } from "../rules/condition-end-check.js";
+import { DiceSFRPG } from "../dice.js";
 
 /**
  * Actors whose ongoing condition is being applied by code that already knows
@@ -201,41 +204,64 @@ export async function rollOngoingConditions(actor) {
             card.lines.push(`<a class="enriched-link" data-action="stopBleeding" data-dc="15"><i class="fas fa-kit-medical"></i> ${game.i18n.localize("SFRPG.ConditionEndCheck.StopBleeding")}</a>`);
         }
 
-        const content = `<div class="sfrpg ongoing-damage-card" data-actor-uuid="${actor.uuid}">${card.lines.map(line => `<p>${line}</p>`).join("")}</div>`;
+        // Laid out like a weapon's damage card: the text in the flavor, and the
+        // roll in the content with its expandable dice.
+        const text = `<div class="sfrpg ongoing-damage-card" data-actor-uuid="${actor.uuid}">${card.lines.map(line => `<p>${line}</p>`).join("")}</div>`;
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
-            content,
-            rolls: card.rolls,
-            sound: card.rolls.length ? CONFIG.sounds.dice : null
+            flavor: card.roll ? text : undefined,
+            content: card.roll ? DiceSFRPG.appendTextToRoll(await card.roll.render(), card.type) : text,
+            rolls: card.roll ? [card.roll] : [],
+            sound: card.roll ? CONFIG.sounds.dice : null
         });
     }
     return ended;
 }
 
 /**
- * Roll every source of an ongoing condition and apply the total.
+ * Say how much of each pool a creature lost, Stamina Points first, as damage
+ * comes off them. "Boz loses 3 Stamina Points and 1 Hit Point."
+ *
+ * @param {string} name The creature's name.
+ * @param {{temp: number, sp: number, hp: number}} losses
+ * @returns {string}
+ */
+function lossLine(name, losses) {
+    const pool = (amount, one, many) => game.i18n.format(amount === 1 ? one : many, { amount });
+    const parts = [];
+    if (losses.temp) parts.push(pool(losses.temp, "SFRPG.OngoingDamage.TempHitPoint", "SFRPG.OngoingDamage.TempHitPoints"));
+    if (losses.sp) parts.push(pool(losses.sp, "SFRPG.OngoingDamage.StaminaPoint", "SFRPG.OngoingDamage.StaminaPoints"));
+    if (losses.hp) parts.push(pool(losses.hp, "SFRPG.OngoingDamage.HitPoint", "SFRPG.OngoingDamage.HitPoints"));
+    if (!parts.length) return game.i18n.format("SFRPG.OngoingDamage.LosesNothing", { name });
+
+    const pools = parts.length === 1
+        ? parts[0]
+        : game.i18n.format("SFRPG.OngoingDamage.And", { first: parts.slice(0, -1).join(", "), last: parts.at(-1) });
+    return game.i18n.format("SFRPG.OngoingDamage.Loses", { name, pools });
+}
+
+/**
+ * Roll every source of an ongoing condition as one roll and apply the total.
  *
  * @param {ActorSFRPG} actor The affected creature.
  * @param {Item} item The condition item.
  * @param {string} condition A key of ONGOING_CONDITIONS.
- * @returns {Promise<{lines: string[], rolls: Roll[], lost: number}>} What the card says, the rolls behind it, and the damage the creature lost.
+ * @returns {Promise<{lines: string[], roll: Roll|null, type: string, lost: number}>} What the card says, the roll behind it, the damage type, and the damage the creature lost.
  */
 async function rollOngoingDamage(actor, item, condition) {
     const rule = ONGOING_CONDITIONS[condition];
     const sources = ongoingSources(item.system.turnEvents);
     const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
     if (!sources.length) {
-        return { lines: [game.i18n.format("SFRPG.OngoingDamage.NoDamage", { condition: label, name: actor.name })], rolls: [], lost: 0 };
+        return { lines: [game.i18n.format("SFRPG.OngoingDamage.NoDamage", { condition: label, name: actor.name })], roll: null, type: "", lost: 0 };
     }
 
-    const rolls = [];
-    for (const source of sources) {
-        rolls.push(await new Roll(source.formula).evaluate());
-    }
-    const amount = rolls.reduce((sum, roll) => sum + roll.total, 0);
+    const roll = await new Roll(combinedFormula(sources)).evaluate();
+    const amount = roll.total;
     const type = rule.damageType ? game.i18n.localize(CONFIG.SFRPG.damageTypes[rule.damageType] ?? rule.damageType).toLowerCase() : "";
 
-    const before = remainingHealth(actor.system.attributes);
+    const attributes = foundry.utils.deepClone(actor.system.attributes);
+    const before = remainingHealth(attributes);
     const Damage = game.sfrpg.Actor.Damage.SFRPGDamage;
     await actor.applyDamage(Damage.createDamage(amount, rule.damageType ? [rule.damageType] : []));
     const lost = before - remainingHealth(actor.system.attributes);
@@ -246,16 +272,9 @@ async function rollOngoingDamage(actor, item, condition) {
         type,
         name: actor.name
     })];
-    // One line for the dice. Foundry's own roll display repeats the formula three times.
-    lines.push(game.i18n.format("SFRPG.OngoingDamage.Rolled", {
-        rolls: rolls.map((roll, i) => {
-            const from = sourceOf(sources[i].name);
-            // In <code> so the chat's dice linking leaves the already rolled formula alone.
-            const formula = `<code>${roll.formula}</code>`;
-            return from ? `${formula} (${from}): ${roll.total}` : `${formula}: ${roll.total}`;
-        }).join(", ")
-    }));
-    if (lost !== amount) lines.push(game.i18n.format("SFRPG.OngoingDamage.Lost", { name: actor.name, lost }));
+    const from = sources.map(source => sourceOf(source.name)).filter(Boolean);
+    if (from.length) lines.push(game.i18n.format("SFRPG.OngoingDamage.From", { sources: from.join(", ") }));
+    lines.push(lossLine(actor.name, poolLosses(attributes, actor.system.attributes)));
 
-    return { lines, rolls, lost };
+    return { lines, roll, type, lost };
 }

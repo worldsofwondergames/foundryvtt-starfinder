@@ -893,9 +893,9 @@ Hooks.on("renderAbstractSidebarTab", async (app) => {
     }
 });
 
-Hooks.on("combatStart", async (combat) => {
-    if (!game.users.activeGM?.isSelf) return;
-
+// A start of combat step rather than a combatStart hook, which nothing waits
+// for, so the Mech Combat Start card comes before the first round's card.
+CombatSFRPG.startSteps.push(async (combat) => {
     const mechCombatants = combat.combatants.filter(c => c.actor?.type === "mech");
     if (mechCombatants.length === 0) return;
 

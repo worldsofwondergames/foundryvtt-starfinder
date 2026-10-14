@@ -184,6 +184,36 @@ export function remainingHealth(attributes) {
 }
 
 /**
+ * One formula for all of a condition's sources, so the card shows a single roll
+ * with every die in it.
+ *
+ * @param {{formula: string}[]} sources
+ * @returns {string}
+ */
+export function combinedFormula(sources) {
+    if (sources.length === 1) return sources[0].formula;
+    return sources.map(source => `(${source.formula})`).join(" + ");
+}
+
+/**
+ * How much each pool went down. Damage comes off temporary Hit Points first,
+ * then Stamina Points, then Hit Points, so a creature with Stamina can take
+ * damage without losing any Hit Points.
+ *
+ * @param {object} before The creature's attributes before the damage.
+ * @param {object} after Its attributes after.
+ * @returns {{temp: number, sp: number, hp: number}}
+ */
+export function poolLosses(before, after) {
+    const drop = (from, to) => Math.max(0, (Number(from) || 0) - (Number(to) || 0));
+    return {
+        temp: drop(parseInt(before?.hp?.temp), parseInt(after?.hp?.temp)),
+        sp: drop(before?.sp?.value, after?.sp?.value),
+        hp: drop(before?.hp?.value, after?.hp?.value)
+    };
+}
+
+/**
  * The weapon or effect a source came from, which applyOngoingCondition writes
  * into its name as "Corrode (Acid cannon)".
  *

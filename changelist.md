@@ -8,6 +8,11 @@
 
 ## Bugfixes
 - A rolled die on a System Failure card was not struck through or dimmed, unlike Aim's and Replenish's. The style now applies to a spent link on any of the system's chat cards
+- The damage card for Burning, Bleeding, Corrode and Frostbite didn't say which pool the damage came from. Damage comes off Stamina Points before Hit Points, so a creature with Stamina lost no Hit Points and the card looked as if nothing had happened. The card now says what was lost, such as "Boz loses 3 Stamina Points and 1 Hit Point"
+- The same card is laid out like a weapon damage card, with the roll's expandable dice area and the damage type beside the total
+- Damage roll cards didn't show the damage type beside the total, such as "3 B" for a bludgeoning weapon. Foundry v13 renders the total differently from earlier versions, so the type was inserted into the wrong place in the card and never appeared. It now shows again
+- The Mech Combat Start card was posted after the Round 1 card. It now comes first
+- Normal combat posted a "Combat Phase" card at the start of every round. Normal combat has no phases in the rules, so the card is left out. Starship combat and vehicle chases still announce their phases
 - Removing Stunned, or another condition that causes Flat-footed, finished before Flat-footed was removed. Removing Flat-footed right afterward, by hand or from a macro, threw an error. Removing a condition now waits for the Flat-footed it caused to go, and a condition without a timed effect no longer throws when removed
 
 # Version 14.1.7
