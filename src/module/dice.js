@@ -4,6 +4,7 @@ import RollTree from "./rolls/rolltree.js";
 import StackModifiers from "./rules/closures/stack-modifiers.js";
 import { ongoingFromCritical } from "./rules/ongoing-damage.js";
 import SFRPGRoll from "./rolls/roll.js";
+import { appendTextToRoll } from "./utils/roll-text.js";
 
 /**
  * @import SFRPGRoll from "./rolls/roll.js";
@@ -802,18 +803,7 @@ export class DiceSFRPG {
     }
 
     static appendTextToRoll(originalRollHTML, textToAppend) {
-        const diceRollHtml = '<h3 class="dice-total">';
-
-        const diceRollIndex = originalRollHTML.indexOf(diceRollHtml);
-        const firstHalf = originalRollHTML.substring(0, diceRollIndex + diceRollHtml.length);
-        const splitOffFirstHalf = originalRollHTML.substring(diceRollIndex + diceRollHtml.length);
-
-        const closeTagIndex = splitOffFirstHalf.indexOf('</h3>');
-        const rollResultHtml = splitOffFirstHalf.substring(0, closeTagIndex);
-        const secondHalf = splitOffFirstHalf.substring(closeTagIndex);
-
-        const combinedResult = firstHalf + rollResultHtml + ` ${textToAppend}` + secondHalf;
-        return combinedResult;
+        return appendTextToRoll(originalRollHTML, textToAppend);
     }
 
     /**
