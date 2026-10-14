@@ -26,6 +26,7 @@ import { ItemCapacityMixin } from "./mixins/item-capacity.js";
 import { ItemChatMixin } from "./mixins/item-chat.js";
 import { clearSystemFlag } from "../utils/flags.js";
 import { ongoingConditionOf } from "../rules/ongoing-damage.js";
+import { asChatHtml } from "../utils/chat-content.js";
 
 /**
  * @import { RollResult } from '../dice.js'
@@ -2367,7 +2368,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
 
     _handleEffectNoteEvent(turnEvent) {
         return ChatMessage.create({
-            content: turnEvent.content,
+            content: asChatHtml(turnEvent.content),
             speaker: ChatMessage.getSpeaker({ actor: this.actor })
         });
     }

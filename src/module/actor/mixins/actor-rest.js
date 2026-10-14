@@ -1,6 +1,7 @@
 import { DroneRepairDialog } from "../../apps/drone-repair-dialog.js";
 import { ShortRestDialog } from "../../apps/short-rest.js";
 import { SFRPG } from "../../config.js";
+import { asChatHtml } from "../../utils/chat-content.js";
 
 export const ActorRestMixin = (superclass) => class extends superclass {
     /**
@@ -68,7 +69,7 @@ export const ActorRestMixin = (superclass) => class extends superclass {
             ChatMessage.create({
                 author: game.user.id,
                 speaker: ChatMessage.getSpeaker({actor: this}),
-                content: msg,
+                content: asChatHtml(msg),
                 style: CONST.CHAT_MESSAGE_STYLES.OTHER
             });
         }
@@ -127,7 +128,7 @@ export const ActorRestMixin = (superclass) => class extends superclass {
             ChatMessage.create({
                 author: game.user.id,
                 speaker: ChatMessage.getSpeaker({actor: this}),
-                content: msg,
+                content: asChatHtml(msg),
                 style: CONST.CHAT_MESSAGE_STYLES.OTHER
             });
         }
@@ -243,7 +244,7 @@ export const ActorRestMixin = (superclass) => class extends superclass {
             ChatMessage.create({
                 author: game.user.id,
                 speaker: ChatMessage.getSpeaker({actor: this}),
-                content: content,
+                content: asChatHtml(content),
                 style: CONST.CHAT_MESSAGE_STYLES.OTHER
             });
         }

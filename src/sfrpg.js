@@ -105,6 +105,7 @@ import isObject from './module/utils/is-object.js';
 
 // Import DataModel classes
 import * as models from './module/data/_module.mjs';
+import { asChatHtml } from "./module/utils/chat-content.js";
 
 const { Actors, Items } = foundry.documents.collections;
 const { ActorSheet, ItemSheet } = foundry.appv1.sheets;
@@ -976,7 +977,7 @@ CombatSFRPG.startSteps.push(async (combat) => {
     }
 
     await ChatMessage.create({
-        content: lines.join("<br>"),
+        content: asChatHtml(lines.join("<br>")),
         whisper: gmUsers
     });
 });

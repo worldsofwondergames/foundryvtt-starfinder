@@ -1,5 +1,6 @@
 import { TIMED_CONDITIONS, startConditionTimer, tickConditionTimer } from "../rules/condition-timer.js";
 import { startEndCheck } from "../rules/condition-end-check.js";
+import { asChatHtml } from "../utils/chat-content.js";
 
 /**
  * Whether it is this actor's turn in the active combat.
@@ -143,10 +144,10 @@ export async function tickConditionTimers(actor) {
             ended.push(condition);
             ChatMessage.create({
                 speaker: ChatMessage.getSpeaker({ actor }),
-                content: game.i18n.format("SFRPG.ConditionTimer.Expired", {
+                content: asChatHtml(game.i18n.format("SFRPG.ConditionTimer.Expired", {
                     name: actor.name,
                     condition: game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition])
-                })
+                }))
             });
         } else if (timer) {
             await item.setFlag("sfrpg", "conditionTimer", timer);

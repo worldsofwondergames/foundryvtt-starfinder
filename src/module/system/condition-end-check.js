@@ -3,6 +3,7 @@ import RollContext from "../rolls/rollcontext.js";
 import { RPC } from "../rpc.js";
 import { BURNING_FAMILY, attemptBonus, attemptRound, burningDC, checkSucceeds, endCheckFor, isCheckDue, recordAttempt } from "../rules/condition-end-check.js";
 import { failureRecipients, spendFailureLink } from "./mech-failure-link.js";
+import { asChatHtml } from "../utils/chat-content.js";
 
 /** The data-action of a card's Roll and Smother links. */
 const ACTION = "conditionEndCheck";
@@ -201,7 +202,7 @@ export async function onConditionEndCheckClick(event) {
 
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),
-        content: game.i18n.format(result.success ? "SFRPG.ConditionEndCheck.Ended" : "SFRPG.ConditionEndCheck.Failed", { name: actor.name, condition: label }),
+        content: asChatHtml(game.i18n.format(result.success ? "SFRPG.ConditionEndCheck.Ended" : "SFRPG.ConditionEndCheck.Failed", { name: actor.name, condition: label })),
         whisper: failureRecipients(game.users, actor)
     });
 }
@@ -247,7 +248,7 @@ export async function onStopBleedingClick(event) {
 
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: healer }),
-        content: game.i18n.format(result.success ? "SFRPG.ConditionEndCheck.Stopped" : "SFRPG.ConditionEndCheck.NotStopped", { healer: healer.name, name: patient.name })
+        content: asChatHtml(game.i18n.format(result.success ? "SFRPG.ConditionEndCheck.Stopped" : "SFRPG.ConditionEndCheck.NotStopped", { healer: healer.name, name: patient.name }))
     });
 }
 

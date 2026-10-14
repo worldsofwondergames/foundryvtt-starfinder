@@ -1,4 +1,5 @@
 import { ChoiceDialog } from "../../apps/choice-dialog.js";
+import { asChatHtml } from "../../utils/chat-content.js";
 
 export class SFRPGHealingSetting {
     constructor({stamina = false, hitpoints = true, temp = false} = {}) {
@@ -723,7 +724,7 @@ export const ActorDamageMixin = (superclass) => class extends superclass {
             const chatData = {
                 user: game.user.id,
                 speaker: ChatMessage.getSpeaker({actor: this}),
-                content: warningMessage,
+                content: asChatHtml(warningMessage),
                 style: CONST.CHAT_MESSAGE_STYLES.OTHER
             };
             ChatMessage.applyRollMode(chatData, rollMode);
@@ -737,7 +738,7 @@ export const ActorDamageMixin = (superclass) => class extends superclass {
             const chatData = {
                 user: game.user.id,
                 speaker: ChatMessage.getSpeaker({actor: this}),
-                content: warningMessage,
+                content: asChatHtml(warningMessage),
                 style: CONST.CHAT_MESSAGE_STYLES.OTHER
             };
             ChatMessage.applyRollMode(chatData, rollMode);
