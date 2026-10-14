@@ -439,16 +439,16 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         // different rolls, so both can be armed and both banners can be up at once.
         const banners = armedOverrideBanners({
             damageLevelOverride: this.actor.getFlag("sfrpg", "damageLevelOverride"),
-            attackBonusOverride: this.actor.getFlag("sfrpg", "attackBonusOverride")
+            attackBonusOverride: this.actor.getFlag("sfrpg", "attackBonusOverride"),
+            saveBonusOverride: this.actor.activeSaveBonus()
         });
         actionsTab.armedOverrides = banners.map(banner => ({
             ...banner,
-            label: banner.kind === "attack"
-                ? game.i18n.format("SFRPG.MechSheet.AttackBonusOverride.Armed", {
-                    source: banner.source,
-                    value: banner.value
-                })
-                : game.i18n.format("SFRPG.MechSheet.DamageLevelOverride.Armed", { source: banner.source })
+            label: {
+                attack: () => game.i18n.format("SFRPG.MechSheet.AttackBonusOverride.Armed", { source: banner.source, value: banner.value }),
+                save: () => game.i18n.format("SFRPG.MechSheet.SaveBonusOverride.Armed", { source: banner.source, value: banner.value }),
+                damage: () => game.i18n.format("SFRPG.MechSheet.DamageLevelOverride.Armed", { source: banner.source })
+            }[banner.kind]()
         }));
 
         data.actionsTab = actionsTab;
@@ -598,6 +598,9 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
 
         if (event.currentTarget.dataset.overrideKind === "attack") {
             return this.actor.cancelMechAttackBonus();
+        }
+        if (event.currentTarget.dataset.overrideKind === "save") {
+            return this.actor.cancelMechSaveBonus();
         }
 
         return this.actor.cancelMechDamageOverride();

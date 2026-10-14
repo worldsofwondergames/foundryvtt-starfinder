@@ -18,6 +18,7 @@ const SINGLE_USE_CARDS = ".mech-action-card, .mech-failure-card, .condition-end-
  */
 const SINGLE_USE_ACTIONS = [
     "mechAttackBonus",
+    "mechSaveBonus",
     "mechReplenish",
     "mechFailureRoll",
     "mechPowerCoreLoss",
