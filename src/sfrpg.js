@@ -67,6 +67,7 @@ import TemplateEnricher from "./module/system/enrichers/template.js";
 import { onMechAttackBonusClick } from "./module/system/mech-bonus-link.js";
 import { onApplyOngoingClick, onOngoingConditionSet } from "./module/system/ongoing-condition.js";
 import { onConditionItemDisabled, onTimedConditionSet } from "./module/system/condition-timer.js";
+import { onConditionEndCheckClick, onStopBleedingClick, onStopBleedingRequest } from "./module/system/condition-end-check.js";
 import { onMechReplenishClick, onSpendMechReplenish } from "./module/system/mech-replenish-link.js";
 import {
     DICE_ICON,
@@ -692,6 +693,7 @@ Hooks.once("setup", function() {
     RPC.initialize();
     RPC.registerCallback("spendMechReplenish", "gm", onSpendMechReplenish);
     RPC.registerCallback("spendMechFailure", "gm", onSpendMechFailure);
+    RPC.registerCallback("stopBleeding", "gm", onStopBleedingRequest);
 
     console.log("Starfinder | [SETUP] Initializing remote inventory system");
     initializeRemoteInventory();
@@ -728,6 +730,8 @@ Hooks.once("ready", async () => {
     $("body").on("click", 'a[data-action="mechCockpitSave"]', onMechCockpitSaveClick);
     $("body").on("click", 'a[data-action="mechAuxiliaryPick"]', onMechAuxiliaryPickClick);
     $("body").on("click", 'a[data-action="mechChanceCheck"]', onMechChanceCheckClick);
+    $("body").on("click", 'a[data-action="conditionEndCheck"]', onConditionEndCheckClick);
+    $("body").on("click", 'a[data-action="stopBleeding"]', onStopBleedingClick);
     ItemSFRPG.chatListeners($("body"));
     extendDragData();
 

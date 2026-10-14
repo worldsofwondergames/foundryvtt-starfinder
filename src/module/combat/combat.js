@@ -2,6 +2,7 @@ import { CombatDifficulty } from "../apps/combat-difficulty.js";
 import { SFRPG } from "../config.js";
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
+import { postRoundEndCheckCards } from "../system/condition-end-check.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
@@ -421,20 +422,31 @@ export class CombatSFRPG extends foundry.documents.Combat {
      * Run turn start turn events. This runs only for an active GM. If there are no GMs, this isn't run.
      * @param {Combatant} combatant The Combatant whose turn just started
      */
-    async _onStartTurn(combatant) {
-        super._onStartTurn(combatant);
+    async _onStartTurn(combatant, context) {
+        super._onStartTurn(combatant, context);
 
-        combatant.actor?._onTurnStart();
+        combatant.actor?._onTurnStart(context);
     }
 
     /**
      * Run turn end turn events. This runs only for an active GM. If there are no GMs, this isn't run.
      * @param {Combatant} combatant The Combatant whose turn just ended
+     * @param {object} context Foundry's context for that turn, including its round
      */
-    async _onEndTurn(combatant) {
-        super._onEndTurn(combatant);
+    /**
+     * Offer the saves set to be made at the end of each round. This runs only
+     * for an active GM.
+     * @param {{round: number}} context Foundry's context for the round that ended.
+     */
+    async _onEndRound(context) {
+        await super._onEndRound(context);
+        await postRoundEndCheckCards(this, context.round);
+    }
 
-        combatant.actor?._onTurnEnd();
+    async _onEndTurn(combatant, context) {
+        super._onEndTurn(combatant, context);
+
+        combatant.actor?._onTurnEnd(context);
     }
 
     async _notifyAfterUpdate(eventData) {

@@ -7,6 +7,7 @@ import {
     remainingHealth,
     tickRounds
 } from "../rules/ongoing-damage.js";
+import { BURNING_FAMILY } from "../rules/condition-end-check.js";
 
 /**
  * Actors whose ongoing condition is being applied by code that already knows
@@ -178,6 +179,10 @@ export async function rollOngoingConditions(actor) {
         if (!item?.system.enabled) continue;
 
         const card = await rollOngoingDamage(actor, item, condition);
+        // The Burning family's save is DC 10 + the damage the condition dealt this round.
+        if (BURNING_FAMILY.includes(condition)) {
+            await item.setFlag("sfrpg", "ongoingDamageTaken", { round: game.combat?.round ?? null, amount: card.lost });
+        }
         const { rounds, expired } = tickRounds(item.getFlag("sfrpg", "ongoingRounds"));
         const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
 
@@ -192,7 +197,11 @@ export async function rollOngoingConditions(actor) {
             card.lines.push(game.i18n.localize("SFRPG.OngoingDamage.UntilRemoved"));
         }
 
-        const content = `<div class="sfrpg ongoing-damage-card">${card.lines.map(line => `<p>${line}</p>`).join("")}</div>`;
+        if (condition === "bleeding" && !expired) {
+            card.lines.push(`<a class="enriched-link" data-action="stopBleeding" data-dc="15"><i class="fas fa-kit-medical"></i> ${game.i18n.localize("SFRPG.ConditionEndCheck.StopBleeding")}</a>`);
+        }
+
+        const content = `<div class="sfrpg ongoing-damage-card" data-actor-uuid="${actor.uuid}">${card.lines.map(line => `<p>${line}</p>`).join("")}</div>`;
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
             content,
@@ -209,14 +218,14 @@ export async function rollOngoingConditions(actor) {
  * @param {ActorSFRPG} actor The affected creature.
  * @param {Item} item The condition item.
  * @param {string} condition A key of ONGOING_CONDITIONS.
- * @returns {Promise<{lines: string[], rolls: Roll[]}>} What the card says, and the rolls behind it.
+ * @returns {Promise<{lines: string[], rolls: Roll[], lost: number}>} What the card says, the rolls behind it, and the damage the creature lost.
  */
 async function rollOngoingDamage(actor, item, condition) {
     const rule = ONGOING_CONDITIONS[condition];
     const sources = ongoingSources(item.system.turnEvents);
     const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
     if (!sources.length) {
-        return { lines: [game.i18n.format("SFRPG.OngoingDamage.NoDamage", { condition: label, name: actor.name })], rolls: [] };
+        return { lines: [game.i18n.format("SFRPG.OngoingDamage.NoDamage", { condition: label, name: actor.name })], rolls: [], lost: 0 };
     }
 
     const rolls = [];
@@ -248,5 +257,5 @@ async function rollOngoingDamage(actor, item, condition) {
     }));
     if (lost !== amount) lines.push(game.i18n.format("SFRPG.OngoingDamage.Lost", { name: actor.name, lost }));
 
-    return { lines, rolls };
+    return { lines, rolls, lost };
 }

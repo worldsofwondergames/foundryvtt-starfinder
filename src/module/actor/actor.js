@@ -22,6 +22,7 @@ import SFRPGTimedEffect from "../timedEffect/timedEffect.js";
 import { clearSystemFlag } from "../utils/flags.js";
 import { rollOngoingConditions } from "../system/ongoing-condition.js";
 import { tickConditionTimers } from "../system/condition-timer.js";
+import { postEndCheckCards } from "../system/condition-end-check.js";
 import { } from "./crew-update.js";
 
 /**
@@ -963,7 +964,10 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         }
     }
 
-    async _onTurnStart() {
+    /**
+     * @param {{round?: number}} [context] Foundry's context for the turn that started.
+     */
+    async _onTurnStart(context = {}) {
         // A mech's Power and Shield Point regeneration belongs to the end of its
         // turn, and is handled by the onAfterUpdateCombat hook, which reports what
         // it restored. Doing it here as well regenerated both pools twice a turn.
@@ -973,9 +977,15 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         // their items' turn events, so their damage is applied and the card can
         // say how many rounds are left.
         await rollOngoingConditions(this);
+
+        // A save set to be offered at the start of the creature's turn.
+        await postEndCheckCards(this, context.round ?? game.combat?.round ?? null, "turnStart");
     }
 
-    _onTurnEnd() {
+    /**
+     * @param {{round?: number}} [context] Foundry's context for the turn that ended.
+     */
+    _onTurnEnd(context = {}) {
         // An armed override is declared against a specific roll, so one that was never
         // rolled against expires here. The PP stays spent - use the sheet's disarm control
         // to get it back before the turn ends.
@@ -990,8 +1000,9 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         }
 
         // A condition given a number of rounds loses one at the end of the
-        // affected creature's turn.
-        tickConditionTimers(this);
+        // affected creature's turn. A check that can end a condition comes after,
+        // so a condition whose rounds ran out gets no card.
+        tickConditionTimers(this).then(() => postEndCheckCards(this, context.round ?? game.combat?.round ?? null));
     }
 
     /** Roll contexts */

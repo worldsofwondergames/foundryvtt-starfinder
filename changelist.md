@@ -1,3 +1,15 @@
+# Version 14.1.8
+
+## New Features
+- At the end of a burning, corroded or frostbitten creature's turn, its owners and the GM get a card offering the Reflex save that ends the condition. The DC is 10 + the damage the condition dealt that round, each failed save in consecutive rounds adds +2 to the next one, and a Smother button gives the full-action attempt at +4. A line on the card explains the difference between the two. A success removes the condition, and nothing is rolled until someone presses a button. As with any saving throw, a natural 1 always fails and a natural 20 always succeeds
+- The damage card for Bleeding has a Stop bleeding link. It rolls a DC 15 Medicine check for the clicking player's character, or for their selected token, and a success removes Bleeding, even from a creature that player doesn't own
+- The rounds dialog for conditions such as Stunned and Shaken has a Save to end row. Pick Fortitude, Reflex or Will, a DC, and when the save is offered: at the start of each of the creature's turns, at the end of each of its turns, or at the end of each round. Leaving When blank offers it at the end of the creature's turns. The save keeps being offered until it succeeds or the rounds run out, and leaving the save blank gives the condition no save
+- `docs/condition-end-states.md` lists how each of the 42 conditions ends, quoting its description
+
+## Bugfixes
+- A rolled die on a System Failure card was not struck through or dimmed, unlike Aim's and Replenish's. The style now applies to a spent link on any of the system's chat cards
+- Removing Stunned, or another condition that causes Flat-footed, finished before Flat-footed was removed. Removing Flat-footed right afterward, by hand or from a macro, threw an error. Removing a condition now waits for the Flat-footed it caused to go, and a condition without a timed effect no longer throws when removed
+
 # Version 14.1.7
 
 ## Bugfixes
