@@ -700,6 +700,9 @@
             "Prompt": "How many rounds is {name} {condition}? It ends at the end of their turn once the last round is used. Leave it blank to keep it until removed.",
             "Rounds": "Rounds",
             "RoundsPlaceholder": "Until removed",
+            "SaveDC": "Save DC",
+            "SaveNone": "No save",
+            "SaveToEnd": "Save to end it at the end of each of their turns",
             "Title": "Apply {condition}"
         },
         "ConditionTooltips": {

@@ -1,4 +1,5 @@
 import { TIMED_CONDITIONS, startConditionTimer, tickConditionTimer } from "../rules/condition-timer.js";
+import { startEndCheck } from "../rules/condition-end-check.js";
 
 /**
  * Whether it is this actor's turn in the active combat.
@@ -15,34 +16,55 @@ function isActorsTurn(actor) {
 }
 
 /**
- * Ask how many rounds a condition lasts.
+ * Ask how many rounds a condition lasts, and whether a save ends it sooner.
  *
  * @param {string} condition A key of CONFIG.SFRPG.conditionTypes.
  * @param {string} name The affected creature's name, for the prompt.
- * @returns {Promise<number|null>} The rounds, or null to keep it until removed.
+ * @returns {Promise<{rounds: number|null, check: {kind: string, id: string, dc: number|null}|null}|null>}
+ *     The rounds, or null to keep it until removed, and the save that ends it, or
+ *     null for none. Null when the dialog is closed.
  */
 export async function promptConditionRounds(condition, name) {
     const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
+    const saves = Object.entries(CONFIG.SFRPG.saves)
+        .map(([id, key]) => `<option value="${id}">${game.i18n.localize(key)}</option>`)
+        .join("");
     const content = `
         <p>${game.i18n.format("SFRPG.ConditionTimer.Prompt", { condition: label, name })}</p>
         <div class="form-group">
             <label>${game.i18n.localize("SFRPG.ConditionTimer.Rounds")}</label>
             <input type="number" name="rounds" min="1" step="1" placeholder="${game.i18n.localize("SFRPG.ConditionTimer.RoundsPlaceholder")}" autofocus />
+        </div>
+        <div class="form-group">
+            <label>${game.i18n.localize("SFRPG.ConditionTimer.SaveToEnd")}</label>
+            <select name="save">
+                <option value="">${game.i18n.localize("SFRPG.ConditionTimer.SaveNone")}</option>
+                ${saves}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>${game.i18n.localize("SFRPG.ConditionTimer.SaveDC")}</label>
+            <input type="number" name="dc" min="1" step="1" />
         </div>`;
 
-    const rounds = await foundry.applications.api.DialogV2.prompt({
+    const number = value => (value === "" ? null : Number(value));
+    const answer = await foundry.applications.api.DialogV2.prompt({
         window: { title: game.i18n.format("SFRPG.ConditionTimer.Title", { condition: label }) },
         content,
         ok: {
             label: game.i18n.localize("SFRPG.ConditionTimer.Apply"),
             callback: (event, button) => {
-                const value = button.form.elements.rounds.value;
-                return value === "" ? null : Number(value);
+                const { rounds, save, dc } = button.form.elements;
+                return { rounds: number(rounds.value), save: save.value, dc: number(dc.value) };
             }
         },
         rejectClose: false
     });
-    return Number.isInteger(rounds) && rounds > 0 ? rounds : null;
+    if (!answer) return null;
+
+    const rounds = Number.isInteger(answer.rounds) && answer.rounds > 0 ? answer.rounds : null;
+    const check = answer.save ? { kind: "save", id: answer.save, dc: answer.dc } : null;
+    return { rounds, check };
 }
 
 /**
@@ -77,8 +99,14 @@ export async function onTimedConditionSet({ actor, item, conditionName, enabled,
     if (!enabled || automatic || !TIMED_CONDITIONS.includes(conditionName)) return;
     if (!item?.isOwner) return;
 
-    const rounds = await promptConditionRounds(conditionName, actor.name);
-    if (rounds) await setConditionTimer(actor, conditionName, rounds);
+    const answer = await promptConditionRounds(conditionName, actor.name);
+    if (!answer) return;
+    if (answer.rounds) await setConditionTimer(actor, conditionName, answer.rounds);
+
+    // A save the GM gave the condition is offered at the end of each of the
+    // creature's turns. A save with no usable DC is left out.
+    const check = answer.check ? startEndCheck(answer.check, { saves: CONFIG.SFRPG.saves, skills: CONFIG.SFRPG.skills }) : null;
+    if (check) await actor.getCondition(conditionName)?.setFlag("sfrpg", "conditionEndCheck", check);
 }
 
 /**
