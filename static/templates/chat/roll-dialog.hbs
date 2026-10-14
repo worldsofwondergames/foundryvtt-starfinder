@@ -96,6 +96,17 @@
 </div>
 {{/if}}
 
+{{#if pendingModifiers.length}}
+<div class="pending-modifiers">
+    <h3 class="modifier-list-title noborder" data-tooltip="<b>{{localize "SFRPG.Rolls.Dialog.PendingModifiers"}}</b><br/>{{localize "SFRPG.Rolls.Dialog.PendingModifiersTooltip"}}">{{localize "SFRPG.Rolls.Dialog.PendingModifiers"}}</h3>
+    {{#each pendingModifiers as |entry|}}
+    <span class="pending-modifier">{{entry.modifier.name}} {{entry.modifier.simplifiedFormula}}
+        <a class="remove-pending-modifier" data-modifier-index="{{entry.index}}" data-tooltip="{{localize "SFRPG.Rolls.Dialog.RemovePendingModifier"}}"><i class="fas fa-times"></i></a>
+    </span>
+    {{/each}}
+</div>
+{{/if}}
+
 {{#if hasModifiers}}
 <div>
     <ul class="modifier-list">
@@ -109,6 +120,7 @@
         </li>
 
         {{#each availableModifiers as |modifier id|}}
+        {{#unless modifier.pending}}
         <li class="modifier flexrow toggle-modifier" data-modifier-index="{{id}}" data-modifier-type="{{modifier.type}}" data-modifier-value="{{modifier.max}}" {{#if modifier.notes}}data-tooltip="<b>{{modifier.name}}</b><br/>{{modifier.notes}}"{{/if}}>
             <a class="modifier-enabled" title="{{modifier.name}}">{{#if modifier.enabled}}<i class="far fa-check-square"></i>{{else}}<i class="far fa-square"></i>{{/if}}</a>
             <h4 class="modifier-name">{{modifier.name}}</h4>
@@ -121,6 +133,7 @@
             <span class="modifier-type">{{modifier.localizedType}}</span>
             {{/if}}
         </li>
+        {{/unless}}
         {{/each}}
     </ul>
 </div>
