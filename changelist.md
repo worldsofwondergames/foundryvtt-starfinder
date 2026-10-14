@@ -8,6 +8,7 @@
 
 ## Bugfixes
 - A rolled die on a System Failure card was not struck through or dimmed, unlike Aim's and Replenish's. The style now applies to a spent link on any of the system's chat cards
+- Removing Stunned, or another condition that causes Flat-footed, finished before Flat-footed was removed. Removing Flat-footed right afterward, by hand or from a macro, threw an error. Removing a condition now waits for the Flat-footed it caused to go, and a condition without a timed effect no longer throws when removed
 
 # Version 14.1.7
 

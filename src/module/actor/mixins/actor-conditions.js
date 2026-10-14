@@ -70,8 +70,9 @@ export const ActorConditionsMixin = (superclass) => class extends superclass {
             }
         } else {
             if (conditionItem) {
-                const effect = game.sfrpg.timedEffects.get(conditionItem.uuid);
-                effect.delete();
+                // A condition only has a timed effect once it has been prepared, and
+                // deleting the item drops the effect as well.
+                game.sfrpg.timedEffects.get(conditionItem.uuid)?.delete();
                 await this.deleteEmbeddedDocuments("Item", [conditionItem.id]);
                 await this._updateActorCondition(conditionName, false);
                 Hooks.callAll("onActorSetCondition", {actor: this, item: conditionItem, conditionName: conditionName, enabled: enabled, automatic});
@@ -147,6 +148,8 @@ export const ActorConditionsMixin = (superclass) => class extends superclass {
         updateData[`system.conditions.${conditionName}`] = enabled;
 
         await this.update(updateData);
-        this._checkFlatFooted(conditionName, enabled);
+        // Awaited so that removing stunned has also removed the flat-footed it
+        // caused by the time setCondition resolves.
+        await this._checkFlatFooted(conditionName, enabled);
     }
 };
