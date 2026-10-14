@@ -491,6 +491,11 @@
                 "DeathByMassiveDamage": "{name} has died of Massive Damage! ☠"
             }
         },
+        "ChatButton": {
+            "AlreadyRolled": "Someone has already rolled this.",
+            "NeedsGM": "A GM has to be logged in to roll this.",
+            "NoAnswer": "The GM didn't answer, so nothing was rolled. Try again."
+        },
         "ChatCard": {
             "ContextMenu": {
                 "Accept": "Accept",
@@ -711,6 +716,7 @@
             "SaveDC": "Save DC",
             "SaveNone": "No save",
             "SaveHint": "A success on the save ends the condition early. Leave When blank to offer it at the end of each of their turns.",
+            "SaveNeedsDC": "Enter a DC for the save, or choose No save.",
             "SaveToEnd": "Save to end",
             "SaveWhen": "When",
             "Title": "Apply {condition}",

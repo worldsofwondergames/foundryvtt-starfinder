@@ -1,3 +1,4 @@
+import { CANCELED, rollOnce } from "./chat-button-claim.js";
 import { promoteDiceLink } from "./mech-dice-link.js";
 
 /**
@@ -53,9 +54,19 @@ export async function onMechAttackBonusClick(event) {
         return null;
     }
 
-    return actor.armMechAttackBonus(link.dataset.formula, {
+    // A bonus already armed turns the click away without spending the die.
+    const armed = actor.getFlag("sfrpg", "attackBonusOverride");
+    if (armed) {
+        ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.AttackBonusOverride.AlreadyArmed", {
+            source: armed.source,
+            value: armed.value
+        }));
+        return null;
+    }
+
+    return rollOnce(link, async () => (await actor.armMechAttackBonus(link.dataset.formula, {
         source: link.dataset.source,
         ppSpent: Number(link.dataset.ppSpent) || 0,
         itemId: link.dataset.itemId ?? null
-    });
+    })) ?? CANCELED);
 }

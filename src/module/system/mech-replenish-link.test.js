@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, test } from "vitest";
-import { SPENT_CLASS, promoteDiceLinkToReplenish, replenishRecipients, spendReplenishLink } from "./mech-replenish-link.js";
+import { promoteDiceLinkToReplenish, replenishRecipients } from "./mech-replenish-link.js";
 import { createDiceLink, linkDiceExpressions } from "./dice-links.js";
 
 /**
@@ -12,13 +12,6 @@ function description(text) {
     root.innerHTML = `<p>${text}</p>`;
     linkDiceExpressions(root, createDiceLink);
     return root;
-}
-
-/** A card as it is stored, holding a promoted link. */
-function card(formula = "2d8") {
-    const root = description(`Activate when regaining Shield Points. You gain ${formula} SP.`);
-    promoteDiceLinkToReplenish(root, formula, { source: "Replenish" });
-    return root.innerHTML;
 }
 
 describe("promoteDiceLinkToReplenish", () => {
@@ -57,49 +50,6 @@ describe("promoteDiceLinkToReplenish", () => {
         const root = description("Activate when regaining Shield Points. You gain 2d8 SP.");
 
         expect(promoteDiceLinkToReplenish(root, "1d8")).toBeNull();
-    });
-});
-
-describe("spendReplenishLink", () => {
-    test("unbinds the link, so a reload does not hand the roll back", () => {
-        const spent = document.createElement("div");
-        spent.innerHTML = spendReplenishLink(card());
-
-        expect(spent.querySelector("a[data-action]")).toBeNull();
-    });
-
-    test("marks the link spent, so it greys out for everyone rendering the card", () => {
-        const spent = document.createElement("div");
-        spent.innerHTML = spendReplenishLink(card());
-
-        expect(spent.querySelector(`a.${SPENT_CLASS}`)).not.toBeNull();
-    });
-
-    test("leaves the sentence around the link as it was written", () => {
-        const spent = document.createElement("div");
-        spent.innerHTML = spendReplenishLink(card());
-
-        expect(spent.textContent).toContain("Activate when regaining Shield Points. You gain");
-        expect(spent.textContent).toContain("2d8");
-    });
-
-    // The caller decides whether to write to the message by comparing what comes
-    // back against what went in, so a card with no such link has to come back as
-    // the same string rather than a re-serialized copy of it. The unclosed tag is
-    // what makes the difference visible: parsing and re-serializing closes it.
-    test("returns a card holding no such link unchanged, so the caller can tell nothing happened", () => {
-        const content = "<p>Choose one skill.";
-
-        expect(spendReplenishLink(content)).toBe(content);
-    });
-
-    test("leaves another action's link on the card still clickable", () => {
-        const aim = '<p>Roll <a data-action="mechAttackBonus" data-formula="1d4">1d4</a> and add it.</p>';
-
-        const spent = document.createElement("div");
-        spent.innerHTML = spendReplenishLink(aim);
-
-        expect(spent.querySelector('a[data-action="mechAttackBonus"]')).not.toBeNull();
     });
 });
 

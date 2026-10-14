@@ -1,5 +1,5 @@
 import { TIMED_CONDITIONS, startConditionTimer, tickConditionTimer } from "../rules/condition-timer.js";
-import { startEndCheck } from "../rules/condition-end-check.js";
+import { missingDC, startEndCheck } from "../rules/condition-end-check.js";
 import { asChatHtml } from "../utils/chat-content.js";
 
 /**
@@ -47,6 +47,7 @@ export async function promptConditionRounds(condition, name) {
             <label>${game.i18n.localize("SFRPG.ConditionTimer.SaveDC")}</label>
             <input type="number" name="dc" min="1" step="1" />
         </div>
+        <p class="hint notification error" data-dc-required hidden>${game.i18n.localize("SFRPG.ConditionTimer.SaveNeedsDC")}</p>
         <div class="form-group">
             <label>${game.i18n.localize("SFRPG.ConditionTimer.SaveWhen")}</label>
             <select name="timing">
@@ -67,6 +68,7 @@ export async function promptConditionRounds(condition, name) {
     const number = value => (value === "" ? null : Number(value));
     const answer = await foundry.applications.api.DialogV2.prompt({
         window: { title: game.i18n.format("SFRPG.ConditionTimer.Title", { condition: label }) },
+        classes: ["condition-rounds-dialog"],
         content,
         ok: {
             label: game.i18n.localize("SFRPG.ConditionTimer.Apply"),
@@ -81,6 +83,7 @@ export async function promptConditionRounds(condition, name) {
                 };
             }
         },
+        render: (event, dialog) => requireDC(dialog.element),
         rejectClose: false
     });
     if (!answer) return null;
@@ -91,6 +94,28 @@ export async function promptConditionRounds(condition, name) {
         ? { kind: "save", id: answer.save, dc: answer.dc, timing: answer.timing || "turnEnd", cumulativeBonus: answer.cumulativeBonus }
         : null;
     return { rounds, check };
+}
+
+/**
+ * Keep the rounds dialog's Apply button off while a save is chosen without a DC,
+ * and say why.
+ *
+ * @param {HTMLElement} root The dialog.
+ */
+function requireDC(root) {
+    const form = root.querySelector("form");
+    const { save, dc } = form.elements;
+    const apply = root.querySelector('button[data-action="ok"]');
+    const notice = root.querySelector("[data-dc-required]");
+    const update = () => {
+        const missing = missingDC(save.value, dc.value);
+        apply.disabled = missing;
+        notice.hidden = !missing;
+        dc.required = Boolean(save.value);
+    };
+    save.addEventListener("change", update);
+    dc.addEventListener("input", update);
+    update();
 }
 
 /**
@@ -156,7 +181,7 @@ export async function tickConditionTimers(actor) {
         if (expired) {
             await actor.setCondition(condition, false);
             ended.push(condition);
-            ChatMessage.create({
+            await ChatMessage.create({
                 speaker: ChatMessage.getSpeaker({ actor }),
                 content: asChatHtml(game.i18n.format("SFRPG.ConditionTimer.Expired", {
                     name: actor.name,
