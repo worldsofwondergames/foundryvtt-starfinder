@@ -683,7 +683,7 @@
         "ConditionEndCheck": {
             "AlreadyResolved": "That check has already been resolved.",
             "Bonus": "+{bonus} from earlier attempts or smothering the fire.",
-            "Card": "{name} can attempt a {check} to end {condition}. DC {dc}.",
+            "Card": "{name} can attempt a DC {dc} {check} to end {condition}.",
             "Ended": "{name} succeeds and is no longer {condition}.",
             "Failed": "{name} fails and is still {condition}.",
             "NoHealer": "Assign a character or select a token to make the Medicine check.",
