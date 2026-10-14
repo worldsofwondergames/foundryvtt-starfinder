@@ -1,4 +1,5 @@
 import RollTree from "./rolltree.js";
+import { variableLabel } from "./variable-labels.js";
 
 /** Pattern matching exterior characters of a formula that should be trimmed */
 const exteriorPattern = /^\s+|[\s+]+$/g;
@@ -126,7 +127,9 @@ export default class RollNode {
                     .filter(bonus => this.calculatedMods.get(bonus._id)?.enabled)
                     .reduce((value, bonus) => value - bonus.max, Number(this.variableValue));
 
-                let formulaDescription = this.referenceModifier?.name || "@" + this.formula;
+                let formulaDescription = this.referenceModifier?.name
+                    || variableLabel(this.formula, key => game.i18n.localize(key))
+                    || "@" + this.formula;
                 if (!this.options.useRawStrings) {
                     const tooltip = this.rollTooltips.join(',\n') || this.variableTooltips.join(',\n');
                     const spanTag = tooltip ? `span title="${tooltip}"` : 'span';

@@ -12,6 +12,9 @@
 - Updating the system marks the Weapon Core copies already in a world, including those on mechs and inside mission pods. A name such as "Weapon Core (Cold, Fire)" fills in its types
 
 ## Bugfixes
+- A mech's tier added to its initiative. Tech Revolution says "A mech's initiative modifier equals the lowest initiative modifier among its operators (minimum +0). A mech's minimum initiative modifier increases by 1 at tier 5 and every 5 tiers thereafter," so the tier sets a minimum. A tier 5 mech whose lowest operator has +4 now has +4 instead of +5, and the tooltip reads "Tier 5 minimum: +1"
+- Initiative rolls showed their bonus as a data path, such as "+ 1[@combatant.attributes.init.total]" on the card and "1d20 + @combatant.attributes.init.total" in the roll dialog. Both now read "Initiative"
+- An NPC's initiative tooltip read "Base Armor Class: 7". It now reads "Base Initiative: 7"
 - Two people could roll the same die on a mech's chat card if they clicked it at about the same time, so Replenish could restore Shield Points twice and a System Failure check could be rolled twice. Every die on a mech action card, a System Failure card and a condition card is now claimed through the GM before it is rolled. Whoever clicks first rolls it, it is struck through for everyone, and anyone else is told it has already been rolled. Aim's die is now struck through after it is rolled, as Replenish's is, and so are other dice in a mech action's description. Closing a save's roll dialog without rolling leaves the button live
 - The end of a creature's turn wasn't waited for, so the next creature's turn could start before a condition's rounds had counted down. The system's turn and round events are now waited for in order, and an error in one is logged with the creature's name without stopping the rest
 - Initiative cards for a group roll are now posted one at a time, in the order they were rolled

@@ -6,7 +6,7 @@ export default function(engine) {
         init.total = 0;
 
         init.tooltip = [];
-        init.tooltip.push(game.i18n.format("SFRPG.ACTooltipBase", { base: init.value }));
+        init.tooltip.push(game.i18n.format("SFRPG.InitiativeBaseTooltip", { base: init.value }));
 
         const dexBonus = (data.abilities.dex.mod - data.abilities.dex.base);
         if (dexBonus) {
