@@ -2452,6 +2452,8 @@
                 "CockpitSaveTooltip": "Roll the Reflex save against DC {dc} and the damage it halves.",
                 "Destroyed": "Destroyed",
                 "DestroyedHint": "This mech has taken more than twice its Hit Points and cannot be repaired.",
+                "ConstantFailed": "{name} does not function until the start of the mech's next turn.",
+                "ConstantWorked": "{name} functions this round.",
                 "EffectAuxSystemInoperable": "That chance rises to 50%, and one auxiliary system stops working outright.",
                 "EffectAuxSystemMalfunctioning": "Each auxiliary system has a 25% chance of doing nothing when it is relied on. The action and its Power Points are spent either way.",
                 "EffectCockpitInoperable": "The operators are thrown about again, and each full action spent piloting has a 50% chance of being lost.",

@@ -1,7 +1,30 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { buttonKey } from "./chat-button-claim.js";
-import { chanceLink, failureRecipients, transitionButtons } from "./mech-failure-link.js";
+import { chanceLink, chanceOutcome, failureRecipients, transitionButtons } from "./mech-failure-link.js";
+import en from "../../../static/lang/en.json";
+
+describe("chanceOutcome", () => {
+    const text = key => en.SFRPG.MechSheet.SystemFailure[key];
+
+    it("tells a constant system's check apart from an activated one's, which spends an action", () => {
+        expect(text(chanceOutcome("constant", true))).not.toBe(text(chanceOutcome("auxiliary", true)));
+        expect(text(chanceOutcome("constant", true))).not.toMatch(/Power Points/);
+    });
+
+    it("names the constant system that failed or worked", () => {
+        expect([text(chanceOutcome("constant", true)), text(chanceOutcome("constant", false))]).toEqual([
+            expect.stringContaining("{name}"),
+            expect.stringContaining("{name}")
+        ]);
+    });
+
+    it("tells a failed check from one that worked", () => {
+        for (const purpose of ["auxiliary", "constant", "cockpit"]) {
+            expect(chanceOutcome(purpose, true)).not.toBe(chanceOutcome(purpose, false));
+        }
+    });
+});
 
 describe("chanceLink", () => {
     function card(links) {

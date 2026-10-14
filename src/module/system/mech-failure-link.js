@@ -469,7 +469,7 @@ export async function postTurnStartFailures(actor) {
         }) + ` <span class="mech-failure-effect">${effectSentence(component, status, "Ongoing")}</span>`),
         ...failures.checks.map((check, index) => chanceLink({
             chance: check.chance,
-            purpose: "auxiliary",
+            purpose: "constant",
             systemId: check.id,
             index,
             tooltip,
@@ -527,6 +527,24 @@ export async function postAuxiliaryCheck(actor, system, status) {
 }
 
 /**
+ * The localization key for what a percentage check's roll means.
+ *
+ * A system that is activated fails to do what was asked, and the action and its
+ * Power Points are gone. A system giving a constant benefit, checked at the
+ * start of the turn, stops giving it for a round: Tech Revolution gives it "a
+ * 25% chance of not functioning for 1 round each turn".
+ *
+ * @param {string} purpose "auxiliary", "constant" or "cockpit".
+ * @param {boolean} failed Whether the check failed.
+ * @returns {string}
+ */
+export function chanceOutcome(purpose, failed) {
+    if (purpose === "cockpit") return failed ? "CockpitActionLost" : "CockpitActionKept";
+    if (purpose === "constant") return failed ? "ConstantFailed" : "ConstantWorked";
+    return failed ? "AuxiliaryFailed" : "AuxiliaryWorked";
+}
+
+/**
  * Handle a click on a percentage check.
  *
  * @param {Event} event The click event.
@@ -537,20 +555,20 @@ export async function onMechChanceCheckClick(event) {
         const roll = await new Roll(link.dataset.formula).evaluate();
         const failed = chanceFailed(roll.total, Number(link.dataset.chance));
 
-        const outcome = link.dataset.purpose === "cockpit"
-            ? (failed ? "CockpitActionLost" : "CockpitActionKept")
-            : (failed ? "AuxiliaryFailed" : "AuxiliaryWorked");
+        const system = link.dataset.systemId ? actor.items.get(link.dataset.systemId) : null;
 
         // An auxiliary system that failed its check cannot be used again until the
         // start of the mech's next turn, which is when the flag is cleared. The
         // cockpit's lost action is spent as it happens and leaves nothing behind.
-        if (failed && link.dataset.purpose === "auxiliary" && link.dataset.systemId) {
-            await actor.items.get(link.dataset.systemId)?.setFlag("sfrpg", "failedThisTurn", true);
+        if (failed && link.dataset.purpose !== "cockpit" && system) {
+            await system.setFlag("sfrpg", "failedThisTurn", true);
         }
 
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
-            flavor: game.i18n.localize(`SFRPG.MechSheet.SystemFailure.${outcome}`),
+            flavor: game.i18n.format(`SFRPG.MechSheet.SystemFailure.${chanceOutcome(link.dataset.purpose, failed)}`, {
+                name: system?.name ?? ""
+            }),
             rolls: [roll],
             sound: CONFIG.sounds.dice,
             whisper: failureRecipients(game.users, actor)
