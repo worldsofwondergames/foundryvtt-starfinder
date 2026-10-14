@@ -77,8 +77,12 @@ export async function postEndCheckCards(actor, round, moment = "turnEnd") {
         const link = (smother, text) => `<a class="enriched-link" data-action="${ACTION}" data-condition="${condition}" data-item-id="${item.id}" data-round="${round ?? ""}" data-dc="${dc}" data-smother="${smother}" data-index="${smother ? 1 : 0}"><i class="fas fa-dice-d20"></i> ${text}</a>`;
 
         const lines = [game.i18n.format("SFRPG.ConditionEndCheck.Card", { name: actor.name, check: checkLabel(check), condition: label, dc })];
-        if (bonus) lines.push(game.i18n.format("SFRPG.ConditionEndCheck.Bonus", { bonus }));
-        const links = [link(false, game.i18n.localize("SFRPG.ConditionEndCheck.Roll"))];
+        if (bonus) {
+            lines.push(game.i18n.format(check.smotherBonus ? "SFRPG.ConditionEndCheck.Bonus" : "SFRPG.ConditionEndCheck.BonusAttempts", { bonus }));
+        }
+        // A save the creature spends a full action on, as Hold Person allows.
+        if (check.fullAction) lines.push(game.i18n.format("SFRPG.ConditionEndCheck.FullAction", { name: actor.name }));
+        const links = [link(false, game.i18n.localize(check.fullAction ? "SFRPG.ConditionEndCheck.RollFullAction" : "SFRPG.ConditionEndCheck.Roll"))];
         if (check.smotherBonus) {
             lines.push(`<em>${game.i18n.localize("SFRPG.ConditionEndCheck.SmotherRules")}</em>`);
             links.push(link(true, game.i18n.localize("SFRPG.ConditionEndCheck.Smother")));
