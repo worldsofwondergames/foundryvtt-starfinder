@@ -1,4 +1,5 @@
 import { effectiveSystems, hardnessRate, movementRate } from "../../../mech-system-effects.js";
+import { mechPointMinimum } from "../../../mech-points.js";
 
 /**
  * Calculate mech statistics from component items (frame, limbs, power core).
@@ -457,7 +458,8 @@ export default function(engine) {
         }
 
         data.currency.mp = totalMp;
-        data.currency.mpMax = (tier + 1) * 15;
+        data.currency.mpMinimum = mechPointMinimum(tier);
+        data.currency.mpBelowMinimum = totalMp < data.currency.mpMinimum;
 
         // ========================================
         // AC Adjustments: Manual EAC/KAC adjustments

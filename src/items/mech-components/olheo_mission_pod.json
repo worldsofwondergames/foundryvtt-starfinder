@@ -167,7 +167,7 @@
             "unidentified": "",
             "value": "<p>An advanced eternal power core for mechs. Eternal cores provide high capacity and strong initial power but slower regeneration. Aeon configuration.</p>"
           },
-          "mpCost": 0,
+          "mpCost": 2,
           "ppInitial": 6,
           "ppMax": 13,
           "ppRegen": 1,
@@ -215,7 +215,7 @@
             "value": "<p>This system stabilizes maneuvers and enables bursts of speed.</p><p>@PPAbility[cost:2]{Speed Surge} Gain an additional movement action. This ability can be used multiple times per turn.</p>"
           },
           "isActive": false,
-          "mpCost": 1,
+          "mpCost": 0,
           "ppCost": 2,
           "source": "Tech Revolution"
         }
@@ -234,7 +234,7 @@
             "value": "<p>Powerful engines enable short-distance flight.</p><p>@PPAbility[cost:2]{Power Jump} Gain a fly speed of 60 feet with average maneuverability. Maximum height is 30 feet. You must land or continue jumping each round or fall.</p>"
           },
           "isActive": false,
-          "mpCost": 1,
+          "mpCost": 0,
           "ppCost": 2,
           "source": "Tech Revolution"
         }

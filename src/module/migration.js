@@ -2,6 +2,7 @@ import SFRPGModifier from "./modifiers/modifier.js";
 import { SFRPGEffectType, SFRPGModifierType, SFRPGModifierTypes } from "./modifiers/types.js";
 import { weaponCoreItemUpdate, weaponCoreTemplate } from "./rules/weapon-core.js";
 import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mech-limb-hp.js";
+import { compendiumMpCosts, correctedMpCost } from "./rules/mech-points.js";
 
 const SFRPGMigrationSchemas = Object.freeze({
     NPC_DATA_UPATE: 0.001,
@@ -14,8 +15,12 @@ const SFRPGMigrationSchemas = Object.freeze({
     THE_GUNNERY_UPDATE: 0.009, // Since Gunnery is now a selectable skill for NPC starships, migrate an NPC gunner's ranks in Piloting (the previous hacky solution) to their modifier in Gunnery.
     MECH_ACTIONS_SYNC: 0.010, // Sync mech component actions from compendium to actor items that were imported before actions were added.
     WEAPON_CORE_ENERGY_TYPES: 0.011, // Mark Weapon Core as choosing two energy types, reading them from names such as "Weapon Core (Cold, Fire)".
-    TOUGH_ARMS_HP: 0.012 // Give every Tough Arms the compendium's +1 Hit Point per tier in place of a flat +1.
+    TOUGH_ARMS_HP: 0.012, // Give every Tough Arms the compendium's +1 Hit Point per tier in place of a flat +1.
+    MECH_MP_COSTS: 0.013 // Give copies of auxiliary systems, power cores and upgrades the compendium's Mech Point cost.
 });
+
+/** The compendium's Mech Point costs, read once when a world migrates past MECH_MP_COSTS. */
+let mechMpCosts = null;
 
 /**
  * @returns {Promise<Boolean>} Whether a refresh is required as a result of a migration.
@@ -25,6 +30,12 @@ export default async function migrateWorld() {
     const worldSchema = game.settings.get('sfrpg', 'worldSchemaVersion') ?? 0;
 
     const notif = ui.notifications.info(game.i18n.format("SFRPG.MigrationBeginingMigration", { systemVersion }), { permanent: true });
+
+    if (worldSchema < SFRPGMigrationSchemas.MECH_MP_COSTS) {
+        const pack = game.packs.get("sfrpg.mech-components");
+        const index = await pack?.getIndex({ fields: ["system.mpCost"] });
+        mechMpCosts = index ? compendiumMpCosts(index) : null;
+    }
 
     // Tokens go before the actors they come from. An unlinked token reads its
     // items from its actor, so once the actor is migrated the token's items
@@ -135,8 +146,34 @@ const migrateItem = async function(item, schema) {
     if (schema < SFRPGMigrationSchemas.THE_WEBP_UPDATE) _migrateDocumentIconToWebP(itemData, updateData);
     if (schema < SFRPGMigrationSchemas.WEAPON_CORE_ENERGY_TYPES) _migrateWeaponCore(item, updateData);
     if (schema < SFRPGMigrationSchemas.TOUGH_ARMS_HP) _migrateToughArms(item, updateData);
+    if (schema < SFRPGMigrationSchemas.MECH_MP_COSTS && mechMpCosts) _migrateMechMpCost(item, updateData);
 
     return updateData;
+};
+
+/**
+ * Give a copy of an auxiliary system, power core or upgrade, and each such
+ * template inside a mission pod, the compendium's Mech Point cost. Older copies
+ * charged auxiliary systems 1 or 2 MP and left power cores free.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migrateMechMpCost = function(item, updateData) {
+    const mpCost = correctedMpCost(item, mechMpCosts);
+    if (mpCost !== null) updateData["system.mpCost"] = mpCost;
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
+        let changed = false;
+        const templates = current.map(template => {
+            const templateCost = correctedMpCost(template, mechMpCosts);
+            if (templateCost === null) return template;
+            changed = true;
+            return { ...template, system: { ...template.system, mpCost: templateCost } };
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
 };
 
 /**

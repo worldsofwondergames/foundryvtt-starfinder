@@ -2244,6 +2244,8 @@
                 "HpTooltip": "Mech Hit Points. When reduced to 0 HP, the mech is wrecked.",
                 "KacAdjustment": "KAC Adj.",
                 "MechPoints": "Mech Points (MP)",
+                "MechPointsBelowMinimum": "Below the tier {tier} minimum of {minimum} MP.",
+                "MechPointsMinimum": "(min {minimum})",
                 "Operators": "Operators",
                 "OtherTitle": "Other Attributes",
                 "PPCurrent": "Current PP",

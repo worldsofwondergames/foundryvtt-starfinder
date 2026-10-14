@@ -167,7 +167,7 @@
             "unidentified": "",
             "value": "<p>An advanced eternal power core for mechs. Eternal cores provide high capacity and strong initial power but slower regeneration. Scrapper configuration.</p>"
           },
-          "mpCost": 0,
+          "mpCost": 2,
           "ppInitial": 6,
           "ppMax": 13,
           "ppRegen": 1,
@@ -213,7 +213,7 @@
             "value": "<p>This system transforms dissipating shield energy into offensive power.</p><p>@PPAbility[cost:2]{Energized Retort} When you take damage that reduces your Shield Points, add half the lost SP as additional damage to your next weapon attack.</p>"
           },
           "isActive": false,
-          "mpCost": 1,
+          "mpCost": 0,
           "ppCost": 2,
           "source": "Tech Revolution"
         }
@@ -232,7 +232,7 @@
             "value": "<p>Powerful engines enable short-distance flight.</p><p>@PPAbility[cost:2]{Power Jump} Gain a fly speed of 60 feet with average maneuverability. Maximum height is 30 feet. You must land or continue jumping each round or fall.</p>"
           },
           "isActive": false,
-          "mpCost": 1,
+          "mpCost": 0,
           "ppCost": 2,
           "source": "Tech Revolution"
         }
