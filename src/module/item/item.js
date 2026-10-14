@@ -2,6 +2,7 @@ import { isInsideContainer } from "../rules/item-containment.js";
 import { SFRPG } from "../config.js";
 import { DiceSFRPG } from "../dice.js";
 import SFRPGModifier from "../modifiers/modifier.js";
+import { pendingModifierData } from "../apps/pending-modifiers.js";
 import { SFRPGEffectType, SFRPGModifierType, SFRPGModifierTypes } from "../modifiers/types.js";
 import RollContext from "../rolls/rollcontext.js";
 import StackModifiers from "../rules/closures/stack-modifiers.js";
@@ -1062,10 +1063,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
         const rollContext = RollContext.createItemRollContext(this, this.actor, {itemData: itemData});
 
         /** Create global attack modifiers. */
-        const additionalModifiers = foundry.utils.deepClone(SFRPG.globalAttackRollModifiers).map(mod => {
-            const modInstance = {bonus: new SFRPGModifier(mod.bonus, {parent: this, globalModifier: true})};
-            return modInstance;
-        });
+        const additionalModifiers = this._globalAttackModifiers();
 
         /** Apply bonus rolled mods from relevant attack roll formula modifiers. */
         for (const rolledMod of rolledMods) {
@@ -1101,6 +1099,18 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             rollType: "attack",
             onClose: this._onAttackRollClose.bind(this, options)
         });
+    }
+
+    /**
+     * The attack options every attack roll offers to tick, such as Full Attack
+     * and Flanking, from SFRPG.globalAttackRollModifiers.
+     *
+     * @returns {{bonus: SFRPGModifier}[]}
+     */
+    _globalAttackModifiers() {
+        return foundry.utils.deepClone(SFRPG.globalAttackRollModifiers).map(mod => ({
+            bonus: new SFRPGModifier(mod.bonus, {parent: this, globalModifier: true})
+        }));
     }
 
     getAppropriateAttackModifiers(isWeapon) {
@@ -1353,7 +1363,11 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
         this.actor?.setupRollContexts(rollContext, ["operator"]);
 
         /** Create additional modifiers. */
-        const additionalModifiers = [];
+        // A mech takes the same attack actions a character does, such as a full
+        // attack or a charge (Tech Revolution: "In addition to the actions detailed
+        // in Chapter 8 of the Core Rulebook, mechs can perform the following
+        // special actions"), so its attack offers the same options to tick.
+        const additionalModifiers = this._globalAttackModifiers();
 
         // Conditions on the mech, and on the operator they route inward from,
         // penalize the attack the same way they would a character's.
@@ -1375,23 +1389,19 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
         }
 
         // An armed attack bonus (e.g. Aim) was rolled from the action's chat card, so
-        // the number is already fixed and goes in as a flat part named for the action.
+        // the number is already fixed. It is shown on the dialog as a pending
+        // modifier the pilot can leave out of this roll, which leaves it armed.
         const attackBonus = this.actor?.getFlag("sfrpg", "attackBonusOverride");
         const attackBonusApplies = overrideAppliesTo(attackBonus, this.id);
+        let pendingAttackBonus = null;
         if (attackBonusApplies) {
-            parts.push({
-                score: attackBonus.value,
-                explanation: game.i18n.format("SFRPG.MechSheet.AttackBonusOverride.Tag", {
-                    source: attackBonus.source,
-                    value: attackBonus.value
-                })
-            });
+            pendingAttackBonus = new SFRPGModifier(pendingModifierData(attackBonus), {parent: this, globalModifier: true});
+            pendingAttackBonus.pending = true;
+            additionalModifiers.push({ bonus: pendingAttackBonus });
         }
 
-        if (additionalModifiers.length > 0) {
-            rollContext.addContext("additional", {name: "additional"}, {modifiers: { bonus: "n/a", rolledMods: additionalModifiers } });
-            parts.push("@additional.modifiers.bonus");
-        }
+        rollContext.addContext("additional", {name: "additional"}, {modifiers: { bonus: "n/a", rolledMods: additionalModifiers } });
+        parts.push("@additional.modifiers.bonus");
 
         const rollOptions = {};
 
@@ -1447,8 +1457,8 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             onClose: (roll, formula, finalFormula) => {
                 if (roll) {
                     // Only spend the bonus once a roll actually resolved - cancelling the
-                    // attack dialog leaves it armed rather than eating the PP.
-                    if (attackBonusApplies) clearSystemFlag(this.actor, "attackBonusOverride");
+                    // attack dialog, or leaving the bonus out of the roll, leaves it armed.
+                    if (pendingAttackBonus?.enabled) clearSystemFlag(this.actor, "attackBonusOverride");
 
                     const rollDamageWithAttack = game.settings.get("sfrpg", "rollDamageWithAttack");
                     if (rollDamageWithAttack && !options.disableDamageAfterAttack) {

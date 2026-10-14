@@ -1,5 +1,6 @@
 import { SFRPG } from "../config.js";
 import { labelFormula } from "../rolls/variable-labels.js";
+import { splitPendingModifiers } from "./pending-modifiers.js";
 
 // Typedef's for documentation purposes.
 /**
@@ -113,7 +114,9 @@ export default class RollDialog extends Dialog {
         data.rollMode = this.rollMode;
         data.additionalBonus = this.additionalBonus;
         data.availableModifiers = foundry.utils.deepClone(this.availableModifiers) || [];
-        data.hasModifiers = data.availableModifiers.length > 0;
+        const { pending, hasListed } = splitPendingModifiers(data.availableModifiers);
+        data.pendingModifiers = pending;
+        data.hasModifiers = hasListed;
         data.hasSelectors = this.contexts.selectors && this.contexts.selectors.length > 0;
         data.selectors = this.selectors;
         data.contexts = this.contexts;
@@ -221,6 +224,8 @@ export default class RollDialog extends Dialog {
 
         const modifierEnabled = html.find('.toggle-modifier');
         modifierEnabled.on('click', this._toggleModifierEnabled.bind(this));
+
+        html.find('.remove-pending-modifier').on('click', this._toggleModifierEnabled.bind(this));
 
         const selectorCombobox = html.find('.selector');
         selectorCombobox.on('change', this._onSelectorChanged.bind(this));
