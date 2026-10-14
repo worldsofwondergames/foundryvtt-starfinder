@@ -1,6 +1,7 @@
 import SFRPGModifier from "./modifiers/modifier.js";
 import { SFRPGEffectType, SFRPGModifierType, SFRPGModifierTypes } from "./modifiers/types.js";
 import { weaponCoreItemUpdate, weaponCoreTemplate } from "./rules/weapon-core.js";
+import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mech-limb-hp.js";
 
 const SFRPGMigrationSchemas = Object.freeze({
     NPC_DATA_UPATE: 0.001,
@@ -12,7 +13,8 @@ const SFRPGMigrationSchemas = Object.freeze({
     THE_WEBP_UPDATE: 0.008, // We changed all icons from .png to .webp
     THE_GUNNERY_UPDATE: 0.009, // Since Gunnery is now a selectable skill for NPC starships, migrate an NPC gunner's ranks in Piloting (the previous hacky solution) to their modifier in Gunnery.
     MECH_ACTIONS_SYNC: 0.010, // Sync mech component actions from compendium to actor items that were imported before actions were added.
-    WEAPON_CORE_ENERGY_TYPES: 0.011 // Mark Weapon Core as choosing two energy types, reading them from names such as "Weapon Core (Cold, Fire)".
+    WEAPON_CORE_ENERGY_TYPES: 0.011, // Mark Weapon Core as choosing two energy types, reading them from names such as "Weapon Core (Cold, Fire)".
+    TOUGH_ARMS_HP: 0.012 // Give every Tough Arms the compendium's +1 Hit Point per tier in place of a flat +1.
 });
 
 /**
@@ -24,18 +26,10 @@ export default async function migrateWorld() {
 
     const notif = ui.notifications.info(game.i18n.format("SFRPG.MigrationBeginingMigration", { systemVersion }), { permanent: true });
 
-    for (const actor of game.actors.contents) {
-        try {
-            const updateData = await migrateActor(actor, worldSchema);
-            if (!foundry.utils.isEmpty(updateData)) {
-                console.log(`Starfinder | Migrating Actor entity ${actor.name}`);
-                await actor.update(updateData, { enforceTypes: false });
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
+    // Tokens go before the actors they come from. An unlinked token reads its
+    // items from its actor, so once the actor is migrated the token's items
+    // already look migrated, and a step that works out a change from the old
+    // values, such as the Hit Points Tough Arms add, finds nothing to change.
     for (const scene of game.scenes) {
         for (const token of scene.tokens) {
             try {
@@ -47,6 +41,18 @@ export default async function migrateWorld() {
             } catch (err) {
                 console.error(err);
             }
+        }
+    }
+
+    for (const actor of game.actors.contents) {
+        try {
+            const updateData = await migrateActor(actor, worldSchema);
+            if (!foundry.utils.isEmpty(updateData)) {
+                console.log(`Starfinder | Migrating Actor entity ${actor.name}`);
+                await actor.update(updateData, { enforceTypes: false });
+            }
+        } catch (err) {
+            console.error(err);
         }
     }
 
@@ -128,8 +134,48 @@ const migrateItem = async function(item, schema) {
     if (schema < SFRPGMigrationSchemas.DAMAGE_TYPE_REFACTOR) _migrateDamageTypes(itemData, updateData);
     if (schema < SFRPGMigrationSchemas.THE_WEBP_UPDATE) _migrateDocumentIconToWebP(itemData, updateData);
     if (schema < SFRPGMigrationSchemas.WEAPON_CORE_ENERGY_TYPES) _migrateWeaponCore(item, updateData);
+    if (schema < SFRPGMigrationSchemas.TOUGH_ARMS_HP) _migrateToughArms(item, updateData);
 
     return updateData;
+};
+
+/**
+ * Raise a mech's current Hit Points by what its Tough Arms gain, read before the
+ * item itself is migrated, so a mech at full stays at full and any damage taken
+ * stays the same.
+ *
+ * @param {Actor} actor The mech.
+ * @param {object} updateData
+ */
+const _migrateToughArmsCurrentHp = function(actor, updateData) {
+    const tier = actor.system.details?.tier ?? 0;
+    const gain = actor.items.reduce((sum, item) => sum + toughArmsHpGain(item, tier), 0);
+    if (!gain) return;
+
+    const current = Number(actor.system.attributes?.hp?.value) || 0;
+    updateData["system.attributes.hp.value"] = Math.max(0, current + gain);
+};
+
+/**
+ * Give every Tough Arms, and the Tough Arms template inside a mission pod, the
+ * compendium's +1 Hit Point per tier.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migrateToughArms = function(item, updateData) {
+    Object.assign(updateData, toughArmsUpdate(item));
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
+        let changed = false;
+        const templates = current.map(template => {
+            const updated = toughArmsTemplate(template);
+            if (updated) changed = true;
+            return updated ?? template;
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
 };
 
 /**
@@ -180,6 +226,8 @@ const migrateActor = async function(actor, schema) {
         _migrateStarshipGunnerySkill(actorData, updateData);
     if (schema < SFRPGMigrationSchemas.MECH_ACTIONS_SYNC && actorData.type === 'mech')
         await _migrateMechComponentActions(actor);
+    if (schema < SFRPGMigrationSchemas.TOUGH_ARMS_HP && actorData.type === 'mech')
+        _migrateToughArmsCurrentHp(actor, updateData);
 
     for (const item of actor.items) {
         const itemUpdateData = await migrateItem(item, schema);
