@@ -120,6 +120,7 @@ export class CombatSFRPG extends foundry.documents.Combat {
         Hooks.callAll("onBeginCombat", eventData);
         this._handleTimedEffects(eventData);
         await this._notifyAfterUpdate(eventData);
+        await this._postTurnStartFailures(eventData);
     }
 
     async delete(options = {}) {
@@ -407,7 +408,10 @@ export class CombatSFRPG extends foundry.documents.Combat {
             }
         }
 
-        await this._notifyAfterUpdate(eventData);
+        // With a GM present, the active GM posts the cards for the new turn, so
+        // they come before the mech cards it posts after them. See _onUpdate.
+        if (!game.users.activeGM) await this._printChatCards(eventData);
+        Hooks.callAll("onAfterUpdateCombat", eventData);
     }
 
     _onUpdate(changed, options, userId) {
@@ -423,9 +427,26 @@ export class CombatSFRPG extends foundry.documents.Combat {
             // Run here rather than from onAfterUpdateCombat, which fires only on
             // the client that changed the turn. When a player ends their own
             // turn, that is the player's client, and the GM would never see it.
+            // The new turn's cards, then its mech's System Failure card, then the
+            // regeneration, posted one after another so they read in that order.
             const eventData = resolveEventData(options.eventData, this);
-            runTurnEvent("Mech turn changes", () => applyMechTurnChanges(eventData));
+            runTurnEvent("Turn change cards", async () => {
+                await this._printChatCards(eventData);
+                if (eventData.direction > 0) await this._postTurnStartFailures(eventData);
+                await applyMechTurnChanges(eventData);
+            });
         }
+    }
+
+    /**
+     * Post the System Failure card of a mech whose turn has started.
+     *
+     * @param {object} eventData The combat event data, with its combatants as documents.
+     */
+    async _postTurnStartFailures(eventData) {
+        const actor = eventData.isNewTurn ? eventData.newCombatant?.actor : null;
+        if (actor?.type !== "mech") return;
+        await runTurnEvent(`System failures for ${eventData.newCombatant.name}`, () => postTurnStartFailures(actor));
     }
 
     /**
@@ -435,12 +456,6 @@ export class CombatSFRPG extends foundry.documents.Combat {
     async _onStartTurn(combatant, context) {
         await super._onStartTurn(combatant, context);
         await runTurnEvent(`Start of ${combatant.name}'s turn`, () => combatant.actor?._onTurnStart(context));
-
-        // Foundry starts each turn passed over on the way to this one, too. Only
-        // the turn being taken gets a mech's System Failure card.
-        if (combatant.actor?.type === "mech" && !context?.skipped) {
-            await runTurnEvent(`System failures for ${combatant.name}`, () => postTurnStartFailures(combatant.actor));
-        }
     }
 
     /**
@@ -465,7 +480,17 @@ export class CombatSFRPG extends foundry.documents.Combat {
     }
 
     async _notifyAfterUpdate(eventData) {
+        await this._printChatCards(eventData);
+        Hooks.callAll("onAfterUpdateCombat", eventData);
+    }
 
+    /**
+     * Post the cards for a new round, phase and turn, as the combat's chat card
+     * setting allows.
+     *
+     * @param {object} eventData The combat event data.
+     */
+    async _printChatCards(eventData) {
         const combatType = this.getCombatType();
         const combatChatSetting = game.settings.get('sfrpg', `${combatType}ChatCards`);
 
@@ -480,8 +505,6 @@ export class CombatSFRPG extends foundry.documents.Combat {
         if (eventData.newCombatant && (combatChatSetting === "enabled" || combatChatSetting === "roundsTurns")) {
             await this._printNewTurnChatCard(eventData);
         }
-
-        Hooks.callAll("onAfterUpdateCombat", eventData);
     }
 
     async _printNewRoundChatCard(eventData) {
