@@ -686,9 +686,13 @@
             "Card": "{name} can attempt a {check} to end {condition}. DC {dc}.",
             "Ended": "{name} succeeds and is no longer {condition}.",
             "Failed": "{name} fails and is still {condition}.",
+            "NoHealer": "Assign a character or select a token to make the Medicine check.",
             "NotOwner": "Only {name}'s owners or the GM can roll this.",
+            "NotStopped": "{healer} fails to stop {name}'s bleeding.",
             "Roll": "Roll",
-            "Smother": "Smother (full action, +4)"
+            "Smother": "Smother (full action, +4)",
+            "StopBleeding": "Stop bleeding (Medicine DC 15)",
+            "Stopped": "{healer} stops {name}'s bleeding."
         },
         "ConditionTimer": {
             "Apply": "Apply",

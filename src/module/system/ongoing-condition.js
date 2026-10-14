@@ -197,7 +197,11 @@ export async function rollOngoingConditions(actor) {
             card.lines.push(game.i18n.localize("SFRPG.OngoingDamage.UntilRemoved"));
         }
 
-        const content = `<div class="sfrpg ongoing-damage-card">${card.lines.map(line => `<p>${line}</p>`).join("")}</div>`;
+        if (condition === "bleeding" && !expired) {
+            card.lines.push(`<a class="enriched-link" data-action="stopBleeding" data-dc="15"><i class="fas fa-kit-medical"></i> ${game.i18n.localize("SFRPG.ConditionEndCheck.StopBleeding")}</a>`);
+        }
+
+        const content = `<div class="sfrpg ongoing-damage-card" data-actor-uuid="${actor.uuid}">${card.lines.map(line => `<p>${line}</p>`).join("")}</div>`;
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
             content,

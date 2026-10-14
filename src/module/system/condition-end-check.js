@@ -160,3 +160,59 @@ export async function onConditionEndCheckClick(event) {
         whisper: failureRecipients(game.users, actor)
     });
 }
+
+/**
+ * Handle a click on Stop bleeding. The Medicine check is made by the clicking
+ * user's assigned character, or by their controlled token when they have none.
+ *
+ * @param {Event} event
+ * @returns {Promise<void>}
+ */
+export async function onStopBleedingClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const link = event.currentTarget;
+
+    const patient = await fromUuid(link.closest("[data-actor-uuid]")?.dataset.actorUuid ?? "");
+    const item = patient?.getCondition?.("bleeding");
+    if (!item) {
+        ui.notifications.info(game.i18n.localize("SFRPG.ConditionEndCheck.AlreadyResolved"));
+        return;
+    }
+
+    const healer = game.user.character ?? canvas.tokens?.controlled[0]?.actor ?? null;
+    if (!healer) {
+        ui.notifications.warn(game.i18n.localize("SFRPG.ConditionEndCheck.NoHealer"));
+        return;
+    }
+
+    const check = endCheckFor("bleeding", null);
+    const result = await rollEndCheck(healer, check, {
+        dc: check.dc,
+        bonus: 0,
+        event,
+        label: game.i18n.localize("SFRPG.ConditionEndCheck.StopBleeding")
+    });
+    if (!result) return;
+
+    if (result.success) {
+        if (patient.isOwner) await patient.setCondition("bleeding", false);
+        else RPC.sendMessageTo("gm", "stopBleeding", { actorUuid: patient.uuid });
+    }
+
+    await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: healer }),
+        content: game.i18n.format(result.success ? "SFRPG.ConditionEndCheck.Stopped" : "SFRPG.ConditionEndCheck.NotStopped", { healer: healer.name, name: patient.name })
+    });
+}
+
+/**
+ * Remove bleeding for a healer who does not own the patient.
+ *
+ * @param {object} message The RPC message.
+ * @returns {Promise<void>}
+ */
+export async function onStopBleedingRequest(message) {
+    const patient = await fromUuid(message.payload?.actorUuid ?? "");
+    await patient?.setCondition?.("bleeding", false);
+}
