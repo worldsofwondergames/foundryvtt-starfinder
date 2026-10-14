@@ -104,6 +104,39 @@ export function recordAttempt(check, round, success) {
 }
 
 /**
+ * The round an attempt counts toward.
+ *
+ * The end-of-turn save belongs to the turn its card was posted for, even when
+ * the combat has already moved into the next round, as it has after the last
+ * creature in the order ends its turn. Smothering the fire is a full action
+ * taken on the creature's own turn, so it counts in the round it is done.
+ *
+ * @param {{smother: boolean, cardRound: number|null, currentRound: number|null}} options
+ * @returns {number|null}
+ */
+export function attemptRound({ smother, cardRound, currentRound }) {
+    return smother ? currentRound : cardRound;
+}
+
+/**
+ * Whether a roll succeeds at an end check.
+ *
+ * A natural 1 on a saving throw always fails and a natural 20 always succeeds.
+ * A skill check has no such rule, so only its total counts.
+ *
+ * @param {{kind: string}} check
+ * @param {{total: number, dc: number, natural: number}} roll The total, the DC, and the kept d20.
+ * @returns {boolean}
+ */
+export function checkSucceeds(check, { total, dc, natural }) {
+    if (check.kind === "save") {
+        if (natural === 20) return true;
+        if (natural === 1) return false;
+    }
+    return total >= dc;
+}
+
+/**
  * Whether the end of the creature's turn owes this check a card.
  *
  * @param {object|null} check

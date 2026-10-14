@@ -1,7 +1,7 @@
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
 import { RPC } from "../rpc.js";
-import { BURNING_FAMILY, attemptBonus, burningDC, endCheckFor, isCheckDue, recordAttempt } from "../rules/condition-end-check.js";
+import { BURNING_FAMILY, attemptBonus, attemptRound, burningDC, checkSucceeds, endCheckFor, isCheckDue, recordAttempt } from "../rules/condition-end-check.js";
 import { failureRecipients, spendFailureLink } from "./mech-failure-link.js";
 
 /** The data-action of a card's Roll and Smother links. */
@@ -20,17 +20,34 @@ function checkLabel(check) {
 }
 
 /**
- * The DC of a check right now. The Burning family works it out from the
- * damage the condition dealt this round.
+ * The DC of a check in a given round. The Burning family works it out from the
+ * damage the condition dealt that round.
  *
  * @param {string} condition
  * @param {Item} item
  * @param {object} check
+ * @param {number|null} round
  * @returns {number}
  */
-function currentDC(condition, item, check) {
+function dcFor(condition, item, check, round) {
     if (!BURNING_FAMILY.includes(condition)) return check.dc;
-    return burningDC(item.getFlag("sfrpg", "ongoingDamageTaken") ?? null, game.combat?.round ?? null);
+    return burningDC(item.getFlag("sfrpg", "ongoingDamageTaken") ?? null, round);
+}
+
+/**
+ * Spend the buttons on every earlier card for this creature's condition, so only
+ * the newest card can be rolled.
+ *
+ * @param {ActorSFRPG} actor
+ * @param {string} condition
+ * @returns {Promise<void>}
+ */
+async function spendEarlierCards(actor, condition) {
+    const marks = [`data-actor-uuid="${actor.uuid}"`, `data-condition="${condition}"`, `data-action="${ACTION}"`];
+    for (const message of game.messages.filter(m => marks.every(mark => m.content?.includes(mark)))) {
+        const content = spendFailureLink(spendFailureLink(message.content, ACTION, "0"), ACTION, "1");
+        if (content !== message.content) await message.update({ content });
+    }
 }
 
 /**
@@ -39,10 +56,11 @@ function currentDC(condition, item, check) {
  * condition whose rounds ran out has already gone.
  *
  * @param {ActorSFRPG} actor The creature whose turn ended.
+ * @param {number|null} round The round the turn belonged to. Foundry has already
+ *     moved the combat on when the last creature in the order ends its turn.
  * @returns {Promise<void>}
  */
-export async function postEndCheckCards(actor) {
-    const round = game.combat?.round ?? null;
+export async function postEndCheckCards(actor, round) {
     for (const condition of Object.keys(CONFIG.SFRPG.conditionTypes)) {
         const item = actor.getCondition?.(condition);
         if (!item?.system.enabled) continue;
@@ -51,15 +69,16 @@ export async function postEndCheckCards(actor) {
         if (!isCheckDue(check)) continue;
 
         const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
-        const dc = currentDC(condition, item, check);
+        const dc = dcFor(condition, item, check, round);
         const bonus = attemptBonus(check, round, { smother: false });
-        const link = (smother, text) => `<a class="enriched-link" data-action="${ACTION}" data-condition="${condition}" data-dc="${dc}" data-smother="${smother}" data-index="${smother ? 1 : 0}"><i class="fas fa-dice-d20"></i> ${text}</a>`;
+        const link = (smother, text) => `<a class="enriched-link" data-action="${ACTION}" data-condition="${condition}" data-item-id="${item.id}" data-round="${round ?? ""}" data-dc="${dc}" data-smother="${smother}" data-index="${smother ? 1 : 0}"><i class="fas fa-dice-d20"></i> ${text}</a>`;
 
         const lines = [game.i18n.format("SFRPG.ConditionEndCheck.Card", { name: actor.name, check: checkLabel(check), condition: label, dc })];
         if (bonus) lines.push(game.i18n.format("SFRPG.ConditionEndCheck.Bonus", { bonus }));
         const links = [link(false, game.i18n.localize("SFRPG.ConditionEndCheck.Roll"))];
         if (check.smotherBonus) links.push(link(true, game.i18n.localize("SFRPG.ConditionEndCheck.Smother")));
 
+        await spendEarlierCards(actor, condition);
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
             content: `<div class="sfrpg condition-end-check-card" data-actor-uuid="${actor.uuid}">${lines.map(line => `<p>${line}</p>`).join("")}<p>${links.join(" ")}</p></div>`,
@@ -90,8 +109,8 @@ export async function rollEndCheck(roller, check, { dc, bonus, event, label }) {
         difficulty: dc
     });
     if (!result?.roll) return null;
-    // The same ruling as the roll's own card, where a natural 20 succeeds and a natural 1 fails.
-    return { total: result.roll.total, success: DiceSFRPG.evaluateRollVsValue(result.roll, dc) === true };
+    const natural = result.roll.dice.find(die => die.faces === 20)?.total ?? null;
+    return { total: result.roll.total, success: checkSucceeds(check, { total: result.roll.total, dc, natural }) };
 }
 
 /**
@@ -132,19 +151,24 @@ export async function onConditionEndCheckClick(event) {
     }
 
     const condition = link.dataset.condition;
+    // A card for a condition that has since been removed, or removed and given
+    // again, is done with.
     const item = actor.getCondition?.(condition);
-    const check = item ? endCheckFor(condition, item.getFlag("sfrpg", "conditionEndCheck") ?? null) : null;
+    const current = item && item.id === link.dataset.itemId;
+    const check = current ? endCheckFor(condition, item.getFlag("sfrpg", "conditionEndCheck") ?? null) : null;
     if (!check) {
         ui.notifications.info(game.i18n.localize("SFRPG.ConditionEndCheck.AlreadyResolved"));
         await spend(link);
         return;
     }
 
-    const round = game.combat?.round ?? null;
     const smother = link.dataset.smother === "true";
+    const cardRound = link.dataset.round ? Number(link.dataset.round) : null;
+    const round = attemptRound({ smother, cardRound, currentRound: game.combat?.round ?? null });
     const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
     const result = await rollEndCheck(actor, check, {
-        dc: Number(link.dataset.dc),
+        // Smothering happens on the creature's own turn, after that round's damage.
+        dc: smother ? dcFor(condition, item, check, round) : Number(link.dataset.dc),
         bonus: attemptBonus(check, round, { smother }),
         event,
         label: `${checkLabel(check)}: ${label}`
@@ -215,6 +239,8 @@ export async function onStopBleedingClick(event) {
  * @returns {Promise<void>}
  */
 export async function onStopBleedingRequest(message) {
+    // Every GM receives the request, and only one of them should act on it.
+    if (!game.users.activeGM?.isSelf) return;
     const patient = await fromUuid(message.payload?.actorUuid ?? "");
     await patient?.setCondition?.("bleeding", false);
 }

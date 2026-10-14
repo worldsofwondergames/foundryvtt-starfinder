@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BURNING_FAMILY, attemptBonus, burningDC, endCheckFor, isCheckDue, recordAttempt, startEndCheck } from "./condition-end-check.js";
+import { BURNING_FAMILY, attemptBonus, attemptRound, burningDC, checkSucceeds, endCheckFor, isCheckDue, recordAttempt, startEndCheck } from "./condition-end-check.js";
 
 const IDS = { saves: { fort: "", reflex: "", will: "" }, skills: { med: "", acr: "" } };
 
@@ -136,5 +136,47 @@ describe("isCheckDue", () => {
 
     it("is not due without a check", () => {
         expect(isCheckDue(null)).toBe(false);
+    });
+});
+
+describe("checkSucceeds", () => {
+    const save = { kind: "save" };
+    const skill = { kind: "skill" };
+
+    it("succeeds when the total meets the DC", () => {
+        expect(checkSucceeds(save, { total: 15, dc: 15, natural: 10 })).toBe(true);
+        expect(checkSucceeds(skill, { total: 15, dc: 15, natural: 10 })).toBe(true);
+    });
+
+    it("fails when the total is below the DC", () => {
+        expect(checkSucceeds(save, { total: 14, dc: 15, natural: 10 })).toBe(false);
+        expect(checkSucceeds(skill, { total: 14, dc: 15, natural: 10 })).toBe(false);
+    });
+
+    it("fails a save on a natural 1 whatever the total", () => {
+        expect(checkSucceeds(save, { total: 20, dc: 15, natural: 1 })).toBe(false);
+    });
+
+    it("passes a save on a natural 20 whatever the total", () => {
+        expect(checkSucceeds(save, { total: 22, dc: 30, natural: 20 })).toBe(true);
+    });
+
+    it("judges a skill check by its total alone, even on a natural 1 or 20", () => {
+        expect(checkSucceeds(skill, { total: 16, dc: 15, natural: 1 })).toBe(true);
+        expect(checkSucceeds(skill, { total: 22, dc: 30, natural: 20 })).toBe(false);
+    });
+});
+
+describe("attemptRound", () => {
+    it("counts the end-of-turn save in the round the card was posted for", () => {
+        expect(attemptRound({ smother: false, cardRound: 3, currentRound: 4 })).toBe(3);
+    });
+
+    it("counts smothering in the round it is done", () => {
+        expect(attemptRound({ smother: true, cardRound: 3, currentRound: 4 })).toBe(4);
+    });
+
+    it("is null outside combat", () => {
+        expect(attemptRound({ smother: false, cardRound: null, currentRound: null })).toBeNull();
     });
 });

@@ -430,11 +430,12 @@ export class CombatSFRPG extends foundry.documents.Combat {
     /**
      * Run turn end turn events. This runs only for an active GM. If there are no GMs, this isn't run.
      * @param {Combatant} combatant The Combatant whose turn just ended
+     * @param {object} context Foundry's context for that turn, including its round
      */
-    async _onEndTurn(combatant) {
-        super._onEndTurn(combatant);
+    async _onEndTurn(combatant, context) {
+        super._onEndTurn(combatant, context);
 
-        combatant.actor?._onTurnEnd();
+        combatant.actor?._onTurnEnd(context);
     }
 
     async _notifyAfterUpdate(eventData) {
