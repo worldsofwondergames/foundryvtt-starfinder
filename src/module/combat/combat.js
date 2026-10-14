@@ -3,6 +3,7 @@ import { SFRPG } from "../config.js";
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
 import { postRoundEndCheckCards } from "../system/condition-end-check.js";
+import { postsPhaseCard } from "../rules/combat-cards.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
@@ -79,6 +80,12 @@ export class CombatSFRPG extends foundry.documents.Combat {
             "turn": combatType === "starship" ? null : 0
         };
         Hooks.callAll("combatStart", this, update);
+        // Work that belongs to the start of the combat, such as resetting mechs,
+        // finishes and posts its cards before the first round's card. Only the
+        // GM who starts the combat runs this, so it runs once.
+        if (game.user.isGM) {
+            for (const prepare of CombatSFRPG.startSteps) await prepare(this);
+        }
         game.time.advance(CONFIG.time.roundTime);
         await this.update(update);
 
@@ -458,7 +465,7 @@ export class CombatSFRPG extends foundry.documents.Combat {
             await this._printNewRoundChatCard(eventData);
         }
 
-        if (eventData.isNewPhase && (combatChatSetting === "enabled" || combatChatSetting === "roundsPhases")) {
+        if (eventData.isNewPhase && postsPhaseCard(this.getPhases(), combatChatSetting)) {
             await this._printNewPhaseChatCard(eventData);
         }
 
@@ -1127,6 +1134,13 @@ CombatSFRPG.vehicleChase = {
         }
     ]
 };
+
+/**
+ * Steps run by the GM who starts a combat, each awaited in turn before
+ * the combat posts its first card. Each is called with the combat.
+ * @type {Array<function(CombatSFRPG): Promise<void>>}
+ */
+CombatSFRPG.startSteps = [];
 
 CombatSFRPG.errors = {
     historyLimitedResetInitiative: "SFRPG.Combat.Errors.HistoryLimitedResetInitiative",

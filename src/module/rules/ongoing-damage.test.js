@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addOngoingSource, averageOf, mergeRounds, ongoingConditionOf, ongoingFromCritical, ongoingSources, remainingHealth, sourceOf, tickRounds } from "./ongoing-damage.js";
+import { addOngoingSource, averageOf, combinedFormula, mergeRounds, ongoingConditionOf, ongoingFromCritical, ongoingSources, poolLosses, remainingHealth, sourceOf, tickRounds } from "./ongoing-damage.js";
 
 describe("ongoingFromCritical", () => {
     it("reads Corrode's amount from its critical damage part", () => {
@@ -169,5 +169,39 @@ describe("sourceOf", () => {
     it("returns nothing for a source set by hand", () => {
         expect(sourceOf("Corrode")).toBe("");
         expect(sourceOf(undefined)).toBe("");
+    });
+});
+
+describe("combinedFormula", () => {
+    it("rolls a single source as written", () => {
+        expect(combinedFormula([{ formula: "1d6" }])).toBe("1d6");
+    });
+
+    it("adds several sources together, each kept whole", () => {
+        expect(combinedFormula([{ formula: "1d6" }, { formula: "2d4+1" }])).toBe("(1d6) + (2d4+1)");
+    });
+});
+
+describe("poolLosses", () => {
+    const pools = (temp, sp, hp) => ({ hp: { value: hp, temp }, sp: { value: sp } });
+
+    it("reports Stamina Points taken before Hit Points", () => {
+        expect(poolLosses(pools(0, 3, 20), pools(0, 0, 19))).toEqual({ temp: 0, sp: 3, hp: 1 });
+    });
+
+    it("reports only Stamina Points when Stamina absorbed it all", () => {
+        expect(poolLosses(pools(0, 10, 20), pools(0, 6, 20))).toEqual({ temp: 0, sp: 4, hp: 0 });
+    });
+
+    it("reports temporary Hit Points, which go first", () => {
+        expect(poolLosses(pools(2, 5, 20), pools(null, 4, 20))).toEqual({ temp: 2, sp: 1, hp: 0 });
+    });
+
+    it("reports no loss for a pool that went up", () => {
+        expect(poolLosses(pools(0, 2, 20), pools(0, 5, 20))).toEqual({ temp: 0, sp: 0, hp: 0 });
+    });
+
+    it("reports nothing when no pool went down", () => {
+        expect(poolLosses(pools(0, 5, 20), pools(0, 5, 20))).toEqual({ temp: 0, sp: 0, hp: 0 });
     });
 });
