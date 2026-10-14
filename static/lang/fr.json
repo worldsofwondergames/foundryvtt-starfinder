@@ -680,6 +680,14 @@
         "ComingSoon": "A venir !",
         "ConImm": "Immunités aux états",
         "Condition": "Condition",
+        "ConditionTimer": {
+            "Apply": "Apply",
+            "Expired": "{name} is no longer {condition}.",
+            "Prompt": "How many rounds is {name} {condition}? It ends at the end of their turn once the last round is used. Leave it blank to keep it until removed.",
+            "Rounds": "Rounds",
+            "RoundsPlaceholder": "Until removed",
+            "Title": "Apply {condition}"
+        },
         "ConditionTooltips": {
             "Asleep": "Vous subissez une pénalité de -10 aux tests de Perception pour remarquer les choses.",
             "Bleeding": "Vous subissez les dégâts indiqués au début de votre tour.",
@@ -687,6 +695,7 @@
             "Broken": "<strong>Arme:</strong> Les jets d'attaque et de dégâts subissent une pénalité de -2 et ne peuvent pas bénéficier d'effets supplémentaires en cas de coup critique;<br> <strong>Armure:</strong> Les bonus de CA sont réduits de moitié et la pénalité aux tests d'armure est doublée ;<br> <strong>Vehicule:</strong> pénalité de -2 à la CA, au DD de collision et au modificateur de Pilotage, et réduction de moitié de sa vitesse totale et de ses km/h;<br> <strong>Outils ou technologie qui fournissent des bonuses:</strong> Les bonus sont réduites de moitié.",
             "Burning": "Vous subissez les dégâts de feu indiqués à chaque round, et vous devez être éteint pour mettre fin à cette état.",
             "Confused": "Vous traitez toutes les créatures comme des ennemis et vous devez effectuer un jet sur la table pour déterminer vos actions.",
+            "Corrode": "You take the listed acid damage at the start of your turn, as the burning condition but with acid damage.",
             "Cowering": "Vous êtes à plat ventre et ne pouvez entreprendre aucune action.",
             "Dazed": "Vous ne pouvez prendre aucune action.",
             "Dazzled": "Vous subissez une pénalité de -1 aux jets d'attaque et aux tests de Perception basés sur la vue.",
@@ -700,6 +709,7 @@
             "Fatigued": "Vous ne pouvez ni courir ni charger ; vous subissez une pénalité de -1 à la CA, aux jets d'attaque, aux jets de dégâts en mêlée, aux Sauvegardes Réflexes, aux tests d'Initiative et aux tests de compétences et d'aptitudes basés sur la Force et la Dextérité ; et vous réduisez votre limite d'encombrement de 1 point.",
             "FlatFooted": "Vous subissez une pénalité de -2 à la CA, et vous ne pouvez pas réagir ou faire des attaques d'opportunité.",
             "Frightened": "Vous devez fuir ou vous battre, et vous subissez une pénalité de -2 aux tests d'aptitude, aux jets d'attaque, aux jets de sauvegarde et aux tests de compétence.",
+            "Frostbite": "You take the listed cold damage at the start of your turn, as the burning condition but with cold damage.",
             "Grappled": "Vous ne pouvez pas vous déplacer ou effectuer des actions à deux mains ; vous subissez une pénalité de -2 à la CA, à la plupart des Jets d'Attaque, aux Sauvegardes Réflexes, aux Tests Initiative et aux Tests de Compétences et d'Aptitudes basés sur la Dextérité ; et vous ne pouvez pas effectuer d'attaques d'opportunité.",
             "Helpless": "Votre modificateur de Dextérité est de -5, et les attaques de mêlée contre vous bénéficient d'un bonus de +4.",
             "Nauseated": "Vous ne pouvez pas attaquer, lancer des sorts ou vous concentrer sur des sorts, et la seule action que vous pouvez entreprendre est une action de mouvement unique par tour.",
@@ -723,6 +733,7 @@
         "ConditionsBroken": "Cassé (Objet)",
         "ConditionsBurning": "Enflammé",
         "ConditionsConfused": "Confus",
+        "ConditionsCorrode": "Corrode",
         "ConditionsCowering": "Recroquevillé",
         "ConditionsDazed": "Hébété",
         "ConditionsDazzled": "Ébloui",
@@ -736,6 +747,7 @@
         "ConditionsFatigued": "Fatigué",
         "ConditionsFlatFooted": "Pris au dépourvu",
         "ConditionsFrightened": "Effrayé",
+        "ConditionsFrostbite": "Frostbite",
         "ConditionsGrappled": "Agrippé",
         "ConditionsHelpless": "Sans défense",
         "ConditionsInvisible": "Invisible",
@@ -2289,6 +2301,27 @@
                 "Tier": "Tier",
                 "TierPlaceholder": "1"
             },
+            "Hurl": {
+                "Choice": "{size} ({damage})",
+                "Damage": {
+                    "low": "light damage",
+                    "medium": "medium damage"
+                },
+                "Level": {
+                    "low": "Light",
+                    "medium": "Medium"
+                },
+                "NotYourTurn": "{name} can only Hurl on its own turn.",
+                "OrSmaller": "{size} or smaller",
+                "SizeLarge": "Maximum or next-smallest size",
+                "SizePrompt": "How big is the object the mech picks up?",
+                "SizeSmall": "Smaller",
+                "SizeTitle": "Hurl",
+                "Thrown": {
+                    "low": "It picks up a {size} object, which deals light damage, and can throw it until the end of its turn.",
+                    "medium": "It picks up a {size} object, which deals medium damage, and can throw it until the end of its turn."
+                }
+            },
             "Initiative": {
                 "NoOperatorTooltip": "No operator assigned",
                 "OperatorTooltip": "Operator ({name}): {mod}",
@@ -2486,6 +2519,9 @@
                 "SlotUpperLimb": "Upper Limb",
                 "SlotsUsed": "Slots Used",
                 "Special": "Special Properties",
+                "Throw": "Throw",
+                "ThrowTooltip": "Thrown attack, range {range}. Uses the melee attack bonus, and damage adds Strength.",
+                "ThrownTag": "Thrown ({range})",
                 "Type": "Weapon Type",
                 "TypeMelee": "Melee",
                 "TypeRanged": "Ranged",
@@ -2675,6 +2711,27 @@
         },
         "NpcToggleSkillsDialogTitle": "Ajout de compétences aux PNJ",
         "NumberOfArms": "Nombre de bras",
+        "OngoingDamage": {
+            "Apply": "Apply",
+            "ApplyTooltip": "Give your targeted tokens this condition, rolling the weapon's amount at the start of each of their turns",
+            "Dealt": "{condition} deals {amount} {type} damage to {name}.",
+            "DealtUntyped": "{condition} deals {amount} damage to {name}.",
+            "Formula": "Damage each turn",
+            "LastRound": "That was the last round, and {condition} ends.",
+            "Lost": "{name} loses {lost} after immunity, resistance or vulnerability.",
+            "NoDamage": "{condition} on {name} has no damage to roll.",
+            "NoFormula": "{condition} needs an amount of damage to roll each turn.",
+            "NoTargets": "Target or select the tokens to give the condition to.",
+            "NotOwner": "You do not own {names}. Ask the GM to apply the condition.",
+            "OneRoundLeft": "1 round left.",
+            "Prompt": "{condition} on {targets}: the damage below is rolled at the start of each of their turns.",
+            "Rolled": "Rolled {rolls}.",
+            "Rounds": "Rounds",
+            "RoundsLeft": "{rounds} rounds left.",
+            "RoundsPlaceholder": "Until removed",
+            "Title": "Apply {condition}",
+            "UntilRemoved": "It lasts until removed."
+        },
         "Organization": "Organisation",
         "Passive": "Passive",
         "Personal": "Personnel",

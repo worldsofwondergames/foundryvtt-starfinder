@@ -682,6 +682,14 @@
         "ComingSoon": "Coming Soon !",
         "ConImm": "Immune alle Condizioni",
         "Condition": "Condition",
+        "ConditionTimer": {
+            "Apply": "Apply",
+            "Expired": "{name} is no longer {condition}.",
+            "Prompt": "How many rounds is {name} {condition}? It ends at the end of their turn once the last round is used. Leave it blank to keep it until removed.",
+            "Rounds": "Rounds",
+            "RoundsPlaceholder": "Until removed",
+            "Title": "Apply {condition}"
+        },
         "ConditionTooltips": {
             "Asleep": "You take a -10 penalty to Perception checks to notice things.",
             "Bleeding": "You take the listed damage at the beginning of your turn.",
@@ -689,6 +697,7 @@
             "Broken": "<strong>Weapon:</strong> attack and damage rolls take a -2 penalty and can't deal extra effects on a critical hit;<br> <strong>Armor:</strong> AC bonuses are halved and the armor check penalty is doubled;<br> <strong>Vehicle:</strong> -2 penalty to AC, collision DC, and Piloting modifier, and it halves its full speed and MPH;<br> <strong>Tool or tech that provides bonuses:</strong> bonuses are halved.",
             "Burning": "You take the listed fire damage each round, and you must be extinguished to end the condition.",
             "Confused": "You treat all creatures as enemies, and you must roll on the table to determine your actions.",
+            "Corrode": "You take the listed acid damage at the start of your turn, as the burning condition but with acid damage.",
             "Cowering": "You're flat-footed and can take no actions.",
             "Dazed": "You can take no actions.",
             "Dazzled": "You take a -1 penalty to attack rolls and sight-based Perception checks.",
@@ -702,6 +711,7 @@
             "Fatigued": "You cannot run or charge; you take a -1 penalty to AC, attack rolls, melee damage rolls, Reflex saves, initiative checks, and Str- and Dex-based skill and ability checks; and you reduce your encumbered limit by 1 bulk.",
             "FlatFooted": "You take a -2 penalty to AC, and you cannot take reactions or make attacks of opportunity.",
             "Frightened": "You must flee or fight, and you take a -2 penalty to ability checks, attack rolls, saving throws, and skill checks.",
+            "Frostbite": "You take the listed cold damage at the start of your turn, as the burning condition but with cold damage.",
             "Grappled": "You cannot move or take two-handed actions; you take a -2 penalty to AC, most attack rolls, Reflex saves, initiative checks, and Dex-based skill and ability checks; and you cannot make attacks of opportunity.",
             "Helpless": "Your Dex modifier is -5, and melee attacks against you gain a +4 bonus.",
             "Nauseated": "You're unable to attack, cast spells, or concentrate on spells, and the only action you can take is a single move action per turn.",
@@ -725,6 +735,7 @@
         "ConditionsBroken": "Rotto (solo oggetti)",
         "ConditionsBurning": "In Fiamme",
         "ConditionsConfused": "Confuso",
+        "ConditionsCorrode": "Corrode",
         "ConditionsCowering": "Atterrito",
         "ConditionsDazed": "Frastornato",
         "ConditionsDazzled": "Abbagliato",
@@ -738,6 +749,7 @@
         "ConditionsFatigued": "Affaticato",
         "ConditionsFlatFooted": "Impreparato",
         "ConditionsFrightened": "Spaventato",
+        "ConditionsFrostbite": "Frostbite",
         "ConditionsGrappled": "In lotta",
         "ConditionsHelpless": "Indifeso",
         "ConditionsInvisible": "Invisible",
@@ -2297,6 +2309,27 @@
                 "Tier": "Tier",
                 "TierPlaceholder": "1"
             },
+            "Hurl": {
+                "Choice": "{size} ({damage})",
+                "Damage": {
+                    "low": "light damage",
+                    "medium": "medium damage"
+                },
+                "Level": {
+                    "low": "Light",
+                    "medium": "Medium"
+                },
+                "NotYourTurn": "{name} can only Hurl on its own turn.",
+                "OrSmaller": "{size} or smaller",
+                "SizeLarge": "Maximum or next-smallest size",
+                "SizePrompt": "How big is the object the mech picks up?",
+                "SizeSmall": "Smaller",
+                "SizeTitle": "Hurl",
+                "Thrown": {
+                    "low": "It picks up a {size} object, which deals light damage, and can throw it until the end of its turn.",
+                    "medium": "It picks up a {size} object, which deals medium damage, and can throw it until the end of its turn."
+                }
+            },
             "Initiative": {
                 "NoOperatorTooltip": "No operator assigned",
                 "OperatorTooltip": "Operator ({name}): {mod}",
@@ -2494,6 +2527,9 @@
                 "SlotUpperLimb": "Upper Limb",
                 "SlotsUsed": "Slots Used",
                 "Special": "Special Properties",
+                "Throw": "Throw",
+                "ThrowTooltip": "Thrown attack, range {range}. Uses the melee attack bonus, and damage adds Strength.",
+                "ThrownTag": "Thrown ({range})",
                 "Type": "Weapon Type",
                 "TypeMelee": "Melee",
                 "TypeRanged": "Ranged",
@@ -2683,6 +2719,27 @@
         },
         "NpcToggleSkillsDialogTitle": "Aggiungi delle competenze al PNG",
         "NumberOfArms": "Numero di braccia",
+        "OngoingDamage": {
+            "Apply": "Apply",
+            "ApplyTooltip": "Give your targeted tokens this condition, rolling the weapon's amount at the start of each of their turns",
+            "Dealt": "{condition} deals {amount} {type} damage to {name}.",
+            "DealtUntyped": "{condition} deals {amount} damage to {name}.",
+            "Formula": "Damage each turn",
+            "LastRound": "That was the last round, and {condition} ends.",
+            "Lost": "{name} loses {lost} after immunity, resistance or vulnerability.",
+            "NoDamage": "{condition} on {name} has no damage to roll.",
+            "NoFormula": "{condition} needs an amount of damage to roll each turn.",
+            "NoTargets": "Target or select the tokens to give the condition to.",
+            "NotOwner": "You do not own {names}. Ask the GM to apply the condition.",
+            "OneRoundLeft": "1 round left.",
+            "Prompt": "{condition} on {targets}: the damage below is rolled at the start of each of their turns.",
+            "Rolled": "Rolled {rolls}.",
+            "Rounds": "Rounds",
+            "RoundsLeft": "{rounds} rounds left.",
+            "RoundsPlaceholder": "Until removed",
+            "Title": "Apply {condition}",
+            "UntilRemoved": "It lasts until removed."
+        },
         "Organization": "Organization",
         "Passive": "Passive",
         "Personal": "Personale",

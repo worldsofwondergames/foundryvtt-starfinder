@@ -682,6 +682,14 @@
         "ComingSoon": "Kommt demnächst!",
         "ConImm": "Immunitäten gegen Zustände",
         "Condition": "Condition",
+        "ConditionTimer": {
+            "Apply": "Apply",
+            "Expired": "{name} is no longer {condition}.",
+            "Prompt": "How many rounds is {name} {condition}? It ends at the end of their turn once the last round is used. Leave it blank to keep it until removed.",
+            "Rounds": "Rounds",
+            "RoundsPlaceholder": "Until removed",
+            "Title": "Apply {condition}"
+        },
         "ConditionTooltips": {
             "Asleep": "Du erleidest einen Malus von -10 auf Fertigkeitswürfe für Wahrnehmung zum Bemerken.",
             "Bleeding": "Du erleidest den aufgeführten Schaden zu Beginn deines Zuges.",
@@ -689,6 +697,7 @@
             "Broken": "<strong>Waffe:</strong> Angriffs- und Schadenswürfe haben einem Malus von -2 und haben keinen zusätzlichen Effekt bei einem Kritischen Treffer;<br> <strong>Rüstung:</strong> RK-Boni werden halbiert und Rüstungsmalus wird verdoppelt;<br> <strong>Fahrzeug:</strong> -2 auf RK, Kollisions-SG und Steuerungsmodifikator; halbierte Höchst- und Überlandgeschwindigkeit;<br> <strong>Werkzeug oder Technik, die Boni verleiht:</strong> Boni werden halbiert.",
             "Burning": "Du erleidest jede Runde den aufgeführten Feuerschaden und musst gelöscht werden, um diesen Zustand zu beenden.",
             "Confused": "Behandle alle Kreaturen als Gegner und würfle auf der Tabelle, um dein Handeln zu bestimmen.",
+            "Corrode": "You take the listed acid damage at the start of your turn, as the burning condition but with acid damage.",
             "Cowering": "Du bist auf dem Falschen Fuß und kannst keine Aktionen ausführen.",
             "Dazed": "Du kannst keine Aktionen ausführen.",
             "Dazzled": "Du erhältst einen Malus von -1 auf Angriffs- und sichtbasierte Wahrnehmungswürfe.",
@@ -702,6 +711,7 @@
             "Fatigued": "Du kannst nicht rennen oder einen Sturmangriff ausführen; du erleidest einen Malus von -1 auf deine RK, Angriffs-, Initiative-, Nahkampfschadens- und Reflexwürfe sowie auf stärke- und geschicklichkeitsbasierte Attributs- und Fertigkeitswürfe. Du kannst 1 Last weniger tragen, bevor du als beladen giltst.",
             "FlatFooted": "Du erleidest einen Malus von -2 auf RK und kannst keine Reaktionen oder Gelegenheitsangriffe nutzen.",
             "Frightened": "Du musst fliehen oder kämpfen; du erhältst einen Malus von -2 auf Angriffs-, Attributs-, Fertigkeits- und Rettungswürfe.",
+            "Frostbite": "You take the listed cold damage at the start of your turn, as the burning condition but with cold damage.",
             "Grappled": "Du kannst dich nicht fortbewegen oder Handlungen ausführen, die zwei Hände erfordern; du erleidest einen Malus von -2 auf deine RK, die meisten Angriffswürfe, deine Initiative- und Reflexwürfe sowie auf geschicklichkeitsbasierte Attributs- und Fertigkeitswürfe; Gelegenheitsangriffe sind nicht möglich.",
             "Helpless": "Dein GE-Modifikator ist -5. Nahkampfangriffe gegen dich erhalten einen Bonus von +4.",
             "Nauseated": "Du kannst nicht angreifen, Zauber wirken oder dich auf Zauber konzentrieren; du darfst pro Zug als einzige Aktion eine Bewegungsaktion ausführen.",
@@ -725,6 +735,7 @@
         "ConditionsBroken": "Beschädigt",
         "ConditionsBurning": "Brennend",
         "ConditionsConfused": "Verwirrt",
+        "ConditionsCorrode": "Corrode",
         "ConditionsCowering": "Kauernd",
         "ConditionsDazed": "Benommen",
         "ConditionsDazzled": "Geblendet",
@@ -738,6 +749,7 @@
         "ConditionsFatigued": "Erschöpft",
         "ConditionsFlatFooted": "Auf dem Falschen Fuß",
         "ConditionsFrightened": "Verängstigt",
+        "ConditionsFrostbite": "Frostbite",
         "ConditionsGrappled": "Ringend",
         "ConditionsHelpless": "Hilflos",
         "ConditionsInvisible": "Unsichtbar",
@@ -2296,6 +2308,27 @@
                 "Tier": "Tier",
                 "TierPlaceholder": "1"
             },
+            "Hurl": {
+                "Choice": "{size} ({damage})",
+                "Damage": {
+                    "low": "light damage",
+                    "medium": "medium damage"
+                },
+                "Level": {
+                    "low": "Light",
+                    "medium": "Medium"
+                },
+                "NotYourTurn": "{name} can only Hurl on its own turn.",
+                "OrSmaller": "{size} or smaller",
+                "SizeLarge": "Maximum or next-smallest size",
+                "SizePrompt": "How big is the object the mech picks up?",
+                "SizeSmall": "Smaller",
+                "SizeTitle": "Hurl",
+                "Thrown": {
+                    "low": "It picks up a {size} object, which deals light damage, and can throw it until the end of its turn.",
+                    "medium": "It picks up a {size} object, which deals medium damage, and can throw it until the end of its turn."
+                }
+            },
             "Initiative": {
                 "NoOperatorTooltip": "No operator assigned",
                 "OperatorTooltip": "Operator ({name}): {mod}",
@@ -2493,6 +2526,9 @@
                 "SlotUpperLimb": "Upper Limb",
                 "SlotsUsed": "Slots Used",
                 "Special": "Special Properties",
+                "Throw": "Throw",
+                "ThrowTooltip": "Thrown attack, range {range}. Uses the melee attack bonus, and damage adds Strength.",
+                "ThrownTag": "Thrown ({range})",
                 "Type": "Weapon Type",
                 "TypeMelee": "Melee",
                 "TypeRanged": "Ranged",
@@ -2682,6 +2718,27 @@
         },
         "NpcToggleSkillsDialogTitle": "NSC-Fertigkeiten umschalten",
         "NumberOfArms": "Anzahl der Arme",
+        "OngoingDamage": {
+            "Apply": "Apply",
+            "ApplyTooltip": "Give your targeted tokens this condition, rolling the weapon's amount at the start of each of their turns",
+            "Dealt": "{condition} deals {amount} {type} damage to {name}.",
+            "DealtUntyped": "{condition} deals {amount} damage to {name}.",
+            "Formula": "Damage each turn",
+            "LastRound": "That was the last round, and {condition} ends.",
+            "Lost": "{name} loses {lost} after immunity, resistance or vulnerability.",
+            "NoDamage": "{condition} on {name} has no damage to roll.",
+            "NoFormula": "{condition} needs an amount of damage to roll each turn.",
+            "NoTargets": "Target or select the tokens to give the condition to.",
+            "NotOwner": "You do not own {names}. Ask the GM to apply the condition.",
+            "OneRoundLeft": "1 round left.",
+            "Prompt": "{condition} on {targets}: the damage below is rolled at the start of each of their turns.",
+            "Rolled": "Rolled {rolls}.",
+            "Rounds": "Rounds",
+            "RoundsLeft": "{rounds} rounds left.",
+            "RoundsPlaceholder": "Until removed",
+            "Title": "Apply {condition}",
+            "UntilRemoved": "It lasts until removed."
+        },
         "Organization": "Organization",
         "Passive": "Passiv",
         "Personal": "Persönlich",
