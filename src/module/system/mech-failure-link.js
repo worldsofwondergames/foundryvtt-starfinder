@@ -139,16 +139,21 @@ export function effectText(component, status) {
 /**
  * What a component's condition does to the mech, as plain text.
  *
+ * The card announcing a failure says what happens as it fails, such as the
+ * operators being thrown about. The start-of-turn reminder says only what goes
+ * on happening after that.
+ *
  * @param {string} component The failing component.
  * @param {string} status Its status.
+ * @param {"Effect"|"Ongoing"} [kind] Which of the two to give.
  * @returns {string} The sentence, empty for a component with none.
  */
-function effectSentence(component, status) {
+function effectSentence(component, status, kind = "Effect") {
     const label = COMPONENT_LABELS[component];
     if (!label) return "";
 
     const suffix = status === "inoperable" ? "Inoperable" : "Malfunctioning";
-    return game.i18n.localize(`SFRPG.MechSheet.SystemFailure.Effect${label}${suffix}`);
+    return game.i18n.localize(`SFRPG.MechSheet.SystemFailure.${kind}${label}${suffix}`);
 }
 
 /**
@@ -461,7 +466,7 @@ export async function postTurnStartFailures(actor) {
         ...failures.components.map(({ component, status }) => game.i18n.format("SFRPG.MechSheet.SystemFailure.TurnStartComponent", {
             component: componentName(component),
             status: game.i18n.localize(CONFIG.SFRPG.mechSystemStatus[status])
-        }) + ` <span class="mech-failure-effect">${effectSentence(component, status)}</span>`),
+        }) + ` <span class="mech-failure-effect">${effectSentence(component, status, "Ongoing")}</span>`),
         ...failures.checks.map((check, index) => chanceLink({
             chance: check.chance,
             purpose: "auxiliary",
