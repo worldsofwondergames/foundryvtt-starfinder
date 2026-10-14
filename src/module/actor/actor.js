@@ -5,7 +5,8 @@ import { SpellCastDialog } from "../apps/spell-cast-dialog.js";
 import { SFRPG } from "../config.js";
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
-import { TokenEffect } from "../token/token-effect.js";
+import { failureIcons } from "../rules/mech-turn-failures.js";
+import { MechFailureTokenEffect, TokenEffect } from "../token/token-effect.js";
 import { Mix } from "../utils/custom-mixer.js";
 import { ActorConditionsMixin } from "./mixins/actor-conditions.js";
 import { ActorCrewMixin } from "./mixins/actor-crew.js";
@@ -49,7 +50,12 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
             .filter((e) => e.type === "effect" && e.system.showOnToken && e.system.enabled)
             .map((e) => new TokenEffect(e));
 
-        return [...super.appliedEffects, ...fromEffects];
+        // A mech's failing components show on its token the way conditions do.
+        const fromFailures = this.type === "mech"
+            ? failureIcons(this.system.attributes?.systems).map(icon => new MechFailureTokenEffect(this, icon))
+            : [];
+
+        return [...super.appliedEffects, ...fromEffects, ...fromFailures];
     }
 
     // Temporary effects are displayed on the token, so hijack it and include effects

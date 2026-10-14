@@ -74,12 +74,14 @@ import {
     DICE_ICON,
     componentName,
     failureRecipients,
+    hideOwnerOnlyActions,
     onMechAuxiliaryPickClick,
     onMechChanceCheckClick,
     onMechCockpitSaveClick,
     onMechFailureRollClick,
     onMechPowerCoreLossClick
 } from "./module/system/mech-failure-link.js";
+import { onHoverMechToken, onUpdateMechSystems } from "./module/system/mech-failure-token.js";
 import { failuresTriggered } from "./module/rules/mech-system-failure.js";
 import TextEditorSFRPG from "./module/system/text-editor.js";
 
@@ -848,6 +850,7 @@ async function migrateOldContainers() {
 
 Hooks.on("renderChatMessageHTML", (app, html, data) => {
     onRenderSpentButtons(app, html);
+    hideOwnerOnlyActions(html, uuid => game.user.isGM || !!fromUuidSync(uuid)?.isOwner);
     DiceSFRPG.highlightCriticalSuccessFailure(app, $(html), data);
     DiceSFRPG.addDamageTypes(app, $(html), data);
 
@@ -1136,6 +1139,11 @@ Hooks.on("updateActor", async (actor, changes, options) => {
         await postMechFailureCard(actor, threshold);
     }
 });
+
+// A mech's failing components show on its token, so its icons are redrawn
+// when they change, and hovering the token lists them.
+Hooks.on("updateActor", onUpdateMechSystems);
+Hooks.on("hoverToken", onHoverMechToken);
 
 // A player who resets a mech's System Damage leaves a report on the mech in the
 // same update. The GM's session posts it, whispered to GMs only, so the player
