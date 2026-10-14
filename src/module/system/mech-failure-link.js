@@ -110,15 +110,34 @@ async function rollFailure(actor, link) {
         status: game.i18n.localize(CONFIG.SFRPG.mechSystemStatus[status])
     }) + effectText(component, status);
 
+    // Everyone at the table sees what failed. The dice for what it costs are
+    // only drawn for the mech's owners and the GMs, who are the ones to roll them.
+    const actions = transitionMarkup(actor, component, status);
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),
-        content: await failureContent(actor, outcome + transitionMarkup(actor, component, status)),
+        content: await failureContent(actor, outcome + (actions ? `<div class="${OWNER_ONLY_CLASS}">${actions}</div>` : "")),
         rolls: [roll],
-        sound: CONFIG.sounds.dice,
-        whisper: failureRecipients(game.users, actor)
+        sound: CONFIG.sounds.dice
     });
 
     return component;
+}
+
+/** Marks the part of a public failure card that only the mech's owners and the GMs see. */
+export const OWNER_ONLY_CLASS = "mech-failure-owner-only";
+
+/**
+ * Take the owner-only part out of a rendered failure card for anyone who
+ * can't roll it.
+ *
+ * @param {Element} root The rendered message.
+ * @param {function(string): boolean} canRoll Whether the viewer may act for the mech with this uuid.
+ */
+export function hideOwnerOnlyActions(root, canRoll) {
+    for (const part of root.querySelectorAll(`.${OWNER_ONLY_CLASS}`)) {
+        const uuid = part.closest("[data-actor-uuid]")?.dataset.actorUuid;
+        if (!uuid || !canRoll(uuid)) part.remove();
+    }
 }
 
 /**
@@ -442,6 +461,21 @@ export function chanceLink({ chance, purpose, label, systemId = null, index, too
 }
 
 /**
+ * A failing component, its status and what it goes on doing, as one line of
+ * HTML. The start-of-turn card and the token's tooltip both use it.
+ *
+ * @param {string} component The failing component.
+ * @param {string} status Its stored status.
+ * @returns {string}
+ */
+export function failureLine(component, status) {
+    return game.i18n.format("SFRPG.MechSheet.SystemFailure.TurnStartComponent", {
+        component: componentName(component),
+        status: game.i18n.localize(CONFIG.SFRPG.mechSystemStatus[status])
+    }) + ` <span class="mech-failure-effect">${effectSentence(component, status, "Ongoing")}</span>`;
+}
+
+/**
  * Post the one System Failure card a mech gets at the start of its turn,
  * listing each failing component, each check a constant auxiliary system owes,
  * and each auxiliary system that has stopped.
@@ -463,10 +497,7 @@ export async function postTurnStartFailures(actor) {
 
     const tooltip = game.i18n.localize("SFRPG.MechSheet.SystemFailure.ChanceTooltip");
     const lines = [
-        ...failures.components.map(({ component, status }) => game.i18n.format("SFRPG.MechSheet.SystemFailure.TurnStartComponent", {
-            component: componentName(component),
-            status: game.i18n.localize(CONFIG.SFRPG.mechSystemStatus[status])
-        }) + ` <span class="mech-failure-effect">${effectSentence(component, status, "Ongoing")}</span>`),
+        ...failures.components.map(({ component, status }) => failureLine(component, status)),
         ...failures.checks.map((check, index) => chanceLink({
             chance: check.chance,
             purpose: "constant",

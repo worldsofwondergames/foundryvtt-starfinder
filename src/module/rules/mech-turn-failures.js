@@ -4,6 +4,52 @@ import { auxiliaryFailureChance } from "./mech-system-effects.js";
 const FAILED = ["malfunctioning", "inoperable"];
 
 /**
+ * A mech's malfunctioning and inoperable components, in the order the sheet
+ * lists them.
+ *
+ * @param {Object<string, {value: string}>} systems The mech's stored component statuses.
+ * @returns {{component: string, status: string}[]}
+ */
+export function failedComponents(systems = {}) {
+    return Object.keys(COMPONENT_LABELS)
+        .map(component => ({ component, status: systems[component]?.value }))
+        .filter(({ status }) => FAILED.includes(status));
+}
+
+/** The icon each component shows on the mech's token while it is failing. */
+export const FAILURE_ICONS = Object.freeze({
+    upperLimbs: "icons/svg/sword.svg",
+    lowerLimbs: "icons/svg/wingfoot.svg",
+    frame: "icons/svg/shield.svg",
+    auxSystem: "icons/svg/aura.svg",
+    powerCore: "icons/svg/lightning.svg",
+    cockpit: "icons/svg/eye.svg"
+});
+
+/** The tint of a failing component's icon: amber while malfunctioning, red once inoperable. */
+export const FAILURE_TINTS = Object.freeze({
+    malfunctioning: "#e8a317",
+    inoperable: "#d42a2a"
+});
+
+/**
+ * The icons a mech's token shows for its failing components. They follow the
+ * stored status, so a Power Points override, which leaves it alone, does not
+ * change them.
+ *
+ * @param {Object<string, {value: string}>} systems The mech's stored component statuses.
+ * @returns {{component: string, status: string, img: string, tint: string}[]}
+ */
+export function failureIcons(systems = {}) {
+    return failedComponents(systems).map(({ component, status }) => ({
+        component,
+        status,
+        img: FAILURE_ICONS[component],
+        tint: FAILURE_TINTS[status]
+    }));
+}
+
+/**
  * What a mech's System Failure card lists at the start of its turn.
  *
  * Every failing component is listed with what it costs, so the operators are
@@ -23,9 +69,7 @@ const FAILED = ["malfunctioning", "inoperable"];
  *     The lines, or null when nothing is failing.
  */
 export function turnStartFailures(systems = {}, auxiliary = []) {
-    const components = Object.keys(COMPONENT_LABELS)
-        .map(component => ({ component, status: systems[component]?.value }))
-        .filter(({ status }) => FAILED.includes(status));
+    const components = failedComponents(systems);
 
     const chance = auxiliaryFailureChance(systems.auxSystem?.value);
     const checks = chance > 0

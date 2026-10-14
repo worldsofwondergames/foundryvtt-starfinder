@@ -1,8 +1,33 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { buttonKey } from "./chat-button-claim.js";
-import { chanceLink, chanceOutcome, failureRecipients, transitionButtons } from "./mech-failure-link.js";
+import { OWNER_ONLY_CLASS, chanceLink, chanceOutcome, failureRecipients, hideOwnerOnlyActions, transitionButtons } from "./mech-failure-link.js";
 import en from "../../../static/lang/en.json";
+
+describe("hideOwnerOnlyActions", () => {
+    function resultCard() {
+        const root = document.createElement("div");
+        root.innerHTML = `<div class="sfrpg chat-card mech-failure-card" data-actor-uuid="Actor.kestra">
+            <p class="result">Cockpit is now Malfunctioning.</p>
+            <div class="${OWNER_ONLY_CLASS}"><a data-action="mechCockpitSave">Thoris: Reflex save</a></div></div>`;
+        return root;
+    }
+
+    it("shows a player who doesn't own the mech what failed, without the dice to roll for it", () => {
+        const root = resultCard();
+        hideOwnerOnlyActions(root, () => false);
+
+        expect(root.querySelector(".result")).not.toBeNull();
+        expect(root.querySelector("[data-action]")).toBeNull();
+    });
+
+    it("keeps the dice for the mech's owner", () => {
+        const root = resultCard();
+        hideOwnerOnlyActions(root, uuid => uuid === "Actor.kestra");
+
+        expect(root.querySelector("[data-action='mechCockpitSave']")).not.toBeNull();
+    });
+});
 
 describe("chanceOutcome", () => {
     const text = key => en.SFRPG.MechSheet.SystemFailure[key];

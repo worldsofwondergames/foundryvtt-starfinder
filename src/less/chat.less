@@ -357,3 +357,25 @@
     padding: 0;
     color: inherit;
 }
+
+/* The tooltip over a mech's token lists its failing components, one to a line,
+   with what each does in quieter text. */
+#tooltip.mech-failure-tooltip {
+    max-width: 320px;
+    text-align: left;
+
+    .mech-turn-failures {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        li {
+            margin: 2px 0;
+        }
+    }
+
+    .mech-failure-effect {
+        font-style: italic;
+        opacity: 0.8;
+    }
+}

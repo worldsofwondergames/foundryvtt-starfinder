@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { turnStartFailures } from "./mech-turn-failures.js";
+import { failureIcons, turnStartFailures } from "./mech-turn-failures.js";
 
 const nominal = Object.fromEntries(["upperLimbs", "lowerLimbs", "frame", "auxSystem", "powerCore", "cockpit"]
     .map(component => [component, { value: "nominal" }]));
@@ -44,5 +44,26 @@ describe("turnStartFailures", () => {
 
     test("still lists a stopped system when nothing else is failing", () => {
         expect(turnStartFailures(nominal, [{ ...entryHatch, disabled: true }])).toEqual({ components: [], checks: [], stopped: ["Entry Hatch"] });
+    });
+});
+
+describe("failureIcons", () => {
+    test("shows nothing on the token of a mech with every component Nominal", () => {
+        expect(failureIcons(nominal)).toEqual([]);
+    });
+
+    test("shows one icon for each failing component, each its own", () => {
+        const icons = failureIcons(systems({ frame: "malfunctioning", powerCore: "inoperable" }));
+
+        expect(icons.map(icon => icon.component)).toEqual(["frame", "powerCore"]);
+        expect(icons[0].img).not.toBe(icons[1].img);
+    });
+
+    test("changes the icon's tint when a component goes from malfunctioning to inoperable", () => {
+        const [malfunctioning] = failureIcons(systems({ cockpit: "malfunctioning" }));
+        const [inoperable] = failureIcons(systems({ cockpit: "inoperable" }));
+
+        expect(malfunctioning.img).toBe(inoperable.img);
+        expect(malfunctioning.tint).not.toBe(inoperable.tint);
     });
 });
