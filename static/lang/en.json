@@ -693,6 +693,7 @@
             "SaveName": "{save} save",
             "SkillName": "{skill} check",
             "Smother": "Smother (full action, +4)",
+            "SmotherRules": "Roll is the free save you get at the end of each round you are burning. Smother spends a full action rolling on the ground or otherwise smothering the fire, for a new save at +4.",
             "StopBleeding": "Stop bleeding (Medicine DC 15)",
             "Stopped": "{healer} stops {name}'s bleeding."
         },

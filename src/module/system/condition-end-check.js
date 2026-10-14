@@ -76,7 +76,10 @@ export async function postEndCheckCards(actor, round) {
         const lines = [game.i18n.format("SFRPG.ConditionEndCheck.Card", { name: actor.name, check: checkLabel(check), condition: label, dc })];
         if (bonus) lines.push(game.i18n.format("SFRPG.ConditionEndCheck.Bonus", { bonus }));
         const links = [link(false, game.i18n.localize("SFRPG.ConditionEndCheck.Roll"))];
-        if (check.smotherBonus) links.push(link(true, game.i18n.localize("SFRPG.ConditionEndCheck.Smother")));
+        if (check.smotherBonus) {
+            lines.push(`<em>${game.i18n.localize("SFRPG.ConditionEndCheck.SmotherRules")}</em>`);
+            links.push(link(true, game.i18n.localize("SFRPG.ConditionEndCheck.Smother")));
+        }
 
         await spendEarlierCards(actor, condition);
         await ChatMessage.create({
