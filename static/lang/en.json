@@ -2507,6 +2507,7 @@
                 "ChoiceRanged": "+1 Ranged",
                 "Combat": "Combat",
                 "Eac": "EAC Modifier",
+                "HpAdvancement": "HP Advancement",
                 "Kac": "KAC Modifier",
                 "MeleeAttack": "Melee Attack Bonus",
                 "MpCost": "MP Cost",

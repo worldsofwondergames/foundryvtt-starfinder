@@ -99,7 +99,7 @@
         "type": "mechUpperLimb",
         "img": "systems/sfrpg/icons/mech-frame.png",
         "system": {
-          "baseHp": 1,
+          "baseHp": 0,
           "canBeActivated": false,
           "description": {
             "chat": "",
@@ -116,7 +116,8 @@
           "rangedAttack": 0,
           "slots": 2,
           "source": "Tech Revolution",
-          "strength": 0
+          "strength": 0,
+          "hpAdvancement": 1
         }
       },
       {

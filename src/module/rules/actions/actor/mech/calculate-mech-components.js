@@ -73,10 +73,16 @@ export default function(engine) {
             }
         }
 
-        // Upper limbs can contribute base HP but not advancement
-        if (upperLimb && upperLimb.system.baseHp) {
-            baseHp += upperLimb.system.baseHp;
-            data.attributes.hp.tooltip.push(`${upperLimb.name} (Base): +${upperLimb.system.baseHp}`);
+        // Upper limbs carry a Hit Point Advancement too, such as Tough Arms' +1.
+        if (upperLimb) {
+            baseHp += upperLimb.system.baseHp || 0;
+            hpAdvancement += upperLimb.system.hpAdvancement || 0;
+            if (upperLimb.system.baseHp) {
+                data.attributes.hp.tooltip.push(`${upperLimb.name} (Base): +${upperLimb.system.baseHp}`);
+            }
+            if (upperLimb.system.hpAdvancement) {
+                data.attributes.hp.tooltip.push(`${upperLimb.name} (Advancement): +${upperLimb.system.hpAdvancement}/tier`);
+            }
         }
 
         // HP finalization is deferred until after upgrade bonuses are applied
