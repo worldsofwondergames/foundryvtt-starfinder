@@ -45,7 +45,8 @@ export async function promptConditionRounds(condition, name) {
         <div class="form-group">
             <label>${game.i18n.localize("SFRPG.ConditionTimer.SaveDC")}</label>
             <input type="number" name="dc" min="1" step="1" />
-        </div>`;
+        </div>
+        <p class="hint">${game.i18n.localize("SFRPG.ConditionTimer.SaveHint")}</p>`;
 
     const number = value => (value === "" ? null : Number(value));
     const answer = await foundry.applications.api.DialogV2.prompt({

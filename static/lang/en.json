@@ -690,6 +690,8 @@
             "NotOwner": "Only {name}'s owners or the GM can roll this.",
             "NotStopped": "{healer} fails to stop {name}'s bleeding.",
             "Roll": "Roll",
+            "SaveName": "{save} save",
+            "SkillName": "{skill} check",
             "Smother": "Smother (full action, +4)",
             "StopBleeding": "Stop bleeding (Medicine DC 15)",
             "Stopped": "{healer} stops {name}'s bleeding."
@@ -702,7 +704,8 @@
             "RoundsPlaceholder": "Until removed",
             "SaveDC": "Save DC",
             "SaveNone": "No save",
-            "SaveToEnd": "Save to end it at the end of each of their turns",
+            "SaveHint": "The save is offered at the end of each of their turns, and a success ends it early.",
+            "SaveToEnd": "Save to end",
             "Title": "Apply {condition}"
         },
         "ConditionTooltips": {

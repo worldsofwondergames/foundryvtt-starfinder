@@ -14,8 +14,9 @@ const ACTION = "conditionEndCheck";
  * @returns {string}
  */
 function checkLabel(check) {
-    const key = check.kind === "save" ? CONFIG.SFRPG.saves[check.id] : CONFIG.SFRPG.skills[check.id];
-    return game.i18n.localize(key);
+    return check.kind === "save"
+        ? game.i18n.format("SFRPG.ConditionEndCheck.SaveName", { save: game.i18n.localize(CONFIG.SFRPG.saves[check.id]) })
+        : game.i18n.format("SFRPG.ConditionEndCheck.SkillName", { skill: game.i18n.localize(CONFIG.SFRPG.skills[check.id]) });
 }
 
 /**
@@ -89,7 +90,8 @@ export async function rollEndCheck(roller, check, { dc, bonus, event, label }) {
         difficulty: dc
     });
     if (!result?.roll) return null;
-    return { total: result.roll.total, success: result.roll.total >= dc };
+    // The same ruling as the roll's own card, where a natural 20 succeeds and a natural 1 fails.
+    return { total: result.roll.total, success: DiceSFRPG.evaluateRollVsValue(result.roll, dc) === true };
 }
 
 /**
