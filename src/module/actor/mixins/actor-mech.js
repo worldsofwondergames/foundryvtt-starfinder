@@ -1,7 +1,7 @@
 import { SFRPG } from "../../config.js";
-import { actionAttackBonus } from "../../rules/mech-attack-bonus.js";
+import { actionAttackBonus, actionSaveBonus, saveBonusActive, saveBonusTurn } from "../../rules/mech-attack-bonus.js";
 import { actionDamageOverride } from "../../rules/mech-damage-level.js";
-import { promoteDiceLinkToBonus } from "../../system/mech-bonus-link.js";
+import { promoteDiceLinkToBonus, promoteDiceLinkToSaveBonus } from "../../system/mech-bonus-link.js";
 import { promoteDiceLinkToReplenish } from "../../system/mech-replenish-link.js";
 import { replenishFormula } from "../../rules/mech-replenish.js";
 import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effects.js";
@@ -63,7 +63,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      *                                      action could not be performed
      */
     async useMechAction(category, index, { itemId = null, itemActionIndex = null } = {}) {
-        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, restoresShields, energyTypes;
+        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, armsSaveBonus, restoresShields, energyTypes;
         // Set for gear actions so the override they arm is spent by the weapon it
         // is printed on and not by whatever the mech fires next.
         let overrideItemId = null;
@@ -76,6 +76,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             ppCost = action.ppCost;
             armsOverride = action.armsOverride;
             armsAttackBonus = actionAttackBonus(action);
+            armsSaveBonus = actionSaveBonus(action);
             restoresShields = action.restoresShields;
 
             // An action whose dice depend on the mech writes them into its own
@@ -185,6 +186,24 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 itemId: category === "gear" ? itemId : null,
                 tooltip: game.i18n.format("SFRPG.MechSheet.AttackBonusOverride.LinkTooltip", {
                     formula: armsAttackBonus.formula
+                })
+            });
+
+            if (promoted) descriptionHTML = wrapper.innerHTML;
+        }
+
+        // Resist's die works the same way, for the mech's next saving throw - see
+        // onMechSaveBonusClick.
+        if (armsSaveBonus) {
+            const enriched = await foundry.applications.ux.TextEditor.implementation.enrichHTML(description);
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = enriched;
+
+            const promoted = promoteDiceLinkToSaveBonus(wrapper, armsSaveBonus.formula, {
+                source: name,
+                ppSpent: ppCost || 0,
+                tooltip: game.i18n.format("SFRPG.MechSheet.SaveBonusOverride.LinkTooltip", {
+                    formula: armsSaveBonus.formula
                 })
             });
 
@@ -390,6 +409,83 @@ export const ActorMechMixin = (superclass) => class extends superclass {
     }
 
     /**
+     * Roll a save bonus such as Resist's and arm it for the mech's next saving throw.
+     *
+     * In combat the bonus lasts until the combat turn changes, since Resist is
+     * used "before attempting a saving throw" on whatever turn the save comes.
+     *
+     * @param {string} formula The formula to roll, e.g. "1d4"
+     * @param {Object} [options]
+     * @param {string} [options.source] Name of the action arming the bonus
+     * @param {number} [options.ppSpent] Power Points already spent, refunded if the bonus is disarmed
+     * @returns {Promise<number|null>} The rolled bonus, or null if one was already armed
+     */
+    async armMechSaveBonus(formula, { source = "", ppSpent = 0 } = {}) {
+        const armed = this.activeSaveBonus();
+        if (armed) {
+            ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.SaveBonusOverride.AlreadyArmed", {
+                source: armed.source,
+                value: armed.value
+            }));
+            return null;
+        }
+
+        const roll = await new Roll(formula, this.getRollData()).evaluate();
+
+        await roll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor: this }),
+            flavor: game.i18n.format("SFRPG.MechSheet.SaveBonusOverride.RollFlavor", { source })
+        });
+
+        const combat = game.combats.find(c => c.started && c.combatants.some(combatant => combatant.actor?.uuid === this.uuid));
+        await this.setFlag("sfrpg", "saveBonusOverride", {
+            source: source,
+            formula: formula,
+            value: roll.total,
+            ppSpent: ppSpent,
+            turn: saveBonusTurn(combat ?? null)
+        });
+
+        return roll.total;
+    }
+
+    /**
+     * The save bonus armed on this mech, if it can still be used.
+     *
+     * @returns {{source: string, value: number, ppSpent: number}|null}
+     */
+    activeSaveBonus() {
+        const armed = this.getFlag("sfrpg", "saveBonusOverride");
+        if (!armed) return null;
+
+        const combat = armed.turn ? game.combats.get(armed.turn.combatId) ?? null : null;
+        return saveBonusActive(armed, combat) ? armed : null;
+    }
+
+    /**
+     * The roll part an armed save bonus adds to a saving throw, and how to spend
+     * it once the save is rolled.
+     *
+     * @returns {{part: {score: number, explanation: string}, spend: function(): Promise<void>}|null}
+     */
+    saveBonusRollPart() {
+        if (this.type !== "mech") return null;
+        const armed = this.activeSaveBonus();
+        if (!armed) return null;
+
+        return {
+            part: {
+                score: armed.value,
+                explanation: game.i18n.format("SFRPG.MechSheet.SaveBonusOverride.Tag", {
+                    source: armed.source,
+                    value: armed.value
+                })
+            },
+            spend: () => clearSystemFlag(this, "saveBonusOverride")
+        };
+    }
+
+    /**
      * Ask what Hurl picks up, then grant the attack until the end of the mech's turn.
      *
      * Hurl can only be used on the mech's own turn. Outside combat there are no
@@ -504,6 +600,17 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      */
     async cancelMechAttackBonus() {
         return this._cancelMechOverride("attackBonusOverride", "SFRPG.MechSheet.AttackBonusOverride.Cancelled");
+    }
+
+    /**
+     * Cancel a save bonus that has not been rolled against yet, refunding the
+     * Power Points that armed it.
+     *
+     * @returns {Promise<number|null>} The Power Points refunded, or null if no
+     *                                 bonus was armed
+     */
+    async cancelMechSaveBonus() {
+        return this._cancelMechOverride("saveBonusOverride", "SFRPG.MechSheet.SaveBonusOverride.Cancelled");
     }
 
     /**

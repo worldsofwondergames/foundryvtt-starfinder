@@ -20,13 +20,71 @@ const BONUS_FORMULA = /^(?:\d{1,3}d\d{1,3}(?:\s*\+\s*\d{1,3})?|\d{1,3})$/;
  * @returns {{formula: string}|null} The bonus to arm, or null if the action declares none.
  */
 export function actionAttackBonus(action) {
-    const formula = action?.armsAttackBonus?.formula;
+    return declaredBonus(action?.armsAttackBonus);
+}
+
+/**
+ * The saving throw bonus a mech action declares, if any.
+ *
+ * Resist reads "Before attempting a saving throw, roll 1d4 and add the result as
+ * a resistance bonus to the saving throw."
+ *
+ * @param {{armsSaveBonus?: {formula?: string}}|null|undefined} action A mech action.
+ * @returns {{formula: string}|null} The bonus to arm, or null if the action declares none.
+ */
+export function actionSaveBonus(action) {
+    return declaredBonus(action?.armsSaveBonus);
+}
+
+/**
+ * A bonus's formula, if it is one a roll can evaluate.
+ *
+ * @param {{formula?: string}|null|undefined} bonus
+ * @returns {{formula: string}|null}
+ */
+function declaredBonus(bonus) {
+    const formula = bonus?.formula;
     if (typeof formula !== "string") return null;
 
     const trimmed = formula.trim();
     if (!BONUS_FORMULA.test(trimmed)) return null;
 
     return { formula: trimmed };
+}
+
+/**
+ * The combat turn an armed save bonus belongs to.
+ *
+ * Resist is used "before attempting a saving throw", which can happen on any
+ * creature's turn, so the bonus lasts until the combat turn changes rather than
+ * until the end of the mech's own turn.
+ *
+ * @param {{id: string, started: boolean, round: number, turn: number}|null} combat The combat the mech is in.
+ * @returns {{combatId: string, round: number, turn: number}|null} Null outside a started combat.
+ */
+export function saveBonusTurn(combat) {
+    if (!combat?.started) return null;
+    return { combatId: combat.id, round: combat.round, turn: combat.turn };
+}
+
+/**
+ * Whether an armed save bonus can still be used.
+ *
+ * One armed outside combat lasts until a save uses it. One armed in combat lasts
+ * through the combat turn it was armed on.
+ *
+ * @param {{turn?: {combatId: string, round: number, turn: number}|null}|null} armed The saveBonusOverride flag.
+ * @param {{id: string, started: boolean, round: number, turn: number}|null} combat The combat named by the flag, if it still exists.
+ * @returns {boolean}
+ */
+export function saveBonusActive(armed, combat) {
+    if (!armed) return false;
+    if (!armed.turn) return true;
+
+    return Boolean(combat?.started)
+        && combat.id === armed.turn.combatId
+        && combat.round === armed.turn.round
+        && combat.turn === armed.turn.turn;
 }
 
 /**
@@ -40,9 +98,10 @@ export function actionAttackBonus(action) {
  * @param {Object} flags The mech's armed overrides.
  * @param {{source?: string, ppSpent?: number}|null} [flags.damageLevelOverride] An armed damage level override.
  * @param {{source?: string, ppSpent?: number, value?: number}|null} [flags.attackBonusOverride] An armed attack bonus.
+ * @param {{source?: string, ppSpent?: number, value?: number}|null} [flags.saveBonusOverride] An armed save bonus that can still be used.
  * @returns {Array<{kind: string, source: string, ppSpent: number, value: number|null}>} One entry per armed override.
  */
-export function armedOverrideBanners({ damageLevelOverride, attackBonusOverride } = {}) {
+export function armedOverrideBanners({ damageLevelOverride, attackBonusOverride, saveBonusOverride } = {}) {
     const banners = [];
 
     if (damageLevelOverride) {
@@ -60,6 +119,15 @@ export function armedOverrideBanners({ damageLevelOverride, attackBonusOverride 
             source: attackBonusOverride.source,
             ppSpent: attackBonusOverride.ppSpent || 0,
             value: attackBonusOverride.value ?? 0
+        });
+    }
+
+    if (saveBonusOverride) {
+        banners.push({
+            kind: "save",
+            source: saveBonusOverride.source,
+            ppSpent: saveBonusOverride.ppSpent || 0,
+            value: saveBonusOverride.value ?? 0
         });
     }
 

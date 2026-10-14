@@ -64,7 +64,7 @@ import CheckEnricher from "./module/system/enrichers/check.js";
 import IconEnricher from "./module/system/enrichers/icon.js";
 import PPAbilityEnricher from "./module/system/enrichers/pp-ability.js";
 import TemplateEnricher from "./module/system/enrichers/template.js";
-import { onMechAttackBonusClick } from "./module/system/mech-bonus-link.js";
+import { clearExpiredSaveBonuses, onMechAttackBonusClick, onMechSaveBonusClick } from "./module/system/mech-bonus-link.js";
 import { onApplyOngoingClick, onOngoingConditionSet } from "./module/system/ongoing-condition.js";
 import { onConditionItemDisabled, onTimedConditionSet } from "./module/system/condition-timer.js";
 import { onConditionEndCheckClick, onStopBleedingClick, onStopBleedingRequest } from "./module/system/condition-end-check.js";
@@ -723,6 +723,9 @@ Hooks.once("ready", async () => {
     console.log("Starfinder | [READY] Setting up event listeners");
     BaseEnricher.addListeners();
     $("body").on("click", 'a[data-action="mechAttackBonus"]', onMechAttackBonusClick);
+    $("body").on("click", 'a[data-action="mechSaveBonus"]', onMechSaveBonusClick);
+    Hooks.on("combatTurnChange", combat => clearExpiredSaveBonuses(combat));
+    Hooks.on("deleteCombat", combat => clearExpiredSaveBonuses(combat));
     Hooks.on("onActorSetCondition", onOngoingConditionSet);
     Hooks.on("onActorSetCondition", onTimedConditionSet);
     Hooks.on("updateItem", onConditionItemDisabled);

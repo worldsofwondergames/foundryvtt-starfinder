@@ -597,6 +597,11 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
 
         const parts = [`@attributes.${saveId}.bonus`];
 
+        // A mech's armed Resist adds its rolled bonus, and is spent once the save
+        // is rolled. Closing the dialog leaves it armed.
+        const saveBonus = this.saveBonusRollPart();
+        if (saveBonus) parts.push(saveBonus.part);
+
         return DiceSFRPG.d20Roll({
             event: options.event,
             rollContext: rollContext,
@@ -605,7 +610,10 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
             flavor: null,
             speaker: ChatMessage.getSpeaker({ actor: this }),
             chatMessage: options.chatMessage,
-            onClose: options.onClose,
+            onClose: (roll, formula, finalFormula) => {
+                if (roll && saveBonus) saveBonus.spend();
+                options.onClose?.(roll, formula, finalFormula);
+            },
             dialogOptions: {
                 skipUI: options.skipUI,
                 left: options.event ? options.event.clientX - 80 : null,

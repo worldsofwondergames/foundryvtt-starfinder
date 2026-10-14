@@ -1,5 +1,6 @@
 import { CANCELED, rollOnce } from "./chat-button-claim.js";
 import { promoteDiceLink } from "./mech-dice-link.js";
+import { clearSystemFlag } from "../utils/flags.js";
 
 /**
  * Turn the dice link already sitting in a mech action's description into the
@@ -69,4 +70,86 @@ export async function onMechAttackBonusClick(event) {
         ppSpent: Number(link.dataset.ppSpent) || 0,
         itemId: link.dataset.itemId ?? null
     })) ?? CANCELED);
+}
+
+/**
+ * Turn the 1d4 in Resist's description into the control that arms the save bonus.
+ *
+ * @param {Element} root The enriched description.
+ * @param {string} formula The formula the action declared, e.g. "1d4".
+ * @param {Object} [data] Values to carry on the link.
+ * @param {string} [data.source] Name of the action arming the bonus.
+ * @param {number} [data.ppSpent] Power Points already spent on it, for a refund on disarm.
+ * @param {string} [data.tooltip] Hover text explaining what clicking does.
+ * @returns {HTMLAnchorElement|null} The promoted link, or null if the description held no such dice link.
+ */
+export function promoteDiceLinkToSaveBonus(root, formula, { source = "", ppSpent = 0, tooltip = "" } = {}) {
+    return promoteDiceLink(root, formula, {
+        action: "mechSaveBonus",
+        data: { source, ppSpent },
+        tooltip
+    });
+}
+
+/**
+ * Handle a click on Resist's die, rolling it and arming the bonus for the
+ * mech's next saving throw.
+ *
+ * @param {Event} event The click event
+ * @returns {Promise<number|null>} The rolled bonus, or null if it could not be armed
+ */
+export async function onMechSaveBonusClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const link = event.currentTarget;
+    const card = link.closest("[data-actor-uuid]");
+    const actor = card?.dataset.actorUuid ? await fromUuid(card.dataset.actorUuid) : null;
+
+    if (!actor || actor.type !== "mech") {
+        ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.SaveBonusOverride.NoMech"));
+        return null;
+    }
+
+    if (!actor.isOwner) {
+        ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.SaveBonusOverride.NotOwner"));
+        return null;
+    }
+
+    // A bonus already armed turns the click away without spending the die.
+    const armed = actor.activeSaveBonus();
+    if (armed) {
+        ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.SaveBonusOverride.AlreadyArmed", {
+            source: armed.source,
+            value: armed.value
+        }));
+        return null;
+    }
+
+    return rollOnce(link, async () => (await actor.armMechSaveBonus(link.dataset.formula, {
+        source: link.dataset.source,
+        ppSpent: Number(link.dataset.ppSpent) || 0
+    })) ?? CANCELED);
+}
+
+/**
+ * Clear Resist bonuses that ran out when a combat's turn changed or the combat
+ * ended. Runs for the active GM. A bonus that has run out is never added to a
+ * save, so this only keeps its banner and flag from staying behind.
+ *
+ * @param {Combat} combat
+ * @returns {Promise<void>}
+ */
+export async function clearExpiredSaveBonuses(combat) {
+    if (!game.users.activeGM?.isSelf) return;
+
+    const actors = new Set([
+        ...combat.combatants.map(combatant => combatant.actor),
+        ...game.actors.filter(actor => actor.type === "mech")
+    ]);
+    for (const actor of actors) {
+        const armed = actor?.getFlag("sfrpg", "saveBonusOverride");
+        if (armed?.turn?.combatId !== combat.id || actor.activeSaveBonus()) continue;
+        await clearSystemFlag(actor, "saveBonusOverride");
+    }
 }

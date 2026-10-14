@@ -1016,7 +1016,8 @@ SFRPG.mechActionTypes = {
  *
  * `armsAttackBonus` names a formula the player rolls from the action's chat card,
  * writing the result to the `sfrpg.attackBonusOverride` flag for the next mech
- * attack roll to consume.
+ * attack roll to consume. `armsSaveBonus` does the same for the next saving
+ * throw, through the `sfrpg.saveBonusOverride` flag.
  * @type {Array}
  */
 SFRPG.mechPPActions = [
@@ -1046,7 +1047,8 @@ SFRPG.mechPPActions = [
     {
         name: "SFRPG.MechSheet.Actions.PP.Resist.Name",
         description: "SFRPG.MechSheet.Actions.PP.Resist.Description",
-        ppCost: 1
+        ppCost: 1,
+        armsSaveBonus: { formula: "1d4" }
     }
 ];
 

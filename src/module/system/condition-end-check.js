@@ -122,6 +122,9 @@ export async function postRoundEndCheckCards(combat, round) {
 export async function rollEndCheck(roller, check, { dc, bonus, event, label }) {
     const parts = [check.kind === "save" ? `@attributes.${check.id}.bonus` : `@skills.${check.id}.mod`];
     if (bonus) parts.push(String(bonus));
+    // A mech's armed Resist adds to a save that ends a condition too.
+    const saveBonus = check.kind === "save" ? roller.saveBonusRollPart?.() : null;
+    if (saveBonus) parts.push(saveBonus.part);
 
     const result = await DiceSFRPG.d20Roll({
         event,
@@ -133,6 +136,7 @@ export async function rollEndCheck(roller, check, { dc, bonus, event, label }) {
         difficulty: dc
     });
     if (!result?.roll) return null;
+    if (saveBonus) await saveBonus.spend();
     const natural = result.roll.dice.find(die => die.faces === 20)?.total ?? null;
     return { total: result.roll.total, success: checkSucceeds(check, { total: result.roll.total, dc, natural }) };
 }
