@@ -7,6 +7,7 @@ import { ActorSheetSFRPG } from "./base.js";
 import { LOCKER_SLOT, SLOT_COMPONENT_TYPES, droppedSlot, maxWeaponLevel, mountRefusal, weaponDropPlacement } from "./mech-weapon-slots.js";
 import { hasEnergyTypes, showsEnergyTypeLabel } from "../../rules/weapon-core.js";
 import { allowedEnergyTypes, energyTypesLabel, promptEnergyTypes } from "../../system/weapon-core.js";
+import { gearActionButtons } from "./mech-action-buttons.js";
 
 /**
  * An Actor sheet for a mech in the SFRPG system.
@@ -397,15 +398,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 const action = actions[i];
                 if (!action.name) continue;
 
-                const hasPPCost = action.ppCost !== null && action.ppCost !== undefined;
-                let buttonLabel;
-                if (hasPPCost) {
-                    buttonLabel = `${action.ppCost} PP`;
-                } else if (action.actionType && actionTypeLabels[action.actionType]) {
-                    buttonLabel = actionTypeLabels[action.actionType];
-                } else {
-                    buttonLabel = constantLabel;
-                }
+                const { actionTypeLabel, ppLabel } = gearActionButtons(action, actionTypeLabels, constantLabel);
 
                 let saveLabel = null;
                 if (action.saveType && saveTypeLabels[action.saveType]) {
@@ -422,9 +415,9 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                     description: action.description,
                     ppCost: action.ppCost,
                     actionType: action.actionType,
-                    buttonLabel: buttonLabel,
-                    hasPPCost: hasPPCost,
-                    canAfford: !hasPPCost || currentPP >= action.ppCost,
+                    actionTypeLabel: actionTypeLabel,
+                    ppLabel: ppLabel,
+                    canAfford: !ppLabel || currentPP >= action.ppCost,
                     insufficientPPTooltip: insufficientPPTooltip,
                     itemId: component._id,
                     actionIndex: i,
