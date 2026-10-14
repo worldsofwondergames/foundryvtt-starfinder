@@ -2329,7 +2329,7 @@
             "Initiative": {
                 "NoOperatorTooltip": "No operator assigned",
                 "OperatorTooltip": "Operator ({name}): {mod}",
-                "TierBonusTooltip": "Tier {tier} bonus: {mod}"
+                "TierMinimumTooltip": "Tier {tier} minimum: {mod}"
             },
             "InvalidItem": "{name} is not a valid mech item.",
             "Inventory": {

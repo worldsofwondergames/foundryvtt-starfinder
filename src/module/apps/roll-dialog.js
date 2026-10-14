@@ -1,4 +1,5 @@
 import { SFRPG } from "../config.js";
+import { labelFormula } from "../rolls/variable-labels.js";
 
 // Typedef's for documentation purposes.
 /**
@@ -173,6 +174,9 @@ export default class RollDialog extends Dialog {
                 this.formula
             ].filter(Boolean).join(' + ') || '0';
         }
+
+        // Shown only, so a bonus such as initiative reads by name rather than as its data path.
+        data.formula = labelFormula(data.formula, key => game.i18n.localize(key));
 
         if (this.hasTarget) {
             data.targetTooltip = "";
