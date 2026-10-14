@@ -68,7 +68,8 @@ import { onMechAttackBonusClick } from "./module/system/mech-bonus-link.js";
 import { onApplyOngoingClick, onOngoingConditionSet } from "./module/system/ongoing-condition.js";
 import { onConditionItemDisabled, onTimedConditionSet } from "./module/system/condition-timer.js";
 import { onConditionEndCheckClick, onStopBleedingClick, onStopBleedingRequest } from "./module/system/condition-end-check.js";
-import { onMechReplenishClick, onSpendMechReplenish } from "./module/system/mech-replenish-link.js";
+import { onMechReplenishClick } from "./module/system/mech-replenish-link.js";
+import { onChatButtonAnswer, onChatButtonRequest, onRenderSpentButtons, onSingleUseInlineRoll } from "./module/system/chat-button-claim.js";
 import {
     DICE_ICON,
     componentName,
@@ -77,8 +78,7 @@ import {
     onMechChanceCheckClick,
     onMechCockpitSaveClick,
     onMechFailureRollClick,
-    onMechPowerCoreLossClick,
-    onSpendMechFailure
+    onMechPowerCoreLossClick
 } from "./module/system/mech-failure-link.js";
 import { failuresTriggered } from "./module/rules/mech-system-failure.js";
 import TextEditorSFRPG from "./module/system/text-editor.js";
@@ -692,8 +692,9 @@ Hooks.once("setup", function() {
 
     console.log("Starfinder | [SETUP] Initializing RPC system");
     RPC.initialize();
-    RPC.registerCallback("spendMechReplenish", "gm", onSpendMechReplenish);
-    RPC.registerCallback("spendMechFailure", "gm", onSpendMechFailure);
+    RPC.registerCallback("claimChatButton", "gm", onChatButtonRequest);
+    RPC.registerCallback("releaseChatButton", "gm", onChatButtonRequest);
+    RPC.registerCallback("chatButtonAnswer", "local", onChatButtonAnswer);
     RPC.registerCallback("stopBleeding", "gm", onStopBleedingRequest);
 
     console.log("Starfinder | [SETUP] Initializing remote inventory system");
@@ -733,6 +734,8 @@ Hooks.once("ready", async () => {
     $("body").on("click", 'a[data-action="mechChanceCheck"]', onMechChanceCheckClick);
     $("body").on("click", 'a[data-action="conditionEndCheck"]', onConditionEndCheckClick);
     $("body").on("click", 'a[data-action="stopBleeding"]', onStopBleedingClick);
+    // Captured so it runs before Foundry's inline roll handler on the body.
+    document.addEventListener("click", onSingleUseInlineRoll, true);
     ItemSFRPG.chatListeners($("body"));
     extendDragData();
 
@@ -841,6 +844,7 @@ async function migrateOldContainers() {
 }
 
 Hooks.on("renderChatMessageHTML", (app, html, data) => {
+    onRenderSpentButtons(app, html);
     DiceSFRPG.highlightCriticalSuccessFailure(app, $(html), data);
     DiceSFRPG.addDamageTypes(app, $(html), data);
 

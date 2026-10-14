@@ -985,24 +985,23 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
     /**
      * @param {{round?: number}} [context] Foundry's context for the turn that ended.
      */
-    _onTurnEnd(context = {}) {
+    async _onTurnEnd(context = {}) {
         // An armed override is declared against a specific roll, so one that was never
         // rolled against expires here. The PP stays spent - use the sheet's disarm control
         // to get it back before the turn ends.
         if (this.type === "mech") {
             for (const flag of ["damageLevelOverride", "attackBonusOverride", "hurlAttack"]) {
-                if (this.getFlag("sfrpg", flag)) clearSystemFlag(this, flag);
+                if (this.getFlag("sfrpg", flag)) await clearSystemFlag(this, flag);
             }
         }
 
-        for (const item of this.items) {
-            item._onTurnEnd?.();
-        }
+        await Promise.all(this.items.map(item => item._onTurnEnd?.()));
 
         // A condition given a number of rounds loses one at the end of the
         // affected creature's turn. A check that can end a condition comes after,
         // so a condition whose rounds ran out gets no card.
-        tickConditionTimers(this).then(() => postEndCheckCards(this, context.round ?? game.combat?.round ?? null));
+        await tickConditionTimers(this);
+        await postEndCheckCards(this, context.round ?? game.combat?.round ?? null);
     }
 
     /** Roll contexts */

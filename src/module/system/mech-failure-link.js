@@ -9,15 +9,7 @@ import {
     powerCoreLoss
 } from "../rules/mech-system-transitions.js";
 import { auxiliaryFailureChance } from "../rules/mech-system-effects.js";
-import { RPC } from "../rpc.js";
-
-/**
- * The class marking a button whose roll has already been made.
- *
- * Shared with Replenish, whose stylesheet rule dims and strikes through a spent
- * link. The behavior is the same, so the class is too.
- */
-export const SPENT_CLASS = "replenish-spent";
+import { CANCELED, rollOnce } from "./chat-button-claim.js";
 
 /**
  * The die shown at the front of every roll button on a failure card, matching
@@ -39,78 +31,6 @@ export function failureRecipients(users, actor) {
     return [...users]
         .filter(user => user.isGM || actor.testUserPermission(user, "OWNER"))
         .map(user => user.id);
-}
-
-/**
- * Mark one of a card's buttons as already rolled.
- *
- * The card is stored HTML that every viewer renders, so the spent state is
- * written into that HTML rather than onto the clicked element. A button that
- * keeps its `data-action` would be picked up by the handler again after a
- * reload, so the action comes off and the class that greys it out goes on.
- *
- * Only the button pressed is spent. A cockpit failure puts one save on the card
- * per affected operator, and rolling one of them must leave the rest live.
- *
- * @param {string} content The card's stored HTML.
- * @param {string} action The `data-action` to spend.
- * @param {string} [index] Which of several buttons of that action was pressed.
- * @returns {string} The HTML with that button spent, unchanged if it holds none.
- */
-export function spendFailureLink(content, action, index = null) {
-    const root = document.createElement("div");
-    root.innerHTML = content ?? "";
-
-    const selector = index === null
-        ? `a[data-action="${action}"]`
-        : `a[data-action="${action}"][data-index="${index}"]`;
-    const link = root.querySelector(selector);
-    if (!link) return content;
-
-    delete link.dataset.action;
-    link.classList.add(SPENT_CLASS);
-
-    return root.innerHTML;
-}
-
-/**
- * Write a button's spent state back to the card it belongs to.
- *
- * Updating a chat message is the author's or the GM's to do, so a player
- * clicking a card someone else posted asks the GM to make the change.
- *
- * @param {Element} card The rendered chat card.
- * @param {string} action The `data-action` that was pressed.
- * @param {string} [index] Which of several buttons of that action was pressed.
- * @returns {Promise<void>}
- */
-async function markSpent(card, action, index = null) {
-    const messageId = card?.closest("[data-message-id]")?.dataset.messageId;
-    const message = messageId ? game.messages.get(messageId) : null;
-    if (!message) return;
-
-    const content = spendFailureLink(message.content, action, index);
-    if (content === message.content) return;
-
-    if (game.user.isGM || message.isAuthor) {
-        await message.update({ content });
-        return;
-    }
-
-    RPC.sendMessageTo("gm", "spendMechFailure", { messageId: message.id, content });
-}
-
-/**
- * Spend a card on behalf of a player who cannot update it themselves.
- *
- * @param {object} message The RPC message.
- * @returns {Promise<void>}
- */
-export async function onSpendMechFailure(message) {
-    const target = game.messages.get(message.payload?.messageId);
-    if (!target) return;
-
-    await target.update({ content: message.payload.content });
 }
 
 /**
@@ -162,11 +82,20 @@ export async function onMechFailureRollClick(event) {
     event.stopPropagation();
 
     const link = event.currentTarget;
-    if (link.classList.contains(SPENT_CLASS)) return null;
-
     const actor = await mechForCard(link);
     if (!actor) return null;
 
+    return rollOnce(link, () => rollFailure(actor, link));
+}
+
+/**
+ * Roll which component fails, and apply it.
+ *
+ * @param {Actor} actor The mech.
+ * @param {Element} link The button that was clicked.
+ * @returns {Promise<string|null>} The component that failed.
+ */
+async function rollFailure(actor, link) {
     const roll = await new Roll(link.dataset.formula).evaluate();
     const component = componentForRoll(roll.total);
     if (!component) return null;
@@ -187,8 +116,6 @@ export async function onMechFailureRollClick(event) {
         sound: CONFIG.sounds.dice,
         whisper: failureRecipients(game.users, actor)
     });
-
-    await markSpent(link.closest("[data-actor-uuid]"), "mechFailureRoll");
 
     return component;
 }
@@ -298,22 +225,22 @@ function transitionMarkup(actor, component, status) {
 }
 
 /**
- * The shared opening of every button handler on a failure card.
+ * The shared handling of the buttons for what a failure costs: find the mech,
+ * then roll the button once.
  *
  * @param {Event} event The click event.
- * @returns {Promise<{link: Element, actor: Actor, card: Element}|null>} The click's subject, or null.
+ * @param {function(Element, Actor): Promise<*>} work Rolls the button and applies the result.
+ * @returns {Promise<*>} What the work returned, or null if nothing was rolled.
  */
-async function beginClick(event) {
+async function handleClick(event, work) {
     event.preventDefault();
     event.stopPropagation();
 
     const link = event.currentTarget;
-    if (link.classList.contains(SPENT_CLASS)) return null;
-
     const actor = await mechForCard(link);
     if (!actor) return null;
 
-    return { link, actor, card: link.closest("[data-actor-uuid]") };
+    return rollOnce(link, () => work(link, actor));
 }
 
 /**
@@ -323,25 +250,22 @@ async function beginClick(event) {
  * @returns {Promise<number|null>} The Power Points lost, or null if nothing was rolled.
  */
 export async function onMechPowerCoreLossClick(event) {
-    const clicked = await beginClick(event);
-    if (!clicked) return null;
+    return handleClick(event, async (link, actor) => {
+        const roll = await new Roll(link.dataset.formula).evaluate();
+        const current = actor.system.attributes.pp.value || 0;
+        const lost = Math.min(roll.total, current);
 
-    const { link, actor, card } = clicked;
-    const roll = await new Roll(link.dataset.formula).evaluate();
-    const current = actor.system.attributes.pp.value || 0;
-    const lost = Math.min(roll.total, current);
+        await actor.update({ "system.attributes.pp.value": current - lost });
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            flavor: game.i18n.format("SFRPG.MechSheet.SystemFailure.PowerCoreLoss", { name: actor.name, amount: lost }),
+            rolls: [roll],
+            sound: CONFIG.sounds.dice,
+            whisper: failureRecipients(game.users, actor)
+        });
 
-    await actor.update({ "system.attributes.pp.value": current - lost });
-    await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        flavor: game.i18n.format("SFRPG.MechSheet.SystemFailure.PowerCoreLoss", { name: actor.name, amount: lost }),
-        rolls: [roll],
-        sound: CONFIG.sounds.dice,
-        whisper: failureRecipients(game.users, actor)
+        return lost;
     });
-    await markSpent(card, "mechPowerCoreLoss", link.dataset.index);
-
-    return lost;
 }
 
 /**
@@ -354,45 +278,42 @@ export async function onMechPowerCoreLossClick(event) {
  * @returns {Promise<number|null>} The damage applied, or null if nothing was rolled.
  */
 export async function onMechCockpitSaveClick(event) {
-    const clicked = await beginClick(event);
-    if (!clicked) return null;
+    return handleClick(event, async (link, actor) => {
+        const operator = link.dataset.operatorUuid ? await fromUuid(link.dataset.operatorUuid) : null;
+        if (!operator) {
+            ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.SystemFailure.NoOperator"));
+            return CANCELED;
+        }
 
-    const { link, actor, card } = clicked;
-    const operator = link.dataset.operatorUuid ? await fromUuid(link.dataset.operatorUuid) : null;
-    if (!operator) {
-        ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.SystemFailure.NoOperator"));
-        return null;
-    }
+        const dc = Number(link.dataset.dc) || 0;
+        const bonus = foundry.utils.getProperty(operator.system, "attributes.reflex.bonus") ?? 0;
+        const save = await new Roll(`1d20 + ${bonus}`).evaluate();
+        const damage = await new Roll(link.dataset.formula).evaluate();
 
-    const dc = Number(link.dataset.dc) || 0;
-    const bonus = foundry.utils.getProperty(operator.system, "attributes.reflex.bonus") ?? 0;
-    const save = await new Roll(`1d20 + ${bonus}`).evaluate();
-    const damage = await new Roll(link.dataset.formula).evaluate();
+        const saved = save.total >= dc;
+        const applied = saved ? Math.floor(damage.total / 2) : damage.total;
 
-    const saved = save.total >= dc;
-    const applied = saved ? Math.floor(damage.total / 2) : damage.total;
+        const Damage = game.sfrpg.Actor.Damage.SFRPGDamage;
+        await operator.applyDamage(Damage.createDamage(applied, "bludgeoning"));
 
-    const Damage = game.sfrpg.Actor.Damage.SFRPGDamage;
-    await operator.applyDamage(Damage.createDamage(applied, "bludgeoning"));
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            flavor: game.i18n.format("SFRPG.MechSheet.SystemFailure.CockpitSave", {
+                operator: operator.name,
+                result: save.total,
+                dc,
+                amount: applied,
+                outcome: game.i18n.localize(saved
+                    ? "SFRPG.MechSheet.SystemFailure.SaveMade"
+                    : "SFRPG.MechSheet.SystemFailure.SaveFailed")
+            }),
+            rolls: [save, damage],
+            sound: CONFIG.sounds.dice,
+            whisper: failureRecipients(game.users, actor)
+        });
 
-    await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        flavor: game.i18n.format("SFRPG.MechSheet.SystemFailure.CockpitSave", {
-            operator: operator.name,
-            result: save.total,
-            dc,
-            amount: applied,
-            outcome: game.i18n.localize(saved
-                ? "SFRPG.MechSheet.SystemFailure.SaveMade"
-                : "SFRPG.MechSheet.SystemFailure.SaveFailed")
-        }),
-        rolls: [save, damage],
-        sound: CONFIG.sounds.dice,
-        whisper: failureRecipients(game.users, actor)
+        return applied;
     });
-    await markSpent(card, "mechCockpitSave", link.dataset.index);
-
-    return applied;
 }
 
 /**
@@ -402,25 +323,22 @@ export async function onMechCockpitSaveClick(event) {
  * @returns {Promise<Item|null>} The system that stopped, or null if nothing was rolled.
  */
 export async function onMechAuxiliaryPickClick(event) {
-    const clicked = await beginClick(event);
-    if (!clicked) return null;
+    return handleClick(event, async (link, actor) => {
+        const roll = await new Roll(link.dataset.formula).evaluate();
+        const system = auxiliaryToDisable(auxiliarySystems(actor), roll.total);
+        if (!system) return null;
 
-    const { link, actor, card } = clicked;
-    const roll = await new Roll(link.dataset.formula).evaluate();
-    const system = auxiliaryToDisable(auxiliarySystems(actor), roll.total);
-    if (!system) return null;
+        await system.update({ "flags.sfrpg.disabledByFailure": true });
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            flavor: game.i18n.format("SFRPG.MechSheet.SystemFailure.AuxiliaryDisabled", { name: system.name }),
+            rolls: [roll],
+            sound: CONFIG.sounds.dice,
+            whisper: failureRecipients(game.users, actor)
+        });
 
-    await system.update({ "flags.sfrpg.disabledByFailure": true });
-    await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        flavor: game.i18n.format("SFRPG.MechSheet.SystemFailure.AuxiliaryDisabled", { name: system.name }),
-        rolls: [roll],
-        sound: CONFIG.sounds.dice,
-        whisper: failureRecipients(game.users, actor)
+        return system;
     });
-    await markSpent(card, "mechAuxiliaryPick", link.dataset.index);
-
-    return system;
 }
 
 /**
@@ -538,32 +456,29 @@ export async function postAuxiliaryCheck(actor, system, status) {
  * @returns {Promise<boolean|null>} True when the check failed, or null if nothing was rolled.
  */
 export async function onMechChanceCheckClick(event) {
-    const clicked = await beginClick(event);
-    if (!clicked) return null;
+    return handleClick(event, async (link, actor) => {
+        const roll = await new Roll(link.dataset.formula).evaluate();
+        const failed = chanceFailed(roll.total, Number(link.dataset.chance));
 
-    const { link, actor, card } = clicked;
-    const roll = await new Roll(link.dataset.formula).evaluate();
-    const failed = chanceFailed(roll.total, Number(link.dataset.chance));
+        const outcome = link.dataset.purpose === "cockpit"
+            ? (failed ? "CockpitActionLost" : "CockpitActionKept")
+            : (failed ? "AuxiliaryFailed" : "AuxiliaryWorked");
 
-    const outcome = link.dataset.purpose === "cockpit"
-        ? (failed ? "CockpitActionLost" : "CockpitActionKept")
-        : (failed ? "AuxiliaryFailed" : "AuxiliaryWorked");
+        // An auxiliary system that failed its check cannot be used again until the
+        // start of the mech's next turn, which is when the flag is cleared. The
+        // cockpit's lost action is spent as it happens and leaves nothing behind.
+        if (failed && link.dataset.purpose === "auxiliary" && link.dataset.systemId) {
+            await actor.items.get(link.dataset.systemId)?.setFlag("sfrpg", "failedThisTurn", true);
+        }
 
-    // An auxiliary system that failed its check cannot be used again until the
-    // start of the mech's next turn, which is when the flag is cleared. The
-    // cockpit's lost action is spent as it happens and leaves nothing behind.
-    if (failed && link.dataset.purpose === "auxiliary" && link.dataset.systemId) {
-        await actor.items.get(link.dataset.systemId)?.setFlag("sfrpg", "failedThisTurn", true);
-    }
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            flavor: game.i18n.localize(`SFRPG.MechSheet.SystemFailure.${outcome}`),
+            rolls: [roll],
+            sound: CONFIG.sounds.dice,
+            whisper: failureRecipients(game.users, actor)
+        });
 
-    await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        flavor: game.i18n.localize(`SFRPG.MechSheet.SystemFailure.${outcome}`),
-        rolls: [roll],
-        sound: CONFIG.sounds.dice,
-        whisper: failureRecipients(game.users, actor)
+        return failed;
     });
-    await markSpent(card, "mechChanceCheck", link.dataset.index);
-
-    return failed;
 }

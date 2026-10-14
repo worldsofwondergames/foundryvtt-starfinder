@@ -2349,12 +2349,10 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
     _onTurnEnd() {
         if (this.type !== "effect" || !this.system.enabled) return;
 
-        for (const turnEvent of this.system.turnEvents) {
-            if (turnEvent.trigger !== "onTurnEnd") continue;
-
-            this._handleTurnEvent(turnEvent);
-        }
-
+        // Returned so the actor can wait for the rolls before acting on them.
+        return Promise.all(this.system.turnEvents
+            .filter(turnEvent => turnEvent.trigger === "onTurnEnd")
+            .map(turnEvent => this._handleTurnEvent(turnEvent)));
     }
 
     _handleTurnEvent(turnEvent) {

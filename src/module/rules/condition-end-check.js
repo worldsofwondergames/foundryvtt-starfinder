@@ -42,6 +42,20 @@ export function endCheckFor(condition, stored) {
 export const END_CHECK_TIMINGS = ["turnStart", "turnEnd", "roundEnd"];
 
 /**
+ * Whether the rounds dialog still needs a DC: a save is chosen and the DC is
+ * blank or not a whole number above 0. A save without one would be dropped.
+ *
+ * @param {string} save The chosen save, or "" for none.
+ * @param {string} dc The DC as typed.
+ * @returns {boolean}
+ */
+export function missingDC(save, dc) {
+    if (!save) return false;
+    const value = Number(dc);
+    return !Number.isInteger(value) || value <= 0;
+}
+
+/**
  * A save or check the GM set to end a condition.
  *
  * A timing of "fullAction" is a save the creature spends a full action on during

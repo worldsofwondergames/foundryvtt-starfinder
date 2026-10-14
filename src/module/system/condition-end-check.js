@@ -1,8 +1,9 @@
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
 import { RPC } from "../rpc.js";
+import { CANCELED, actionKey, grantClaim, rollOnce, spendButton } from "./chat-button-claim.js";
 import { BURNING_FAMILY, attemptBonus, attemptRound, burningDC, checkSucceeds, endCheckFor, isCheckDue, recordAttempt } from "../rules/condition-end-check.js";
-import { failureRecipients, spendFailureLink } from "./mech-failure-link.js";
+import { failureRecipients } from "./mech-failure-link.js";
 import { asChatHtml } from "../utils/chat-content.js";
 
 /** The data-action of a card's Roll and Smother links. */
@@ -46,8 +47,7 @@ function dcFor(condition, item, check, round) {
 async function spendEarlierCards(actor, condition) {
     const marks = [`data-actor-uuid="${actor.uuid}"`, `data-condition="${condition}"`, `data-action="${ACTION}"`];
     for (const message of game.messages.filter(m => marks.every(mark => m.content?.includes(mark)))) {
-        const content = spendFailureLink(spendFailureLink(message.content, ACTION, "0"), ACTION, "1");
-        if (content !== message.content) await message.update({ content });
+        await grantClaim(message.id, [actionKey(ACTION)]);
     }
 }
 
@@ -138,24 +138,6 @@ export async function rollEndCheck(roller, check, { dc, bonus, event, label }) {
 }
 
 /**
- * Grey a card's button out for every viewer.
- *
- * @param {HTMLElement} link The clicked link.
- * @returns {Promise<void>}
- */
-async function spend(link) {
-    const messageId = link.closest("[data-message-id]")?.dataset.messageId;
-    const message = messageId ? game.messages.get(messageId) : null;
-    if (!message) return;
-
-    let content = spendFailureLink(message.content, ACTION, "0");
-    content = spendFailureLink(content, ACTION, "1");
-    if (content === message.content) return;
-    if (game.user.isGM || message.isAuthor) await message.update({ content });
-    else RPC.sendMessageTo("gm", "spendMechFailure", { messageId: message.id, content });
-}
-
-/**
  * Handle a click on a card's Roll or Smother button.
  *
  * @param {Event} event
@@ -182,32 +164,33 @@ export async function onConditionEndCheckClick(event) {
     const check = current ? endCheckFor(condition, item.getFlag("sfrpg", "conditionEndCheck") ?? null) : null;
     if (!check) {
         ui.notifications.info(game.i18n.localize("SFRPG.ConditionEndCheck.AlreadyResolved"));
-        await spend(link);
+        await spendButton(link);
         return;
     }
 
-    const smother = link.dataset.smother === "true";
-    const cardRound = link.dataset.round ? Number(link.dataset.round) : null;
-    const round = attemptRound({ smother, cardRound, currentRound: game.combat?.round ?? null });
-    const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
-    const result = await rollEndCheck(actor, check, {
-        // Smothering happens on the creature's own turn, after that round's damage.
-        dc: smother ? dcFor(condition, item, check, round) : Number(link.dataset.dc),
-        bonus: attemptBonus(check, round, { smother }),
-        event,
-        label: `${checkLabel(check)}: ${label}`
-    });
-    if (!result) return;
+    await rollOnce(link, async () => {
+        const smother = link.dataset.smother === "true";
+        const cardRound = link.dataset.round ? Number(link.dataset.round) : null;
+        const round = attemptRound({ smother, cardRound, currentRound: game.combat?.round ?? null });
+        const label = game.i18n.localize(CONFIG.SFRPG.conditionTypes[condition]);
+        const result = await rollEndCheck(actor, check, {
+            // Smothering happens on the creature's own turn, after that round's damage.
+            dc: smother ? dcFor(condition, item, check, round) : Number(link.dataset.dc),
+            bonus: attemptBonus(check, round, { smother }),
+            event,
+            label: `${checkLabel(check)}: ${label}`
+        });
+        if (!result) return CANCELED;
 
-    await spend(link);
-    const next = recordAttempt(check, round, result.success);
-    if (next) await item.setFlag("sfrpg", "conditionEndCheck", next);
-    else await actor.setCondition(condition, false);
+        const next = recordAttempt(check, round, result.success);
+        if (next) await item.setFlag("sfrpg", "conditionEndCheck", next);
+        else await actor.setCondition(condition, false);
 
-    await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        content: asChatHtml(game.i18n.format(result.success ? "SFRPG.ConditionEndCheck.Ended" : "SFRPG.ConditionEndCheck.Failed", { name: actor.name, condition: label })),
-        whisper: failureRecipients(game.users, actor)
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            content: asChatHtml(game.i18n.format(result.success ? "SFRPG.ConditionEndCheck.Ended" : "SFRPG.ConditionEndCheck.Failed", { name: actor.name, condition: label })),
+            whisper: failureRecipients(game.users, actor)
+        });
     });
 }
 

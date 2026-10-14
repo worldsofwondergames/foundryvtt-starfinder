@@ -6,6 +6,7 @@ import { postRoundEndCheckCards } from "../system/condition-end-check.js";
 import { postsPhaseCard } from "../rules/combat-cards.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
+import { runTurnEvent } from "./turn-event.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
 /*
 The following hooks were added:
@@ -421,7 +422,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
             // Run here rather than from onAfterUpdateCombat, which fires only on
             // the client that changed the turn. When a player ends their own
             // turn, that is the player's client, and the GM would never see it.
-            applyMechTurnChanges(resolveEventData(options.eventData, this));
+            const eventData = resolveEventData(options.eventData, this);
+            runTurnEvent("Mech turn changes", () => applyMechTurnChanges(eventData));
         }
     }
 
@@ -430,16 +432,10 @@ export class CombatSFRPG extends foundry.documents.Combat {
      * @param {Combatant} combatant The Combatant whose turn just started
      */
     async _onStartTurn(combatant, context) {
-        super._onStartTurn(combatant, context);
-
-        combatant.actor?._onTurnStart(context);
+        await super._onStartTurn(combatant, context);
+        await runTurnEvent(`Start of ${combatant.name}'s turn`, () => combatant.actor?._onTurnStart(context));
     }
 
-    /**
-     * Run turn end turn events. This runs only for an active GM. If there are no GMs, this isn't run.
-     * @param {Combatant} combatant The Combatant whose turn just ended
-     * @param {object} context Foundry's context for that turn, including its round
-     */
     /**
      * Offer the saves set to be made at the end of each round. This runs only
      * for an active GM.
@@ -447,13 +443,18 @@ export class CombatSFRPG extends foundry.documents.Combat {
      */
     async _onEndRound(context) {
         await super._onEndRound(context);
-        await postRoundEndCheckCards(this, context.round);
+        await runTurnEvent(`End of round ${context.round}`, () => postRoundEndCheckCards(this, context.round));
     }
 
+    /**
+     * Run turn end turn events. This runs only for an active GM. If there are no GMs, this isn't run.
+     * Waited for, so a condition's rounds count down before the next creature's turn starts.
+     * @param {Combatant} combatant The Combatant whose turn just ended
+     * @param {object} context Foundry's context for that turn, including its round
+     */
     async _onEndTurn(combatant, context) {
-        super._onEndTurn(combatant, context);
-
-        combatant.actor?._onTurnEnd(context);
+        await super._onEndTurn(combatant, context);
+        await runTurnEvent(`End of ${combatant.name}'s turn`, () => combatant.actor?._onTurnEnd(context));
     }
 
     async _notifyAfterUpdate(eventData) {
@@ -827,9 +828,9 @@ export class CombatSFRPG extends foundry.documents.Combat {
         }
 
         // Create multiple chat messages
-        await messages.forEach(message => {
-            ChatMessage.create(message, { rollMode: message.rollMode });
-        });
+        for (const message of messages) {
+            await ChatMessage.create(message, { rollMode: message.rollMode });
+        }
 
         // Return the updated Combat
         return this;

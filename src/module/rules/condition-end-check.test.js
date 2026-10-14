@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BURNING_FAMILY, attemptBonus, attemptRound, burningDC, checkSucceeds, endCheckFor, isCheckDue, recordAttempt, startEndCheck } from "./condition-end-check.js";
+import { BURNING_FAMILY, attemptBonus, attemptRound, burningDC, checkSucceeds, endCheckFor, isCheckDue, missingDC, recordAttempt, startEndCheck } from "./condition-end-check.js";
 
 const IDS = { saves: { fort: "", reflex: "", will: "" }, skills: { med: "", acr: "" } };
 
@@ -70,6 +70,25 @@ describe("startEndCheck", () => {
         expect(startEndCheck({ kind: "save", id: "will", dc: null }, IDS)).toBeNull();
         expect(startEndCheck({ kind: "save", id: "will", dc: 0 }, IDS)).toBeNull();
         expect(startEndCheck({ kind: "save", id: "will", dc: 12.5 }, IDS)).toBeNull();
+    });
+});
+
+describe("missingDC", () => {
+    it("asks for a DC once a save is chosen", () => {
+        expect(missingDC("fort", "")).toBe(true);
+    });
+
+    it("turns down a DC that is not a whole number above 0", () => {
+        expect(missingDC("will", "0")).toBe(true);
+        expect(missingDC("will", "12.5")).toBe(true);
+    });
+
+    it("takes a whole-number DC", () => {
+        expect(missingDC("reflex", "15")).toBe(false);
+    });
+
+    it("needs no DC when no save is chosen", () => {
+        expect(missingDC("", "")).toBe(false);
     });
 });
 

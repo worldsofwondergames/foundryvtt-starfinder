@@ -1,9 +1,6 @@
 import { replenishedShieldPoints } from "../rules/mech-replenish.js";
 import { promoteDiceLink } from "./mech-dice-link.js";
-import { RPC } from "../rpc.js";
-
-/** The class marking a link whose roll has already been made. */
-export const SPENT_CLASS = "replenish-spent";
+import { rollOnce } from "./chat-button-claim.js";
 
 /**
  * Turn the dice in Replenish's description into the control that rolls them.
@@ -21,30 +18,6 @@ export function promoteDiceLinkToReplenish(root, formula, { source = "", tooltip
         data: { source },
         tooltip
     });
-}
-
-/**
- * Mark a card's Replenish link as already rolled.
- *
- * The card is stored HTML that every viewer renders, so the spent state is written
- * into that HTML rather than onto the clicked element. A link that keeps its
- * `data-action` would be picked up by the handler again after a reload, so the
- * action comes off and the class that greys it out goes on.
- *
- * @param {string} content The card's stored HTML.
- * @returns {string} The HTML with the link spent, unchanged if it holds no such link.
- */
-export function spendReplenishLink(content) {
-    const root = document.createElement("div");
-    root.innerHTML = content ?? "";
-
-    const link = root.querySelector('a[data-action="mechReplenish"]');
-    if (!link) return content;
-
-    delete link.dataset.action;
-    link.classList.add(SPENT_CLASS);
-
-    return root.innerHTML;
 }
 
 /**
@@ -77,8 +50,6 @@ export async function onMechReplenishClick(event) {
     event.stopPropagation();
 
     const link = event.currentTarget;
-    if (link.classList.contains(SPENT_CLASS)) return null;
-
     const card = link.closest("[data-actor-uuid]");
     const actor = card?.dataset.actorUuid ? await fromUuid(card.dataset.actorUuid) : null;
 
@@ -94,7 +65,18 @@ export async function onMechReplenishClick(event) {
         return null;
     }
 
-    const roll = await new Roll(link.dataset.formula).evaluate();
+    return rollOnce(link, () => rollReplenish(actor, link.dataset.formula));
+}
+
+/**
+ * Roll Replenish's dice and restore the Shield Points they give.
+ *
+ * @param {Actor} actor The mech.
+ * @param {string} formula The dice to roll.
+ * @returns {Promise<number>} The Shield Points gained.
+ */
+async function rollReplenish(actor, formula) {
+    const roll = await new Roll(formula).evaluate();
     const sp = actor.system.attributes.sp;
     const { value, gained } = replenishedShieldPoints(sp, roll.total);
 
@@ -119,45 +101,5 @@ export async function onMechReplenishClick(event) {
         });
     }
 
-    await markCardSpent(card);
-
     return gained;
-}
-
-/**
- * Write the spent state back to the card the link belongs to.
- *
- * Updating a chat message is the author's or the GM's to do, so a player clicking
- * a card someone else posted asks the GM to make the change on their behalf.
- *
- * @param {Element} card The rendered chat card.
- * @returns {Promise<void>}
- */
-async function markCardSpent(card) {
-    const messageId = card?.closest("[data-message-id]")?.dataset.messageId;
-    const message = messageId ? game.messages.get(messageId) : null;
-    if (!message) return;
-
-    const content = spendReplenishLink(message.content);
-    if (content === message.content) return;
-
-    if (game.user.isGM || message.isAuthor) {
-        await message.update({ content });
-        return;
-    }
-
-    RPC.sendMessageTo("gm", "spendMechReplenish", { messageId: message.id, content });
-}
-
-/**
- * Spend a card on behalf of a player who cannot update it themselves.
- *
- * @param {object} message The RPC message.
- * @returns {Promise<void>}
- */
-export async function onSpendMechReplenish(message) {
-    const target = game.messages.get(message.payload?.messageId);
-    if (!target) return;
-
-    await target.update({ content: message.payload.content });
 }
