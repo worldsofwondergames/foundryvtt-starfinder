@@ -2,6 +2,8 @@ import { CombatDifficulty } from "../apps/combat-difficulty.js";
 import { SFRPG } from "../config.js";
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
+import { resolveEventData } from "./combat-event-data.js";
+import { applyMechTurnChanges } from "./mech-turn-changes.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
 /*
 The following hooks were added:
@@ -215,7 +217,9 @@ export class CombatSFRPG extends foundry.documents.Combat {
         let nextPhase = this.flags.sfrpg.phase;
         let nextTurn = this.turn + 1;
 
-        const updateOptions = {};
+        // Always a step forward, even when the turn index drops back to the first
+        // combatant because the next phase begins.
+        const updateOptions = {direction: 1};
         const phases = this.getPhases();
         const currentPhase = phases[this.flags.sfrpg.phase];
         if (currentPhase.resetInitiative && this.hasCombatantsWithoutInitiative()) {
@@ -405,6 +409,11 @@ export class CombatSFRPG extends foundry.documents.Combat {
         // Handle timed events if the event that is occurring is phase/round/turn advance.
         if (options.eventData) {
             this._handleTimedEffects(options.eventData);
+
+            // Run here rather than from onAfterUpdateCombat, which fires only on
+            // the client that changed the turn. When a player ends their own
+            // turn, that is the player's client, and the GM would never see it.
+            applyMechTurnChanges(resolveEventData(options.eventData, this));
         }
     }
 
