@@ -3,6 +3,7 @@ import { SFRPG } from "../config.js";
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
 import { postRoundEndCheckCards } from "../system/condition-end-check.js";
+import { postTurnStartFailures } from "../system/mech-failure-link.js";
 import { postsPhaseCard } from "../rules/combat-cards.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
@@ -434,6 +435,12 @@ export class CombatSFRPG extends foundry.documents.Combat {
     async _onStartTurn(combatant, context) {
         await super._onStartTurn(combatant, context);
         await runTurnEvent(`Start of ${combatant.name}'s turn`, () => combatant.actor?._onTurnStart(context));
+
+        // Foundry starts each turn passed over on the way to this one, too. Only
+        // the turn being taken gets a mech's System Failure card.
+        if (combatant.actor?.type === "mech" && !context?.skipped) {
+            await runTurnEvent(`System failures for ${combatant.name}`, () => postTurnStartFailures(combatant.actor));
+        }
     }
 
     /**

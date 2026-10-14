@@ -333,6 +333,20 @@
     }
 }
 
+/* The start-of-turn card lists one failure per line, each taking only the
+   room its text needs. */
+.sfrpg.chat-card.mech-failure-card .mech-turn-failures {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+        margin: 2px 0;
+        padding: 0;
+        line-height: 1.3;
+    }
+}
+
 /* An ongoing damage card shows its formula in <code> only so the chat's dice
    linking skips it, so it reads as normal text. */
 .ongoing-damage-card code {

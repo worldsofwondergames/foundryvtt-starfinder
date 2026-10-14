@@ -1,14 +1,13 @@
-import { auxiliaryFailureChance, effectiveSystems, regenerationRate } from "../rules/mech-system-effects.js";
+import { effectiveSystems, regenerationRate } from "../rules/mech-system-effects.js";
 import { isRegenDue, regeneratedPowerPoints, regeneratedShieldPoints } from "../rules/mech-turn-regen.js";
-import { postAuxiliaryCheck } from "../system/mech-failure-link.js";
 import { clearSystemFlag } from "../utils/flags.js";
 import { asChatHtml } from "../utils/chat-content.js";
 
 /**
  * Applies a change of turn to the mechs involved. The mech whose turn ended
  * regenerates its Power Points. The mech whose turn started loses the overrides
- * it bought, regenerates its Shield Points, and rolls the checks its constant
- * auxiliary systems owe.
+ * it bought and regenerates its Shield Points. Its System Failure card is
+ * posted from the combat's start of turn, which also runs on its first turn.
  *
  * Only the active GM may call this, from the combat's update, so it runs once
  * whoever ended the turn. A player who ends their own turn changes the combat
@@ -42,20 +41,6 @@ export async function applyMechTurnChanges(eventData) {
     // The overrides from the mech's last turn have run out by now, so its shields
     // come back at the rate its power core's own status allows.
     await regenerateShieldPoints(arriving, eventData);
-
-    // A system that has to be activated is checked when it is used. One giving a
-    // constant benefit is never activated, so its check is owed at the start of
-    // each of the mech's turns instead.
-    const statuses = effectiveSystems(
-        mech.system.attributes.systems,
-        mech.getFlag("sfrpg", "systemOverrides") ?? {}
-    );
-    if (auxiliaryFailureChance(statuses.auxSystem) > 0) {
-        for (const system of mech.items.filter(item => item.type === "mechAuxiliary"
-            && !item.system.canBeActivated)) {
-            await postAuxiliaryCheck(mech, system, statuses.auxSystem);
-        }
-    }
 }
 
 /**

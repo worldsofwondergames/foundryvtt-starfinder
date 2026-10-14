@@ -2488,6 +2488,7 @@
                 "SaveMade": "a success",
                 "SystemStopped": "{name} is not working and cannot be used.",
                 "Title": "System Failure",
+                "TurnStartComponent": "{component}: {status}.",
                 "WeaponUnusable": "{name} cannot be fired: this mech's {component} are inoperable.",
                 "Wrecked": "Wrecked",
                 "WreckedHint": "This mech is at 0 Hit Points and can take no actions."

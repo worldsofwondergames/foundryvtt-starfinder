@@ -1,6 +1,30 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { failureRecipients, transitionButtons } from "./mech-failure-link.js";
+import { buttonKey } from "./chat-button-claim.js";
+import { chanceLink, failureRecipients, transitionButtons } from "./mech-failure-link.js";
+
+describe("chanceLink", () => {
+    function card(links) {
+        const element = document.createElement("div");
+        element.className = "sfrpg chat-card mech-failure-card";
+        element.innerHTML = links.join("");
+        return element;
+    }
+    const check = (index, systemId) => chanceLink({ chance: 25, purpose: "auxiliary", label: systemId, systemId, index, tooltip: "" });
+
+    it("gives each check on a turn's card its own claim, so rolling one leaves the others live", () => {
+        const links = [...card([check(0, "ammo"), check(1, "hatch")]).querySelectorAll("a")];
+
+        expect(links.map(buttonKey)).toEqual(["mechChanceCheck:0", "mechChanceCheck:1"]);
+    });
+
+    it("names the system it checks, so a failed check stops that system", () => {
+        const link = card([check(0, "hatch")]).querySelector("a");
+
+        expect(link.dataset.systemId).toBe("hatch");
+        expect(link.dataset.chance).toBe("25");
+    });
+});
 
 describe("failureRecipients", () => {
     function world(owners) {

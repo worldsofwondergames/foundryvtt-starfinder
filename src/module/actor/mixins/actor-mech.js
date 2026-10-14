@@ -645,6 +645,12 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         if (this.getFlag("sfrpg", "systemFailures")) await clearSystemFlag(this, "systemFailures");
         await this.setFlag("sfrpg", "failureEpoch", foundry.utils.randomID(8));
 
+        // An auxiliary system an inoperable component stopped works again once
+        // the component is Nominal.
+        for (const system of this.items.filter(item => item.getFlag("sfrpg", "disabledByFailure"))) {
+            await clearSystemFlag(system, "disabledByFailure");
+        }
+
         ui.notifications.info(game.i18n.format("SFRPG.MechSheet.SystemFailure.ResetDone", { name: this.name }));
         return this;
     }
