@@ -21,6 +21,16 @@ describe("hideOwnerOnlyActions", () => {
         expect(root.querySelector("[data-action]")).toBeNull();
     });
 
+    it("leaves the 1d20 in the announcement as text for a player who can't roll it", () => {
+        const root = document.createElement("div");
+        root.innerHTML = `<div class="sfrpg chat-card mech-failure-card" data-actor-uuid="Actor.kestra">
+            <p>Kestra has suffered a system failure. Roll <a class="${OWNER_ONLY_CLASS}" data-action="mechFailureRoll">1d20</a> to see which component.</p></div>`;
+        hideOwnerOnlyActions(root, () => false);
+
+        expect(root.querySelector("a")).toBeNull();
+        expect(root.textContent).toContain("Roll 1d20 to see which component.");
+    });
+
     it("keeps the dice for the mech's owner", () => {
         const root = resultCard();
         hideOwnerOnlyActions(root, uuid => uuid === "Actor.kestra");

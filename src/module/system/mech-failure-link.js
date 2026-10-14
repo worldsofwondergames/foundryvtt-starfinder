@@ -128,7 +128,8 @@ export const OWNER_ONLY_CLASS = "mech-failure-owner-only";
 
 /**
  * Take the owner-only part out of a rendered failure card for anyone who
- * can't roll it.
+ * can't roll it. A die in the middle of a sentence, such as the 1d20 on the
+ * card announcing a failure, is left as plain text so the sentence still reads.
  *
  * @param {Element} root The rendered message.
  * @param {function(string): boolean} canRoll Whether the viewer may act for the mech with this uuid.
@@ -136,7 +137,9 @@ export const OWNER_ONLY_CLASS = "mech-failure-owner-only";
 export function hideOwnerOnlyActions(root, canRoll) {
     for (const part of root.querySelectorAll(`.${OWNER_ONLY_CLASS}`)) {
         const uuid = part.closest("[data-actor-uuid]")?.dataset.actorUuid;
-        if (!uuid || !canRoll(uuid)) part.remove();
+        if (uuid && canRoll(uuid)) continue;
+        if (part.tagName === "A") part.replaceWith(part.textContent);
+        else part.remove();
     }
 }
 

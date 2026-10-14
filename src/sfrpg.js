@@ -72,8 +72,8 @@ import { onMechReplenishClick } from "./module/system/mech-replenish-link.js";
 import { onChatButtonAnswer, onChatButtonRequest, onRenderSpentButtons, onSingleUseInlineRoll } from "./module/system/chat-button-claim.js";
 import {
     DICE_ICON,
+    OWNER_ONLY_CLASS,
     componentName,
-    failureRecipients,
     hideOwnerOnlyActions,
     onMechAuxiliaryPickClick,
     onMechChanceCheckClick,
@@ -1051,7 +1051,7 @@ async function postMechFailureCard(actor, threshold) {
 
     const formula = "1d20";
     const tooltip = game.i18n.format("SFRPG.MechSheet.SystemFailure.RollTooltip", { formula });
-    const button = `<a class="enriched-link" data-action="mechFailureRoll" data-formula="${formula}"`
+    const button = `<a class="enriched-link ${OWNER_ONLY_CLASS}" data-action="mechFailureRoll" data-formula="${formula}"`
         + ` data-threshold="${threshold}" data-tooltip="${tooltip}">${DICE_ICON}${formula}</a>`;
     const prompt = game.i18n
         .format("SFRPG.MechSheet.SystemFailure.Prompt", { name: actor.name, formula })
@@ -1066,8 +1066,9 @@ async function postMechFailureCard(actor, threshold) {
         _id: failureCardId(stamp),
         speaker: ChatMessage.getSpeaker({ actor }),
         content,
-        flags: { sfrpg: { mechFailure: stamp } },
-        whisper: failureRecipients(game.users, actor)
+        // Everyone sees that the mech has failed. Only its owners and the GMs
+        // get the die to roll, so for anyone else the 1d20 is plain text.
+        flags: { sfrpg: { mechFailure: stamp } }
     }, { keepId: true });
 }
 
