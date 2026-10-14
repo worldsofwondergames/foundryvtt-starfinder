@@ -9,6 +9,8 @@ import { systemResetUpdate } from "../../rules/mech-system-failure.js";
 import { auxiliarySystemUsable, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
 import { clearSystemFlag } from "../../utils/flags.js";
 import { HURL_DAMAGE_LEVELS, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
+import { actionUsesEnergyType } from "../../rules/weapon-core.js";
+import { energyTypesFor, energyTypesLabel } from "../../system/weapon-core.js";
 
 export const ActorMechMixin = (superclass) => class extends superclass {
     /**
@@ -61,7 +63,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      *                                      action could not be performed
      */
     async useMechAction(category, index, { itemId = null, itemActionIndex = null } = {}) {
-        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, restoresShields;
+        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, restoresShields, energyTypes;
         // Set for gear actions so the override they arm is spent by the weapon it
         // is printed on and not by whatever the mech fires next.
         let overrideItemId = null;
@@ -108,6 +110,12 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                     name: item.name
                 }));
                 return null;
+            }
+            // Energize Weapon charges the weapon with one of Weapon Core's energy
+            // types, so a Weapon Core with none chosen asks for them first.
+            if (item.type === "mechAuxiliary" && item.system.choosesEnergyTypes && actionUsesEnergyType(action)) {
+                energyTypes = await energyTypesFor(item);
+                if (!energyTypes) return null;
             }
             name = `${action.name} (${item.name})`;
             description = action.description;
@@ -212,7 +220,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             ppCost: ppCost !== null && ppCost !== undefined ? `${ppCost} PP` : null,
             ppSpent: ppSpent,
             actionTypeLabel: actionType ? (actionTypeLabels[actionType] || actionType) : null,
-            gearName: gearName || null
+            gearName: gearName || null,
+            energyTypes: energyTypes ? energyTypesLabel(energyTypes) : null
         };
 
         const html = await foundry.applications.handlebars.renderTemplate(

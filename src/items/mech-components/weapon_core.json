@@ -30,6 +30,8 @@
     "isActive": false,
     "mpCost": 0,
     "ppCost": 2,
-    "source": "Tech Revolution pg. 108"
+    "source": "Tech Revolution pg. 108",
+    "choosesEnergyTypes": true,
+    "energyTypes": []
   }
 }

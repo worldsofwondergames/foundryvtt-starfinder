@@ -5,6 +5,8 @@
 - The damage card for Bleeding has a Stop bleeding link. It rolls a DC 15 Medicine check for the clicking player's character, or for their selected token, and a success removes Bleeding, even from a creature that player doesn't own
 - The rounds dialog for conditions such as Stunned and Shaken has a Save to end row. Pick Fortitude, Reflex or Will, a DC, and when the save is offered: at the start of each of the creature's turns, at the end of each of its turns, or at the end of each round. Leaving When blank offers it at the end of the creature's turns. The save keeps being offered until it succeeds or the rounds run out, and leaving the save blank gives the condition no save
 - `docs/condition-end-states.md` lists how each of the 42 conditions ends, quoting its description
+- Weapon Core asks for its two energy types when it is dropped on a mech, from acid, cold, electricity, fire and sonic. The item sheet's Details tab has the same choice and won't take a third. The mech sheet shows the types after the name, such as "Weapon Core (cold, fire)", and the Energize Weapon card lists them. A Weapon Core with none chosen asks for them when Energize Weapon is used, and cancelling spends no Power Points. The Kelina mission pod's Weapon Core comes with cold and fire set
+- Updating the system marks the Weapon Core copies already in a world, including those on mechs and inside mission pods. A name such as "Weapon Core (Cold, Fire)" fills in its types
 
 ## Bugfixes
 - A rolled die on a System Failure card was not struck through or dimmed, unlike Aim's and Replenish's. The style now applies to a spent link on any of the system's chat cards
@@ -13,7 +15,8 @@
 - Damage roll cards didn't show the damage type beside the total, such as "3 B" for a bludgeoning weapon. Foundry v13 renders the total differently from earlier versions, so the type was inserted into the wrong place in the card and never appeared. It now shows again
 - The Mech Combat Start card was posted after the Round 1 card. It now comes first
 - Normal combat posted a "Combat Phase" card at the start of every round. Normal combat has no phases in the rules, so the card is left out. Starship combat and vehicle chases still announce their phases
-- With the Automated Animations module on, the console logged "COULD NOT GET ITEM ID" for the system's plain-text chat messages, such as Power Point regeneration and a condition's rounds running out. The module reads each new message as HTML, and plain text made it throw. These messages are now wrapped in a span and look the same in chat
+- With the Automated Animations module on, the console logged "COULD NOT GET ITEM ID" for the system's plain-text chat messages, such as Power Point regeneration and a condition's rounds running out. The module reads each new message as HTML, and plain text made it throw. The system now wraps them in a span, and they look the same in chat
+- The world migration skipped unlinked tokens' own copies of their actors' items, because it read a property Foundry v13 no longer has. Released versions also set the migration schema one step too low, so the step that adds actions to mech components imported before they had any never ran in a world updated from a release. Both now run
 - Removing Stunned, or another condition that causes Flat-footed, finished before Flat-footed was removed. Removing Flat-footed right afterward, by hand or from a macro, threw an error. Removing a condition now waits for the Flat-footed it caused to go, and a condition without a timed effect no longer throws when removed
 
 # Version 14.1.7

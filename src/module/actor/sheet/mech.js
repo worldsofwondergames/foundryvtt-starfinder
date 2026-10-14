@@ -5,6 +5,8 @@ import { effectiveSystems, overcomeActions, weaponUsable } from "../../rules/mec
 import { canThrow, thrownRange } from "../../rules/mech-thrown.js";
 import { ActorSheetSFRPG } from "./base.js";
 import { LOCKER_SLOT, SLOT_COMPONENT_TYPES, droppedSlot, maxWeaponLevel, mountRefusal, weaponDropPlacement } from "./mech-weapon-slots.js";
+import { hasEnergyTypes, showsEnergyTypeLabel } from "../../rules/weapon-core.js";
+import { allowedEnergyTypes, energyTypesLabel, promptEnergyTypes } from "../../system/weapon-core.js";
 
 /**
  * An Actor sheet for a mech in the SFRPG system.
@@ -155,7 +157,12 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 item.config.levelLabel = `(${game.i18n.localize("SFRPG.MechSheet.Weapon.LevelShort")} ${effectiveLevel})`;
                 arr[0].push(item);
             } else if (item.type === "mechFrame") arr[1].push(item);
-            else if (item.type === "mechAuxiliary") arr[2].push(item);
+            else if (item.type === "mechAuxiliary") {
+                if (item.system.choosesEnergyTypes && showsEnergyTypeLabel(item.name, item.system.energyTypes, allowedEnergyTypes())) {
+                    item.config.energyTypesLabel = `(${energyTypesLabel(item.system.energyTypes)})`;
+                }
+                arr[2].push(item);
+            }
             else if (item.type === "mechUpgrade") arr[3].push(item);
             else if (item.type === "mechPowerCore") arr[4].push(item);
             else if (item.type === "mechLowerLimb") arr[5].push(item);
@@ -703,6 +710,13 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                         ui.notifications.error(game.i18n.format("SFRPG.MechSheet.UpperLimb.OnlyOne"));
                         return false;
                     }
+                }
+                // Weapon Core asks for its two energy types as it is installed.
+                // Cancelling installs it without them, to be chosen later.
+                if (rawItemData.type === "mechAuxiliary" && rawItemData.system.choosesEnergyTypes
+                    && !hasEnergyTypes(rawItemData.system.energyTypes, allowedEnergyTypes())) {
+                    const chosen = await promptEnergyTypes(rawItemData.name);
+                    if (chosen) rawItemData.system.energyTypes = chosen;
                 }
                 return this.actor.createEmbeddedDocuments("Item", [rawItemData]);
             } else if (this.acceptedItemTypes.includes(rawItemData.type)) {

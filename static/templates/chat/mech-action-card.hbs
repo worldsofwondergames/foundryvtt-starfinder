@@ -9,6 +9,9 @@
         {{else}}
         <p>{{description}}</p>
         {{/if}}
+        {{#if energyTypes}}
+        <p class="mech-energy-types"><strong>{{localize "SFRPG.WeaponCore.EnergyTypes"}}:</strong> {{energyTypes}}</p>
+        {{/if}}
     </div>
     {{#if actionTypeLabel}}
     <footer class="card-footer">
