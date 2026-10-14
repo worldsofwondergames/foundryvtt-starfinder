@@ -1,15 +1,13 @@
 import { auxiliaryFailureChance, effectiveSystems, regenerationRate } from "../rules/mech-system-effects.js";
-import { mechTurnRegen, shouldRegenOnTurnEnd } from "../rules/mech-turn-regen.js";
+import { isRegenDue, regeneratedPowerPoints, regeneratedShieldPoints } from "../rules/mech-turn-regen.js";
 import { postAuxiliaryCheck } from "../system/mech-failure-link.js";
 import { clearSystemFlag } from "../utils/flags.js";
 
 /**
  * Applies a change of turn to the mechs involved. The mech whose turn ended
- * regenerates. The mech whose turn started loses the overrides it bought and
- * rolls the checks its constant auxiliary systems owe.
- *
- * A mech regenerates at the end of its turn, so this reads the combatant the
- * combat just moved away from rather than the one it moved to.
+ * regenerates its Power Points. The mech whose turn started loses the overrides
+ * it bought, regenerates its Shield Points, and rolls the checks its constant
+ * auxiliary systems owe.
  *
  * Only the active GM may call this, from the combat's update, so it runs once
  * whoever ended the turn. A player who ends their own turn changes the combat
@@ -18,118 +16,152 @@ import { clearSystemFlag } from "../utils/flags.js";
  * @param {object} eventData The combat event data, with its combat and combatants as documents.
  */
 export async function applyMechTurnChanges(eventData) {
-    // The departing mech's power core rate is read before anything is cleared:
-    // when the combat holds one mech, or wraps back onto the same one, the mech
-    // arriving and the mech whose turn just ended are the same actor, and the
-    // override it bought at the start of that turn still has to count.
-    const departing = eventData.oldCombatant?.actor;
-    const departingRate = departing?.type === "mech"
-        ? regenerationRate(effectiveSystems(
-            departing.system.attributes.systems,
-            departing.getFlag("sfrpg", "systemOverrides") ?? {}
-        ).powerCore)
-        : 1;
+    const departing = eventData.oldCombatant;
+    const arriving = eventData.newCombatant;
+
+    // The departing mech regenerates before anything is cleared. When the combat
+    // holds one mech, or wraps back onto the same one, the mech arriving and the
+    // mech whose turn just ended are the same actor, and the override it bought at
+    // the start of that turn still has to count.
+    await regeneratePowerPoints(departing, eventData);
+
+    const mech = arriving?.actor;
+    if (mech?.type !== "mech" || !(eventData.direction > 0)) return;
 
     // A component the pilot paid to overcome stays overcome until the start of
     // the mech's next turn, so the moment that turn arrives the overrides go.
     // The same is true of an auxiliary system that failed a check on its turn.
-    const arriving = eventData.newCombatant?.actor;
-    if (arriving?.type === "mech" && eventData.direction > 0) {
-        if (arriving.getFlag("sfrpg", "systemOverrides")) {
-            await clearSystemFlag(arriving, "systemOverrides");
-        }
-        for (const system of arriving.items.filter(item => item.getFlag("sfrpg", "failedThisTurn"))) {
-            await clearSystemFlag(system, "failedThisTurn");
-        }
+    if (mech.getFlag("sfrpg", "systemOverrides")) {
+        await clearSystemFlag(mech, "systemOverrides");
     }
+    for (const system of mech.items.filter(item => item.getFlag("sfrpg", "failedThisTurn"))) {
+        await clearSystemFlag(system, "failedThisTurn");
+    }
+
+    // The overrides from the mech's last turn have run out by now, so its shields
+    // come back at the rate its power core's own status allows.
+    await regenerateShieldPoints(arriving, eventData);
 
     // A system that has to be activated is checked when it is used. One giving a
     // constant benefit is never activated, so its check is owed at the start of
     // each of the mech's turns instead.
-    if (arriving?.type === "mech" && eventData.direction > 0) {
-        const statuses = effectiveSystems(
-            arriving.system.attributes.systems,
-            arriving.getFlag("sfrpg", "systemOverrides") ?? {}
-        );
-        if (auxiliaryFailureChance(statuses.auxSystem) > 0) {
-            for (const system of arriving.items.filter(item => item.type === "mechAuxiliary"
-                && !item.system.canBeActivated)) {
-                await postAuxiliaryCheck(arriving, system, statuses.auxSystem);
-            }
+    const statuses = effectiveSystems(
+        mech.system.attributes.systems,
+        mech.getFlag("sfrpg", "systemOverrides") ?? {}
+    );
+    if (auxiliaryFailureChance(statuses.auxSystem) > 0) {
+        for (const system of mech.items.filter(item => item.type === "mechAuxiliary"
+            && !item.system.canBeActivated)) {
+            await postAuxiliaryCheck(mech, system, statuses.auxSystem);
         }
     }
+}
 
-    const combatant = eventData.oldCombatant;
-    if (!combatant) return;
+/**
+ * The fraction of its regeneration a mech's power core allows. A damaged core
+ * slows what comes back and an inoperable one stops it.
+ *
+ * @param {Actor} actor The mech.
+ * @returns {number} 1, 0.5 or 0.
+ */
+function powerCoreRate(actor) {
+    return regenerationRate(effectiveSystems(
+        actor.system.attributes.systems,
+        actor.getFlag("sfrpg", "systemOverrides") ?? {}
+    ).powerCore);
+}
 
-    const endedRound = eventData.oldRound ?? eventData.combat?.round;
-    const due = shouldRegenOnTurnEnd({
+/**
+ * Restores the Power Points of the mech whose turn just ended.
+ *
+ * @param {Combatant|null} combatant The combatant whose turn ended.
+ * @param {object} eventData The combat event data.
+ */
+async function regeneratePowerPoints(combatant, eventData) {
+    const actor = combatant?.actor;
+    if (actor?.type !== "mech") return;
+
+    const round = eventData.oldRound ?? eventData.combat?.round;
+    if (!isRegenDue({
         direction: eventData.direction,
         isNewTurn: eventData.isNewTurn,
-        round: endedRound,
+        round,
         lastRegenRound: combatant.getFlag("sfrpg", "lastRegenRound") ?? null
-    });
-    if (!due) return;
-
-    const actor = combatant.actor;
-    if (!actor || actor.type !== "mech") return;
-
-    const whisperTargets = game.users.filter(u => u.isGM || actor.testUserPermission(u, "OWNER")).map(u => u.id);
-    const messages = [];
+    })) return;
 
     const pp = actor.system.attributes.pp;
-    const sp = actor.system.attributes.sp;
-
-    // A damaged power core slows what comes back and an inoperable one stops it.
-    // Worked out at the top of this handler, before any override was cleared.
-    const rate = departingRate;
-
-    const regenerated = mechTurnRegen({
-        pp,
-        sp,
-        tier: actor.system.details.tier
+    await applyRegen(combatant, {
+        flag: "lastRegenRound",
+        round,
+        path: "system.attributes.pp.value",
+        pool: pp,
+        value: regeneratedPowerPoints(pp, powerCoreRate(actor)),
+        message: "SFRPG.MechSheet.Actions.PPRegenMessage"
     });
+}
 
-    if (rate <= 0) {
-        regenerated.pp = null;
-        regenerated.sp = null;
-    } else if (rate < 1) {
-        regenerated.pp = regenerated.pp === null ? null : pp.value + Math.floor((regenerated.pp - pp.value) * rate);
-        regenerated.sp = regenerated.sp === null ? null : sp.value + Math.floor((regenerated.sp - sp.value) * rate);
-        if (regenerated.pp === pp.value) regenerated.pp = null;
-        if (regenerated.sp === sp.value) regenerated.sp = null;
-    }
+/**
+ * Restores the Shield Points of the mech whose turn just started.
+ *
+ * @param {Combatant} combatant The combatant whose turn started.
+ * @param {object} eventData The combat event data.
+ */
+async function regenerateShieldPoints(combatant, eventData) {
+    const actor = combatant.actor;
+    const round = eventData.newRound ?? eventData.combat?.round;
+    if (!isRegenDue({
+        direction: eventData.direction,
+        isNewTurn: eventData.isNewTurn,
+        round,
+        lastRegenRound: combatant.getFlag("sfrpg", "lastShieldRegenRound") ?? null
+    })) return;
 
-    if (regenerated.pp !== null) {
-        await actor.update({"system.attributes.pp.value": regenerated.pp});
-        messages.push(game.i18n.format("SFRPG.MechSheet.Actions.PPRegenMessage", {
-            name: actor.name,
-            amount: regenerated.pp - pp.value,
-            current: regenerated.pp,
-            max: pp.max
-        }));
-    }
+    const sp = actor.system.attributes.sp;
+    await applyRegen(combatant, {
+        flag: "lastShieldRegenRound",
+        round,
+        path: "system.attributes.sp.value",
+        pool: sp,
+        value: regeneratedShieldPoints(sp, actor.system.details.tier, powerCoreRate(actor)),
+        message: "SFRPG.MechSheet.Actions.SPRegenMessage"
+    });
+}
 
-    if (regenerated.sp !== null) {
-        await actor.update({"system.attributes.sp.value": regenerated.sp});
-        messages.push(game.i18n.format("SFRPG.MechSheet.Actions.SPRegenMessage", {
-            name: actor.name,
-            amount: regenerated.sp - sp.value,
-            current: regenerated.sp,
-            max: sp.max
-        }));
+/**
+ * Writes one pool's regeneration, marks the round settled, and tells the mech's
+ * owners and the GMs what came back.
+ *
+ * @param {Combatant} combatant The mech's combatant.
+ * @param {object} options
+ * @param {string} options.flag The combatant flag recording the last round this pool regenerated in.
+ * @param {number} options.round The round the regeneration belongs to.
+ * @param {string} options.path The actor data path of the pool's value.
+ * @param {{value: number, max: number}} options.pool The pool before regenerating.
+ * @param {number|null} options.value The new value, or null when nothing changes.
+ * @param {string} options.message The localization key of the chat message.
+ */
+async function applyRegen(combatant, { flag, round, path, pool, value, message }) {
+    const actor = combatant.actor;
+
+    if (value !== null) {
+        await actor.update({[path]: value});
     }
 
     // Mark the round settled whether or not anything changed. A mech that was
     // already at full has still had this turn's regeneration resolved, and the GM
     // stepping back to it must not open a second helping.
-    await combatant.setFlag("sfrpg", "lastRegenRound", endedRound);
+    await combatant.setFlag("sfrpg", flag, round);
 
-    if (messages.length > 0) {
-        await ChatMessage.create({
-            speaker: ChatMessage.getSpeaker({actor: actor}),
-            content: messages.join("<br>"),
-            whisper: whisperTargets
-        });
-    }
+    if (value === null) return;
+
+    await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({actor}),
+        content: game.i18n.format(message, {
+            name: actor.name,
+            amount: value - pool.value,
+            current: value,
+            max: pool.max
+        }),
+        whisper: game.users.filter(u => u.isGM || actor.testUserPermission(u, "OWNER")).map(u => u.id)
+    });
 }
