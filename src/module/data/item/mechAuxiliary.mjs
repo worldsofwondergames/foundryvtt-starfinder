@@ -36,6 +36,17 @@ export default class SFRPGItemMechAuxiliary extends SFRPGItemBase {
                 required: true,
                 label: "SFRPG.MechSheet.Auxiliary.MpCost"
             }),
+            // Set on a system that has its owner choose energy types when it is
+            // installed, such as Weapon Core.
+            choosesEnergyTypes: new fields.BooleanField({
+                initial: false,
+                required: true,
+                label: "SFRPG.WeaponCore.ChoosesEnergyTypes"
+            }),
+            energyTypes: new fields.ArrayField(
+                new fields.StringField({ choices: () => CONFIG.SFRPG.energyDamageTypes }),
+                { initial: [], required: true, label: "SFRPG.WeaponCore.EnergyTypes" }
+            ),
             actions: new fields.ArrayField(
                 new fields.SchemaField(SFRPGItemBase.mechActionTemplate()),
                 { initial: [], required: true, label: "SFRPG.MechSheet.Action.Actions" }

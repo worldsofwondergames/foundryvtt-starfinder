@@ -1,5 +1,6 @@
 import SFRPGModifier from "./modifiers/modifier.js";
 import { SFRPGEffectType, SFRPGModifierType, SFRPGModifierTypes } from "./modifiers/types.js";
+import { weaponCoreItemUpdate, weaponCoreTemplate } from "./rules/weapon-core.js";
 
 const SFRPGMigrationSchemas = Object.freeze({
     NPC_DATA_UPATE: 0.001,
@@ -10,7 +11,8 @@ const SFRPGMigrationSchemas = Object.freeze({
     DAMAGE_REDUCTION_REFACTOR: 0.006,
     THE_WEBP_UPDATE: 0.008, // We changed all icons from .png to .webp
     THE_GUNNERY_UPDATE: 0.009, // Since Gunnery is now a selectable skill for NPC starships, migrate an NPC gunner's ranks in Piloting (the previous hacky solution) to their modifier in Gunnery.
-    MECH_ACTIONS_SYNC: 0.010 // Sync mech component actions from compendium to actor items that were imported before actions were added.
+    MECH_ACTIONS_SYNC: 0.010, // Sync mech component actions from compendium to actor items that were imported before actions were added.
+    WEAPON_CORE_ENERGY_TYPES: 0.011 // Mark Weapon Core as choosing two energy types, reading them from names such as "Weapon Core (Cold, Fire)".
 });
 
 /**
@@ -125,8 +127,32 @@ const migrateItem = async function(item, schema) {
 
     if (schema < SFRPGMigrationSchemas.DAMAGE_TYPE_REFACTOR) _migrateDamageTypes(itemData, updateData);
     if (schema < SFRPGMigrationSchemas.THE_WEBP_UPDATE) _migrateDocumentIconToWebP(itemData, updateData);
+    if (schema < SFRPGMigrationSchemas.WEAPON_CORE_ENERGY_TYPES) _migrateWeaponCore(item, updateData);
 
     return updateData;
+};
+
+/**
+ * Mark a Weapon Core as choosing energy types, and give a mission pod's Weapon
+ * Core template the same, so the copies made before the field existed hold
+ * their types.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migrateWeaponCore = function(item, updateData) {
+    const allowed = Object.keys(CONFIG.SFRPG.energyDamageTypes);
+    Object.assign(updateData, weaponCoreItemUpdate(item, allowed));
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        let changed = false;
+        const templates = item.system.itemTemplates.map(template => {
+            const updated = weaponCoreTemplate(template, allowed);
+            if (updated) changed = true;
+            return updated ?? template;
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
 };
 
 const migrateCompendiumItemToWebP = async function(itemDocument) {
@@ -190,7 +216,7 @@ const migrateToken = async function(token, schema) {
     }
 
     const actor = token.actor;
-    if (!token.data.actorLink && actor) {
+    if (!token.actorLink && actor) {
         const actorUpdateData = await migrateActor(actor, schema);
         if (!foundry.utils.isEmpty(actorUpdateData)) {
             console.log(`Starfinder | Migrating Token Actor ${actor.name}`);

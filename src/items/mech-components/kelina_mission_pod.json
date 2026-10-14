@@ -154,7 +154,12 @@
           "isActive": false,
           "mpCost": 1,
           "ppCost": 2,
-          "source": "Tech Revolution"
+          "source": "Tech Revolution",
+          "choosesEnergyTypes": true,
+          "energyTypes": [
+            "cold",
+            "fire"
+          ]
         }
       },
       {

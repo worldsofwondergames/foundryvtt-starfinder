@@ -2,6 +2,7 @@ import { allowedWeaponLevels } from "../actor/sheet/mech-weapon-slots.js";
 import { SFRPG } from "../config.js";
 import RollContext from "../rolls/rollcontext.js";
 import { WeaponPropertySelectorSFRPG } from "../apps/trait-selectors/weapon-property-selector.js";
+import { limitEnergyTypeChecks } from "../system/weapon-core.js";
 
 const itemSizeArmorClassModifier = {
     "fine": 8,
@@ -116,6 +117,14 @@ export class ItemSheetSFRPG extends foundry.appv1.sheets.ItemSheet {
         if (data.item.type === "mechWeapon" && this.actor?.type === "mech") {
             data.weaponLevels = allowedWeaponLevels(this.actor.system.details?.tier);
             data.weaponLevelDefault = this.actor.system.details?.tier;
+        }
+
+        if (data.item.type === "mechAuxiliary") {
+            data.energyTypeChoices = Object.entries(CONFIG.SFRPG.energyDamageTypes).map(([type, label]) => ({
+                type,
+                label: game.i18n.localize(label),
+                checked: (data.itemData.energyTypes ?? []).includes(type)
+            }));
         }
 
         if (data.item.type === "mechUpperLimb") {
@@ -688,6 +697,17 @@ export class ItemSheetSFRPG extends foundry.appv1.sheets.ItemSheet {
     /**
      * Activate listeners for interactive item sheet events
      */
+    /**
+     * Save Weapon Core's energy types when one is ticked or cleared.
+     *
+     * @param {Event} event
+     * @returns {Promise<Item>}
+     */
+    async _onEnergyTypeChange(event) {
+        const boxes = [...event.currentTarget.closest(".weapon-core-types").querySelectorAll("input.weapon-core-type")];
+        return this.item.update({ "system.energyTypes": boxes.filter(box => box.checked).map(box => box.dataset.type) });
+    }
+
     activateListeners(html) {
         super.activateListeners(html);
 
@@ -700,6 +720,12 @@ export class ItemSheetSFRPG extends foundry.appv1.sheets.ItemSheet {
 
         // Modify mech actions array
         html.find(".mech-action-control").click(this._onMechActionControl.bind(this));
+
+        // Weapon Core's energy types: two at most, saved as they are ticked.
+        if (html[0].querySelector("input.weapon-core-type")) {
+            limitEnergyTypeChecks(html[0], "input.weapon-core-type");
+            html.find("input.weapon-core-type").change(this._onEnergyTypeChange.bind(this));
+        }
         html.find("input.primary-section-checkbox").click(this._onTogglePrimaryDamageSection.bind(this));
         html.find(".visualization-control").click(this._onActorResourceVisualizationControl.bind(this));
         html.find(".ability-adjustments-control").click(this._onAbilityAdjustmentsControl.bind(this));

@@ -64,6 +64,30 @@
                     {{/if}}
 
                     <div class="form-group">
+                        <label>{{ localize "SFRPG.WeaponCore.ChoosesEnergyTypes" }}</label>
+                        <div class="form-fields">
+                            <label class="checkbox">
+                                <input type="checkbox" name="system.choosesEnergyTypes" {{checked itemData.choosesEnergyTypes}} />
+                            </label>
+                        </div>
+                    </div>
+
+                    {{#if itemData.choosesEnergyTypes}}
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.WeaponCore.EnergyTypes" }}</label>
+                        <div class="form-fields weapon-core-types">
+                            {{#each energyTypeChoices as |choice|}}
+                            <label class="checkbox">
+                                <input type="checkbox" class="weapon-core-type" data-type="{{choice.type}}" {{checked choice.checked}} />
+                                {{choice.label}}
+                            </label>
+                            {{/each}}
+                        </div>
+                        <p class="hint">{{ localize "SFRPG.WeaponCore.SheetHint" }}</p>
+                    </div>
+                    {{/if}}
+
+                    <div class="form-group">
                         <label>{{ localize "SFRPG.MechSheet.Auxiliary.PpCost" }}</label>
                         <div class="form-fields">
                             <input type="text" name="system.ppCost" value="{{itemData.ppCost}}" data-dtype="Number" />
