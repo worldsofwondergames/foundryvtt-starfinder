@@ -22,6 +22,7 @@ import SFRPGTimedEffect from "../timedEffect/timedEffect.js";
 import { clearSystemFlag } from "../utils/flags.js";
 import { rollOngoingConditions } from "../system/ongoing-condition.js";
 import { tickConditionTimers } from "../system/condition-timer.js";
+import { postEndCheckCards } from "../system/condition-end-check.js";
 import { } from "./crew-update.js";
 
 /**
@@ -990,8 +991,9 @@ export class ActorSFRPG extends Mix(foundry.documents.Actor).with(ActorCondition
         }
 
         // A condition given a number of rounds loses one at the end of the
-        // affected creature's turn.
-        tickConditionTimers(this);
+        // affected creature's turn. A check that can end a condition comes after,
+        // so a condition whose rounds ran out gets no card.
+        tickConditionTimers(this).then(() => postEndCheckCards(this));
     }
 
     /** Roll contexts */

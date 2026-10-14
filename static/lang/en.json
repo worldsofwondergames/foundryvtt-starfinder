@@ -680,6 +680,16 @@
         "ComingSoon": "Coming soon!",
         "ConImm": "Condition Immunities",
         "Condition": "Condition",
+        "ConditionEndCheck": {
+            "AlreadyResolved": "That check has already been resolved.",
+            "Bonus": "+{bonus} from earlier attempts or smothering the fire.",
+            "Card": "{name} can attempt a {check} to end {condition}. DC {dc}.",
+            "Ended": "{name} succeeds and is no longer {condition}.",
+            "Failed": "{name} fails and is still {condition}.",
+            "NotOwner": "Only {name}'s owners or the GM can roll this.",
+            "Roll": "Roll",
+            "Smother": "Smother (full action, +4)"
+        },
         "ConditionTimer": {
             "Apply": "Apply",
             "Expired": "{name} is no longer {condition}.",
