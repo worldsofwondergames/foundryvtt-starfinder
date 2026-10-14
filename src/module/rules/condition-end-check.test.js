@@ -35,6 +35,10 @@ describe("startEndCheck", () => {
         });
     });
 
+    it("builds a skill check from the skills table", () => {
+        expect(startEndCheck({ kind: "skill", id: "acr", dc: 20 }, IDS)).toMatchObject({ kind: "skill", id: "acr", dc: 20 });
+    });
+
     it("refuses a save the system does not have", () => {
         expect(startEndCheck({ kind: "save", id: "luck", dc: 15 }, IDS)).toBeNull();
     });
