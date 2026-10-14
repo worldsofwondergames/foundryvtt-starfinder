@@ -1,3 +1,9 @@
+# Version 14.1.6
+
+## Bugfixes
+- A mech whose player ended its turn with End Turn regained no Power Points or Shield Points for that turn, and the system overrides it had bought were not cleared when its next turn began. The mech turn changes ran only on the GM's client, but a player who ends their turn changes the combat from their own client, so the GM never saw the turn end. A turn change now reaches the GM whoever makes it. This often looked like the last mech in the order missing out, since its player ends the round
+- In a vehicle chase, the last mech to act in the Pilot Actions phase regained nothing when the chase moved on to the Chase Progress phase. Moving to the next phase counted as a step backward, because the turn order starts again at the first combatant
+
 # Version 14.1.5
 
 ## New Features
