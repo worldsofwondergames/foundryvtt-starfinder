@@ -178,7 +178,7 @@ const pending = new Map();
  * @param {string} eventName "claimChatButton" or "releaseChatButton".
  * @param {string} messageId
  * @param {string[]} keys
- * @returns {Promise<boolean>}
+ * @returns {Promise<boolean|null>} Null when the GM did not answer.
  */
 function askGM(eventName, messageId, keys) {
     const requestId = foundry.utils.randomID();
@@ -186,7 +186,7 @@ function askGM(eventName, messageId, keys) {
         const timer = setTimeout(() => {
             pending.delete(requestId);
             ui.notifications.warn(game.i18n.localize("SFRPG.ChatButton.NoAnswer"));
-            resolve(false);
+            resolve(null);
         }, CLAIM_TIMEOUT_MS);
         pending.set(requestId, granted => {
             clearTimeout(timer);
@@ -203,7 +203,8 @@ function askGM(eventName, messageId, keys) {
  * @param {ChatMessage} message
  * @param {string[]} keys
  * @param {boolean} release
- * @returns {Promise<boolean>}
+ * @returns {Promise<boolean|null>} False when a button was already rolled, and
+ *     null when the claim could not be asked for, with a notice already shown.
  */
 async function settle(message, keys, release) {
     if (game.users.activeGM?.isSelf) {
@@ -214,7 +215,7 @@ async function settle(message, keys, release) {
     }
     if (!message.canUserModify(game.user, "update")) {
         ui.notifications.warn(game.i18n.localize("SFRPG.ChatButton.NeedsGM"));
-        return false;
+        return null;
     }
 
     const spent = message.getFlag("sfrpg", SPENT_FLAG) ?? [];
@@ -262,8 +263,8 @@ export async function rollOnce(link, work) {
     } finally {
         delete link.dataset.claiming;
     }
-    if (!granted) {
-        ui.notifications.info(game.i18n.localize("SFRPG.ChatButton.AlreadyRolled"));
+    if (granted !== true) {
+        if (granted === false) ui.notifications.info(game.i18n.localize("SFRPG.ChatButton.AlreadyRolled"));
         return null;
     }
 

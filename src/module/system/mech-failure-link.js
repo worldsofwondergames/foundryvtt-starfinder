@@ -9,6 +9,7 @@ import {
     powerCoreLoss
 } from "../rules/mech-system-transitions.js";
 import { auxiliaryFailureChance } from "../rules/mech-system-effects.js";
+import { turnStartFailures } from "../rules/mech-turn-failures.js";
 import { CANCELED, rollOnce } from "./chat-button-claim.js";
 
 /**
@@ -131,13 +132,28 @@ async function rollFailure(actor, link) {
  * @returns {string} A paragraph of HTML, empty when there is nothing to say.
  */
 export function effectText(component, status) {
+    const sentence = effectSentence(component, status);
+    return sentence ? `<p class="mech-failure-effect">${sentence}</p>` : "";
+}
+
+/**
+ * What a component's condition does to the mech, as plain text.
+ *
+ * The card announcing a failure says what happens as it fails, such as the
+ * operators being thrown about. The start-of-turn reminder says only what goes
+ * on happening after that.
+ *
+ * @param {string} component The failing component.
+ * @param {string} status Its status.
+ * @param {"Effect"|"Ongoing"} [kind] Which of the two to give.
+ * @returns {string} The sentence, empty for a component with none.
+ */
+function effectSentence(component, status, kind = "Effect") {
     const label = COMPONENT_LABELS[component];
     if (!label) return "";
 
     const suffix = status === "inoperable" ? "Inoperable" : "Malfunctioning";
-    return `<p class="mech-failure-effect">`
-        + game.i18n.localize(`SFRPG.MechSheet.SystemFailure.Effect${label}${suffix}`)
-        + `</p>`;
+    return game.i18n.localize(`SFRPG.MechSheet.SystemFailure.${kind}${label}${suffix}`);
 }
 
 /**
@@ -395,15 +411,76 @@ export async function postChanceCard(actor, { chance, purpose, label, systemId =
     if (!chance) return null;
 
     const tooltip = game.i18n.localize("SFRPG.MechSheet.SystemFailure.ChanceTooltip");
-    const prompt = `<p><a class="enriched-link" data-action="mechChanceCheck"`
-        + ` data-formula="1d100" data-chance="${chance}" data-purpose="${purpose}"`
-        + (systemId ? ` data-system-id="${systemId}"` : "")
-        + ` data-index="0" data-tooltip="${tooltip}">${DICE_ICON}${label}</a></p>`;
+    const prompt = `<p>${chanceLink({ chance, purpose, label, systemId, index: 0, tooltip })}</p>`;
 
     return ChatMessage.create({
         user: game.user.id,
         speaker: ChatMessage.getSpeaker({ actor }),
         content: await failureContent(actor, prompt),
+        whisper: failureRecipients(game.users, actor)
+    });
+}
+
+/**
+ * A percentage check's link. Each link on a card has its own index, so rolling
+ * one marks only that one as rolled.
+ *
+ * @param {object} options
+ * @param {number} options.chance The percentage chance of failing.
+ * @param {string} options.purpose "auxiliary" or "cockpit".
+ * @param {string} options.label The link's text.
+ * @param {string|null} [options.systemId] The auxiliary system checked.
+ * @param {number} options.index The link's place among the card's checks.
+ * @param {string} options.tooltip The link's tooltip.
+ * @returns {string} The link's HTML.
+ */
+export function chanceLink({ chance, purpose, label, systemId = null, index, tooltip }) {
+    return `<a class="enriched-link" data-action="mechChanceCheck"`
+        + ` data-formula="1d100" data-chance="${chance}" data-purpose="${purpose}"`
+        + (systemId ? ` data-system-id="${systemId}"` : "")
+        + ` data-index="${index}" data-tooltip="${tooltip}">${DICE_ICON}${label}</a>`;
+}
+
+/**
+ * Post the one System Failure card a mech gets at the start of its turn,
+ * listing each failing component, each check a constant auxiliary system owes,
+ * and each auxiliary system that has stopped.
+ *
+ * @param {Actor} actor The mech whose turn started.
+ * @returns {Promise<ChatMessage|null>} The card, or null when nothing is failing.
+ */
+export async function postTurnStartFailures(actor) {
+    const failures = turnStartFailures(
+        actor.system.attributes.systems,
+        auxiliarySystems(actor).map(item => ({
+            id: item.id,
+            name: item.name,
+            constant: !item.system.canBeActivated,
+            disabled: !!item.getFlag("sfrpg", "disabledByFailure")
+        }))
+    );
+    if (!failures) return null;
+
+    const tooltip = game.i18n.localize("SFRPG.MechSheet.SystemFailure.ChanceTooltip");
+    const lines = [
+        ...failures.components.map(({ component, status }) => game.i18n.format("SFRPG.MechSheet.SystemFailure.TurnStartComponent", {
+            component: componentName(component),
+            status: game.i18n.localize(CONFIG.SFRPG.mechSystemStatus[status])
+        }) + ` <span class="mech-failure-effect">${effectSentence(component, status, "Ongoing")}</span>`),
+        ...failures.checks.map((check, index) => chanceLink({
+            chance: check.chance,
+            purpose: "constant",
+            systemId: check.id,
+            index,
+            tooltip,
+            label: game.i18n.format("SFRPG.MechSheet.SystemFailure.AuxiliaryCheckLabel", { name: check.name, chance: check.chance })
+        })),
+        ...failures.stopped.map(name => game.i18n.format("SFRPG.MechSheet.SystemFailure.AuxiliaryDisabled", { name }))
+    ];
+
+    return ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        content: await failureContent(actor, `<ul class="mech-turn-failures">${lines.map(line => `<li>${line}</li>`).join("")}</ul>`),
         whisper: failureRecipients(game.users, actor)
     });
 }
@@ -450,6 +527,24 @@ export async function postAuxiliaryCheck(actor, system, status) {
 }
 
 /**
+ * The localization key for what a percentage check's roll means.
+ *
+ * A system that is activated fails to do what was asked, and the action and its
+ * Power Points are gone. A system giving a constant benefit, checked at the
+ * start of the turn, stops giving it for a round: Tech Revolution gives it "a
+ * 25% chance of not functioning for 1 round each turn".
+ *
+ * @param {string} purpose "auxiliary", "constant" or "cockpit".
+ * @param {boolean} failed Whether the check failed.
+ * @returns {string}
+ */
+export function chanceOutcome(purpose, failed) {
+    if (purpose === "cockpit") return failed ? "CockpitActionLost" : "CockpitActionKept";
+    if (purpose === "constant") return failed ? "ConstantFailed" : "ConstantWorked";
+    return failed ? "AuxiliaryFailed" : "AuxiliaryWorked";
+}
+
+/**
  * Handle a click on a percentage check.
  *
  * @param {Event} event The click event.
@@ -460,20 +555,20 @@ export async function onMechChanceCheckClick(event) {
         const roll = await new Roll(link.dataset.formula).evaluate();
         const failed = chanceFailed(roll.total, Number(link.dataset.chance));
 
-        const outcome = link.dataset.purpose === "cockpit"
-            ? (failed ? "CockpitActionLost" : "CockpitActionKept")
-            : (failed ? "AuxiliaryFailed" : "AuxiliaryWorked");
+        const system = link.dataset.systemId ? actor.items.get(link.dataset.systemId) : null;
 
         // An auxiliary system that failed its check cannot be used again until the
         // start of the mech's next turn, which is when the flag is cleared. The
         // cockpit's lost action is spent as it happens and leaves nothing behind.
-        if (failed && link.dataset.purpose === "auxiliary" && link.dataset.systemId) {
-            await actor.items.get(link.dataset.systemId)?.setFlag("sfrpg", "failedThisTurn", true);
+        if (failed && link.dataset.purpose !== "cockpit" && system) {
+            await system.setFlag("sfrpg", "failedThisTurn", true);
         }
 
         await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor }),
-            flavor: game.i18n.localize(`SFRPG.MechSheet.SystemFailure.${outcome}`),
+            flavor: game.i18n.format(`SFRPG.MechSheet.SystemFailure.${chanceOutcome(link.dataset.purpose, failed)}`, {
+                name: system?.name ?? ""
+            }),
             rolls: [roll],
             sound: CONFIG.sounds.dice,
             whisper: failureRecipients(game.users, actor)

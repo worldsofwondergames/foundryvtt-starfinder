@@ -1,6 +1,53 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
-import { failureRecipients, transitionButtons } from "./mech-failure-link.js";
+import { buttonKey } from "./chat-button-claim.js";
+import { chanceLink, chanceOutcome, failureRecipients, transitionButtons } from "./mech-failure-link.js";
+import en from "../../../static/lang/en.json";
+
+describe("chanceOutcome", () => {
+    const text = key => en.SFRPG.MechSheet.SystemFailure[key];
+
+    it("tells a constant system's check apart from an activated one's, which spends an action", () => {
+        expect(text(chanceOutcome("constant", true))).not.toBe(text(chanceOutcome("auxiliary", true)));
+        expect(text(chanceOutcome("constant", true))).not.toMatch(/Power Points/);
+    });
+
+    it("names the constant system that failed or worked", () => {
+        expect([text(chanceOutcome("constant", true)), text(chanceOutcome("constant", false))]).toEqual([
+            expect.stringContaining("{name}"),
+            expect.stringContaining("{name}")
+        ]);
+    });
+
+    it("tells a failed check from one that worked", () => {
+        for (const purpose of ["auxiliary", "constant", "cockpit"]) {
+            expect(chanceOutcome(purpose, true)).not.toBe(chanceOutcome(purpose, false));
+        }
+    });
+});
+
+describe("chanceLink", () => {
+    function card(links) {
+        const element = document.createElement("div");
+        element.className = "sfrpg chat-card mech-failure-card";
+        element.innerHTML = links.join("");
+        return element;
+    }
+    const check = (index, systemId) => chanceLink({ chance: 25, purpose: "auxiliary", label: systemId, systemId, index, tooltip: "" });
+
+    it("gives each check on a turn's card its own claim, so rolling one leaves the others live", () => {
+        const links = [...card([check(0, "ammo"), check(1, "hatch")]).querySelectorAll("a")];
+
+        expect(links.map(buttonKey)).toEqual(["mechChanceCheck:0", "mechChanceCheck:1"]);
+    });
+
+    it("names the system it checks, so a failed check stops that system", () => {
+        const link = card([check(0, "hatch")]).querySelector("a");
+
+        expect(link.dataset.systemId).toBe("hatch");
+        expect(link.dataset.chance).toBe("25");
+    });
+});
 
 describe("failureRecipients", () => {
     function world(owners) {

@@ -58,9 +58,16 @@ export class RPC {
 
         // console.log(`Sending message:\n${JSON.stringify(messageData)}`);
 
-        /** Sending to GM, local user is GM, send to self always succeeds. */
+        /**
+         * Sending to GM, local user is GM: handle it here, and send it to the
+         * other GMs as a player's message would be. A handler that only the
+         * active GM may run would otherwise never see it from a second GM.
+         */
         if (recipient === "gm" && game.user.isGM) {
             this._handleMessage(messageData);
+            if (this.initialized && game.users.some(user => user.isGM && user.active && !user.isSelf)) {
+                game.socket.emit('system.sfrpg', messageData);
+            }
             return 'successMessageHandled';
         }
 
@@ -117,7 +124,7 @@ export class RPC {
             target: target
         };
         if (eventName in this.callbacks) {
-            this.callbacks[eventName] = this.callbacks[eventName].push(callbackItem);
+            this.callbacks[eventName].push(callbackItem);
         } else {
             this.callbacks[eventName] = [callbackItem];
         }
