@@ -58,3 +58,33 @@ describe("RPC.sendMessageTo the GM, from a GM", () => {
         expect(emit).not.toHaveBeenCalled();
     });
 });
+
+describe("RPC messages from the socket", () => {
+    function listener() {
+        world({ otherGM: false });
+        return game.socket.on.mock.calls.find(([event]) => event === "system.sfrpg")[1];
+    }
+
+    test("take the sender from the id the server passes, not from the message", async () => {
+        const onSocket = listener();
+        const handler = vi.fn();
+        RPC.registerCallback("narrativeCrewAction", "gm", handler);
+
+        await onSocket({ recipient: "gm", sender: "spoofed", eventName: "narrativeCrewAction", payload: {} }, "realPlayer");
+
+        expect(handler.mock.calls[0][0].sender).toBe("realPlayer");
+    });
+
+    test("are dropped when the server passes no sender id", async () => {
+        const onSocket = listener();
+        const handler = vi.fn();
+        RPC.registerCallback("narrativeCrewAction", "gm", handler);
+
+        await onSocket({ recipient: "gm", sender: "p1", eventName: "narrativeCrewAction", payload: {} }, "p1");
+        expect(handler).toHaveBeenCalledTimes(1);
+
+        await onSocket({ recipient: "gm", sender: "spoofed", eventName: "narrativeCrewAction", payload: {} });
+
+        expect(handler).toHaveBeenCalledTimes(1);
+    });
+});
