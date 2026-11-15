@@ -26,6 +26,7 @@
  *   revealTactic         The GM must pick the enemy's tactic for next round now (Prognosticate).
  *   thresholdDelta       Change to a ship's threshold (Channel Eldritch Energy).
  *   extraHitIfHit        One more hit at Resolve if the ship took at least one hit (Target System).
+ *   virtualIntelligenceUsed  The PC ship's Virtual Intelligence has aided this round (target is the ship).
  *
  * Draw Fire also sets ships[target].forcedTactic = {tactic: "openFire", targetShip, round}.
  *
@@ -242,6 +243,44 @@ function validate(state, input, round) {
 }
 
 /**
+ * Provide Aid's effect: the ally gets +2 on their next check this round, or +3 when the aid check beat the DC by 5
+ * or more. Used by Provide Aid and Virtual Intelligence.
+ * @param {object} state
+ * @param {string} allyId
+ * @param {number} margin The aid check's total minus its DC. 0 or more.
+ * @param {number} round
+ * @returns {object}
+ */
+export function addAidBonus(state, allyId, margin, round) {
+    return addModifier(state, { target: allyId, kind: "nextCheck", value: margin >= 5 ? 3 : 2, expiresAfterRound: round });
+}
+
+/**
+ * Virtual Intelligence: once a round, the ship's computer attempts Provide Aid for a crew member of that ship who
+ * has not acted yet. It uses no crew member's action. The roll is d20 + virtualIntelligenceBonus(tier) against the
+ * ship's own Average DC.
+ * @param {object} state
+ * @param {object} input
+ * @param {string} input.shipId The PC ship with the upgrade.
+ * @param {string} input.allyId
+ * @param {number} input.total
+ * @param {number} input.dc
+ * @param {Record<string, Record<string, string[]>>} input.crew Crew by ship and role.
+ * @param {number} round
+ * @returns {{state: object, ok: boolean, success?: boolean, reason?: string}}
+ *   The ship's aid this round is recorded as a virtualIntelligenceUsed modifier, success or not.
+ */
+export function applyVirtualIntelligenceAid(state, { shipId, allyId, total, dc, crew }, round) {
+    if (state.ships[shipId]?.side !== "pc") return { state, ok: false, reason: "wrongSide" };
+    if (modifiersFor(state, shipId, "virtualIntelligenceUsed", round) > 0) return { state, ok: false, reason: "aidUsed" };
+    if (allyProblem(state, { shipId, crew }, allyId, { acted: false })) return { state, ok: false, reason: "badAlly" };
+    let next = addModifier(state, { target: shipId, kind: "virtualIntelligenceUsed", value: 1, expiresAfterRound: round });
+    const success = Number(total) >= Number(dc);
+    if (success) next = addAidBonus(next, allyId, Number(total) - Number(dc), round);
+    return { state: next, ok: true, success };
+}
+
+/**
  * Applies one crew action.
  * @param {object} state The combat's narrative state.
  * @param {object} input
@@ -324,7 +363,7 @@ export function applyCrewAction(state, input, round) {
         case "successes":
             break;
         case "aidBonus":
-            for (const ally of allies) mod(ally, "nextCheck", margin >= 5 ? 3 : 2, thisRound);
+            for (const ally of allies) next = addAidBonus(next, ally, margin, round);
             break;
         case "regainResolve":
             for (const ally of allies) effects.push({ kind: "regainResolve", target: ally, value: 1 });

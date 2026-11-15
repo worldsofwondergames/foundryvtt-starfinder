@@ -20,6 +20,7 @@
  * Ship flags tactics add for the round: "takeCover" and "fleeing". endOfRound in round-end.js clears them.
  */
 import { addModifier, modifiersFor } from "./state.js";
+import { mantleBlocks } from "./upgrades.js";
 
 /**
  * checks: how many skill checks the enemy rolls.
@@ -81,6 +82,18 @@ export function tacticRollCount(state, { enemyId, tactic }, round) {
     if (!data) return 0;
     if (tactic === "openFire" && hasModifier(state, enemyId, "enemyRollTwiceWorse", round)) return 2;
     return data.checks;
+}
+
+/**
+ * Whether a tactic needs the Displacement Mantle d100: it targets a PC ship whose mantle is on this round.
+ * @param {object} state
+ * @param {{tactic: string, targetId?: string|null}} input
+ * @param {number} round
+ * @returns {boolean}
+ */
+export function mantleCheckNeeded(state, { tactic, targetId }, round) {
+    if (!targetId || !NARRATIVE_TACTICS[tactic]?.pcTarget) return false;
+    return modifiersFor(state, targetId, "displacementMantle", round) > 0;
 }
 
 /**
@@ -235,9 +248,11 @@ export function presetNextTactic(state, enemyId, tactic, targetId, round) {
  * @param {number[]} [input.rolls] Check totals, tacticRollCount of them, each d20 + skill bonus + enemyCheckBonus.
  * @param {{average: number, hard: number}} [input.dcs] The PC target ship's DCs.
  * @param {"average"|"hard"} [input.choice] The GM's DC choice for Cruel Taunt. Required for Cruel Taunt.
+ * @param {number} [input.mantleRoll] The d100 for Displacement Mantle. Required when mantleCheckNeeded is true.
  * @param {number} round
  * @returns {{state: object, effects: Array<object>}} The caller applies hit and heal effects (target, value).
- *   manual means the GM runs it by hand; rejected has a reason and leaves the state unchanged.
+ *   manual means the GM runs it by hand; rejected has a reason and leaves the state unchanged; mantleBlocked
+ *   means the Displacement Mantle made the tactic fail, and the state is unchanged.
  */
 export function applyTactic(state, input, round) {
     const { enemyId, tactic, targetId, dcs } = input;
@@ -252,6 +267,12 @@ export function applyTactic(state, input, round) {
     const count = tacticRollCount(state, input, round);
     if (count > 0 && (rolls.length < count || !rolls.slice(0, count).every(Number.isFinite))) {
         return { state, effects: [{ kind: "rejected", reason: "badRoll" }] };
+    }
+    // Displacement Mantle: the tactic fails on a d100 of 20 or less, whatever the check result.
+    if (mantleCheckNeeded(state, input, round)) {
+        const mantleRoll = input.mantleRoll === null || input.mantleRoll === undefined ? NaN : Number(input.mantleRoll);
+        if (!Number.isFinite(mantleRoll)) return { state, effects: [{ kind: "rejected", reason: "noMantleRoll" }] };
+        if (mantleBlocks(mantleRoll)) return { state, effects: [{ kind: "mantleBlocked" }] };
     }
     const dc = count > 0 ? tacticDC(state, input, dcs, round) : null;
     // Open Fire with two rolls keeps the worse; All-Out Attack needs both.
