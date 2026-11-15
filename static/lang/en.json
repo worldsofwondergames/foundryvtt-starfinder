@@ -2962,7 +2962,9 @@
                 "badSkill": "That crew member can't use that skill.",
                 "badTarget": "Choose an enemy ship that is still in the fight.",
                 "mantlePhase": "The Displacement Mantle can only be activated during the Enemy Tactics phase, before the tactics against the ship are rolled.",
+                "noAverageDC": "This ship has no Average DC, so Mine Layer can't set the DC of its mines.",
                 "noCombat": "There is no narrative starship combat running.",
+                "noEnemyAction": "Mine Layer and the Nav-Scram Module need an action that targets an enemy ship, other than Negate Take Cover.",
                 "noFreeAction": "This crew member has no free Patch Hull to use.",
                 "noGM": "No GM is connected to apply the action.",
                 "noResolve": "You have no Resolve Points to spend.",
@@ -3147,6 +3149,7 @@
                 "MinesAvoided": "{ship} gets through the mines (DC {dc}).",
                 "MinesHit": "{ship} fails to avoid the mines (DC {dc}) and takes 1 hit.",
                 "NavScram": "Nav-Scram Module: {ship} takes a -2 penalty to its skill checks for {rounds} rounds, counting this one.",
+                "NavScramOne": "Nav-Scram Module: {ship} takes a -2 penalty to its skill checks for this round only.",
                 "QuantumAsk": "{enemy}'s check would hit {ship}. Use {ship}'s Quantum Defender to make {enemy} reroll the check and take the new result?",
                 "QuantumUsed": "Quantum Defender: {ship} makes the enemy reroll the check.",
                 "TrackingWeapons": "Tracking Weapons: the gunner rerolled a failed check."

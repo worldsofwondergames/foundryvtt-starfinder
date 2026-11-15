@@ -213,10 +213,21 @@ export function applyActionUpgrades(state, input, round) {
     const { shipId, targetId, upgrades } = input;
     const refuse = reason => ({ state, ok: false, reason });
     let next = state;
-    if ((input.mineLayer || input.navScram) && !isSide(state, targetId, "enemy")) return refuse("badTarget");
+    if (input.mineLayer || input.navScram) {
+        // Only an action that targets an enemy ship can carry them. Negate Take Cover targets a ship that can't be
+        // targeted, so it can't.
+        if (NARRATIVE_CREW_ACTIONS[input.actionKey]?.dcOf !== "target" || input.actionKey === "clearTakeCover") {
+            return refuse("noEnemyAction");
+        }
+        if (!isSide(state, targetId, "enemy")) return refuse("badTarget");
+        if (state.ships[targetId].flags?.includes("takeCover")) return refuse("takeCover");
+    }
     if (input.mineLayer) {
         const problem = upgradeProblem(next, shipId, "mineLayer", upgrades);
         if (problem) return refuse(problem);
+        if (!Number.isFinite(Number(input.averageDC)) || input.averageDC === null || input.averageDC === undefined) {
+            return refuse("noAverageDC");
+        }
         next = useOnce(next, shipId, "mineLayer").state;
         next = addModifier(next, { target: targetId, kind: "mines", value: Number(input.averageDC), expiresAfterRound: round + 1, fromRound: round + 1 });
     }
@@ -277,14 +288,17 @@ export function resolveMines(state, enemyId, total, round) {
 
 /**
  * The PC ship that can use Quantum Defender against a tactic's result: one that takes a hit from it and has
- * the upgrade unused. Null when there is none.
+ * the upgrade unused, and whose Ablative Plating, if unused, does not take every hit. Null when there is none.
  * @param {object} state
  * @param {Array<object>} effects The tactic's effects.
  * @param {Record<string, Record<string, number>|undefined>} upgradesById Each ship's installed upgrades.
  * @returns {string|null}
  */
 export function quantumDefenderShip(state, effects, upgradesById) {
+    const hitsOn = id => effects.filter(e => e.kind === "hit" && e.target === id).reduce((sum, e) => sum + e.value, 0);
     const hit = effects.find(e => e.kind === "hit" && e.value > 0 && isSide(state, e.target, "pc")
-        && !upgradeProblem(state, e.target, "quantumDefender", upgradesById?.[e.target]));
+        && !upgradeProblem(state, e.target, "quantumDefender", upgradesById?.[e.target])
+        // Ablative Plating that will take the only hit leaves nothing to reroll against.
+        && absorbHit(state, e.target, hitsOn(e.target), upgradesById?.[e.target]).hits > 0);
     return hit?.target ?? null;
 }

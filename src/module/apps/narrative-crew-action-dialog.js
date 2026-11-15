@@ -92,8 +92,8 @@ function updateRows(form) {
         secondAlly: needs.secondAlly && resolve,
         targetAction: needs.targetAction,
         resolve: option?.dataset.resolve === "true",
-        mineLayer: needs.enemy,
-        navScram: needs.enemy
+        mineLayer: needs.enemy && option?.value !== "clearTakeCover",
+        navScram: needs.enemy && option?.value !== "clearTakeCover"
     };
     if (!show.resolve) form.elements.spentResolve.checked = false;
     for (const row of form.querySelectorAll(".nca-row")) row.hidden = !show[row.dataset.row];
@@ -207,8 +207,8 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
         skillKey: data.skillKey,
         spentResolve,
         free,
-        mineLayer: needs.enemy && unused("mineLayer") && Boolean(data.mineLayer),
-        navScram: needs.enemy && unused("navScramModule") && Boolean(data.navScram)
+        mineLayer: needs.enemy && actionKey !== "clearTakeCover" && unused("mineLayer") && Boolean(data.mineLayer),
+        navScram: needs.enemy && actionKey !== "clearTakeCover" && unused("navScramModule") && Boolean(data.navScram)
     };
 
     // Catch a refused action before the roll. The GM checks again with the real roll.

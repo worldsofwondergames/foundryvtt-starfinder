@@ -149,6 +149,30 @@ describe("applyActionUpgrades", () => {
         expect(applyActionUpgrades(fresh(), { ...base, upgrades: {}, mineLayer: true }, ROUND)).toMatchObject({ ok: false, reason: "noUpgrade" });
         expect(applyActionUpgrades(fresh(), { ...base, targetId: "pc2", mineLayer: true }, ROUND)).toMatchObject({ ok: false, reason: "badTarget" });
     });
+    it("refuses Mine Layer and Nav-Scram with an action that does not target an enemy", () => {
+        for (const extra of [{ mineLayer: true }, { navScram: true, navScramRoll: 1 }]) {
+            expect(applyActionUpgrades(fresh(), { ...base, actionKey: "provideAid", ...extra }, ROUND))
+                .toMatchObject({ ok: false, reason: "noEnemyAction" });
+        }
+    });
+    it("refuses Mine Layer and Nav-Scram with Negate Take Cover", () => {
+        const covered = { ...fresh(), ships: { ...fresh().ships, e1: { ...fresh().ships.e1, flags: ["takeCover"] } } };
+        for (const extra of [{ mineLayer: true }, { navScram: true, navScramRoll: 1 }]) {
+            expect(applyActionUpgrades(covered, { ...base, role: "pilot", actionKey: "clearTakeCover", ...extra }, ROUND))
+                .toMatchObject({ ok: false, reason: "noEnemyAction" });
+        }
+    });
+    it("refuses Mine Layer and Nav-Scram against a ship taking cover", () => {
+        const covered = { ...fresh(), ships: { ...fresh().ships, e1: { ...fresh().ships.e1, flags: ["takeCover"] } } };
+        for (const extra of [{ mineLayer: true }, { navScram: true, navScramRoll: 1 }]) {
+            expect(applyActionUpgrades(covered, { ...base, ...extra }, ROUND)).toMatchObject({ ok: false, reason: "takeCover" });
+        }
+    });
+    it("refuses Mine Layer when the ship has no Average DC", () => {
+        expect(applyActionUpgrades(fresh(), { ...base, averageDC: undefined, mineLayer: true }, ROUND))
+            .toMatchObject({ ok: false, reason: "noAverageDC" });
+        expect(applyActionUpgrades(fresh(), { ...base, averageDC: undefined, navScram: true, navScramRoll: 1 }, ROUND).ok).toBe(true);
+    });
     it("leaves the state unchanged when one of two upgrades is refused", () => {
         const state = useOnce(fresh(), "pc1", "navScramModule").state;
         const r = applyActionUpgrades(state, { ...base, mineLayer: true, navScram: true, navScramRoll: 1 }, ROUND);
@@ -158,7 +182,7 @@ describe("applyActionUpgrades", () => {
 });
 
 describe("Mine Layer check", () => {
-    const mined = () => applyActionUpgrades(fresh(), { shipId: "pc1", targetId: "e1", upgrades: ALL_ONCE, averageDC: 14, mineLayer: true }, ROUND).state;
+    const mined = () => applyActionUpgrades(fresh(), { shipId: "pc1", targetId: "e1", upgrades: ALL_ONCE, averageDC: 14, actionKey: "fireAtWill", mineLayer: true }, ROUND).state;
     it("a roll below the DC gives the enemy 1 hit and clears the mines", () => {
         const r = resolveMines(mined(), "e1", 13, ROUND + 1);
         expect(r.success).toBe(false);
@@ -203,6 +227,14 @@ describe("quantumDefenderShip", () => {
         expect(quantumDefenderShip(fresh(), hit, { pc1: {} })).toBeNull();
         expect(quantumDefenderShip(useOnce(fresh(), "pc1", "quantumDefender").state, hit, { pc1: { quantumDefender: 1 } })).toBeNull();
         expect(quantumDefenderShip(fresh(), [], { pc1: { quantumDefender: 1 } })).toBeNull();
+    });
+    it("skips a ship whose unused Ablative Plating takes the only hit", () => {
+        const both = { pc1: { quantumDefender: 1, ablativePlating: 1 } };
+        expect(quantumDefenderShip(fresh(), hit, both)).toBeNull();
+        expect(quantumDefenderShip(fresh(), [{ kind: "hit", target: "pc1", value: 2 }], both)).toBe("pc1");
+        expect(quantumDefenderShip(useOnce(fresh(), "pc1", "mineLayer").state, hit, both)).toBeNull();
+        const plated = { ...fresh(), usedOnce: { ...fresh().usedOnce, pc1: ["ablativePlating"] } };
+        expect(quantumDefenderShip(plated, hit, both)).toBe("pc1");
     });
 });
 

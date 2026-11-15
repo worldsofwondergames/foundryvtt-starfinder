@@ -314,7 +314,10 @@ function upgradeLines(combat, input, navScramRoll) {
     const lines = [];
     if (input.trackingWeapons) lines.push(game.i18n.localize(LABEL + "UpgradeCard.TrackingWeapons"));
     if (input.mineLayer) lines.push(game.i18n.format(LABEL + "UpgradeCard.MineLayer", { ship: target }));
-    if (navScramRoll) lines.push(game.i18n.format(LABEL + "UpgradeCard.NavScram", { ship: target, rounds: navScramRoll.total }));
+    if (navScramRoll) {
+        const key = navScramRoll.total === 1 ? "UpgradeCard.NavScramOne" : "UpgradeCard.NavScram";
+        lines.push(game.i18n.format(LABEL + key, { ship: target, rounds: navScramRoll.total }));
+    }
     return lines;
 }
 
