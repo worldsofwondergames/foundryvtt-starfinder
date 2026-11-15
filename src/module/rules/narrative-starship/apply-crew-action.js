@@ -28,6 +28,9 @@
  *   extraHitIfHit        One more hit at Resolve if the ship took at least one hit (Target System).
  *
  * Draw Fire also sets ships[target].forcedTactic = {tactic: "openFire", targetShip, round}.
+ *
+ * An enemy ship with the "takeCover" flag (Take Cover tactic) cannot be targeted. The only action allowed against
+ * it is clearTakeCover, the pilot's special Piloting check, which removes the flag and gives no successes.
  */
 import { NARRATIVE_CREW_ACTIONS, skillAllowed, successesFor } from "./crew-actions.js";
 import { addModifier, addSuccesses, canAct, grantExtraAction, modifiersFor, recordAction, resolveRound } from "./state.js";
@@ -162,6 +165,10 @@ function isEnemy(state, id) {
     return state.ships[id]?.side === "enemy";
 }
 
+function takingCover(state, id) {
+    return Boolean(state.ships[id]?.flags.includes("takeCover"));
+}
+
 function allyProblem(state, input, allyId, rules) {
     const shipCrew = input.crew?.[input.shipId] ?? {};
     const roles = rolesOf(shipCrew, allyId);
@@ -197,6 +204,14 @@ function validate(state, input, round) {
 
     if (ENEMY_TARGET_ACTIONS.has(actionKey) && !isEnemy(state, targetId)) return "badTarget";
     if (spentResolve && RESOLVE_SUCCESS_ACTIONS.has(actionKey) && !isEnemy(state, targetId)) return "badTarget";
+    if (actionKey === "clearTakeCover") {
+        if (skillKey !== "pil") return "pilotingOnly";
+        if (!takingCover(state, targetId)) return "notTakingCover";
+    } else {
+        const targeted = ENEMY_TARGET_ACTIONS.has(actionKey) || (spentResolve && RESOLVE_SUCCESS_ACTIONS.has(actionKey));
+        if (targeted && takingCover(state, targetId)) return "takeCover";
+        if (spentResolve && SECOND_ENEMY_ACTIONS.has(actionKey) && takingCover(state, input.secondTargetId)) return "takeCover";
+    }
 
     if (spentResolve && !action.resolve) return "noResolveRider";
     if (spentResolve && !(Number(input.actorResolve) >= 1)) return "noResolve";
@@ -379,6 +394,11 @@ export function applyCrewAction(state, input, round) {
         case "extraHitIfHit":
             mod(targetId, "extraHitIfHit", 1, thisRound);
             break;
+        case "clearTakeCover": {
+            const ship = next.ships[targetId];
+            next = { ...next, ships: { ...next.ships, [targetId]: { ...ship, flags: ship.flags.filter(f => f !== "takeCover") } } };
+            break;
+        }
         default:
             break;
     }

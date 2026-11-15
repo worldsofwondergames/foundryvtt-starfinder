@@ -14,9 +14,10 @@
  *
  * Modifier kinds crew actions write that tactics read: enemySkill (enemyCheckBonus), enemyHardDC and
  * ownDCHard (tacticDC), enemyRollTwiceWorse (tacticRollCount and Open Fire). Draw Fire's
- * ships[enemy].forcedTactic is read by availableTactics and chooseTactic.
+ * ships[enemy].forcedTactic is read by availableTactics and chooseTactic. Prognosticate's revealTactic is read
+ * by revealPending, and presetNextTactic then sets forcedTactic for next round.
  *
- * Ship flags tactics add for the round: "takeCover" and "fleeing". The round-end code clears them.
+ * Ship flags tactics add for the round: "takeCover" and "fleeing". endOfRound in round-end.js clears them.
  */
 import { addModifier, modifiersFor } from "./state.js";
 
@@ -164,12 +165,64 @@ function tacticProblem(state, enemyId, tactic, targetId, round) {
  * @param {string|null} targetId The PC ship, for tactics that target one.
  * @param {number} round
  * @returns {object} The new state.
- * @throws {Error} With the reason as message when the tactic cannot be chosen.
+ * @throws {Error} With the reason as message when the tactic cannot be chosen, including "alreadyChosen" when
+ *   the enemy has a tactic this round.
  */
 export function chooseTactic(state, enemyId, tactic, targetId, round) {
+    if (state.ships[enemyId]?.tactic) throw new Error("alreadyChosen");
     const problem = tacticProblem(state, enemyId, tactic, targetId, round);
     if (problem) throw new Error(problem);
     return withShip(state, enemyId, { tactic, tacticTarget: targetId ?? null });
+}
+
+/**
+ * Whether the GM still has to pick the enemy's tactic for next round because Prognosticate succeeded against it
+ * this round. Prognosticate's revealTactic modifier lasts until the end of next round, so one that ends after
+ * next round was written this round.
+ * @param {object} state
+ * @param {string} enemyId
+ * @param {number} round
+ * @returns {boolean}
+ */
+export function revealPending(state, enemyId, round) {
+    const written = state.modifiers.some(m => m.target === enemyId && m.kind === "revealTactic" && m.expiresAfterRound === round + 1);
+    return written && state.ships[enemyId]?.forcedTactic?.round !== round + 1;
+}
+
+/** The state as next round's choices see it: this round's tactics do not take a tactic next round. */
+function nextRoundView(state) {
+    const ships = Object.fromEntries(Object.entries(state.ships).map(([id, ship]) => [id, { ...ship, tactic: null }]));
+    return { ...state, ships };
+}
+
+/**
+ * availableTactics for the enemy's next round, for picking its tactic after Prognosticate.
+ * @param {object} state
+ * @param {string} enemyId
+ * @param {number} round The current round.
+ * @returns {Array<{key: string, disabled: boolean, reason?: "taken"|"locked"|"forced"}>}
+ */
+export function availableNextTactics(state, enemyId, round) {
+    return availableTactics(nextRoundView(state), enemyId, round + 1);
+}
+
+/**
+ * Records the tactic the GM picks for an enemy ship's next round after Prognosticate. It is stored as the
+ * ship's forcedTactic, so availableTactics and chooseTactic lock it next round.
+ * @param {object} state
+ * @param {string} enemyId
+ * @param {string} tactic
+ * @param {string|null} targetId The PC ship, for tactics that target one.
+ * @param {number} round The current round.
+ * @returns {object} The new state.
+ * @throws {Error} With the reason as message: "noReveal", or a reason chooseTactic would give next round.
+ */
+export function presetNextTactic(state, enemyId, tactic, targetId, round) {
+    if (!revealPending(state, enemyId, round)) throw new Error("noReveal");
+    const problem = tacticProblem(nextRoundView(state), enemyId, tactic, targetId, round + 1);
+    if (problem) throw new Error(problem);
+    const targetShip = NARRATIVE_TACTICS[tactic].pcTarget ? targetId : null;
+    return withShip(state, enemyId, { forcedTactic: { tactic, targetShip, round: round + 1 } });
 }
 
 /**

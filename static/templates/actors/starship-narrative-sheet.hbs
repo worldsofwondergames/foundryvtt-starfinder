@@ -23,6 +23,9 @@
                     <input type="checkbox" name="system.crew.useNPCCrew" {{checked system.crew.useNPCCrew}}/>{{localize "SFRPG.StarshipSheet.Crew.IsNPCCrew"}}
                 </label>
                 {{/if}}
+                {{#if narrative.showTactics}}
+                <a class="narrative-tactics-open"><i class="fas fa-chess"></i> {{localize "SFRPG.NarrativeStarship.TacticsDialog.Open"}}</a>
+                {{/if}}
                 {{#if narrative.showStandardToggle}}
                 <a class="narrative-standard-toggle"><i class="fas fa-right-left"></i> {{localize "SFRPG.NarrativeStarship.UseStandardSheet"}}</a>
                 {{/if}}

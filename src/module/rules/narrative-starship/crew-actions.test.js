@@ -6,8 +6,9 @@ import {
 const DCS = { average: 20, hard: 25 };
 
 describe("NARRATIVE_CREW_ACTIONS", () => {
-    test("has all 29 actions", () => {
-        expect(Object.keys(NARRATIVE_CREW_ACTIONS)).toHaveLength(29);
+    test("has the 29 book actions and the Take Cover pilot check", () => {
+        expect(Object.keys(NARRATIVE_CREW_ACTIONS)).toHaveLength(30);
+        expect(NARRATIVE_CREW_ACTIONS.clearTakeCover).toMatchObject({ role: "pilot", hardAlways: true, dcOf: "target" });
     });
 
     test("preferred skills are real system skill keys", () => {
@@ -20,6 +21,13 @@ describe("NARRATIVE_CREW_ACTIONS", () => {
 
     test("gunner ranged attack bonus is 3", () => {
         expect(RANGED_ATTACK_BONUS).toBe(3);
+    });
+});
+
+describe("clearTakeCover", () => {
+    test("uses the Hard DC and gives no successes", () => {
+        expect(dcFor(NARRATIVE_CREW_ACTIONS.clearTakeCover, "pil", DCS)).toBe(25);
+        expect(successesFor("clearTakeCover", 40, 25)).toBe(0);
     });
 });
 

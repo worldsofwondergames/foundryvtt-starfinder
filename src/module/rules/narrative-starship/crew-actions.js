@@ -58,6 +58,8 @@ export const NARRATIVE_CREW_ACTIONS = {
     holdSteady: entry("pilot", ["ath", "per", "pil"], false, "target", "gunnerBonus", "secondGunnerBonus"),
     outmaneuver: entry("pilot", ["acr", "pil"], false, "target", "successes"),
     performAudaciousStunt: entry("pilot", "any", true, "target", "successes"),
+    // Not a book crew action: the special Piloting check from the Take Cover tactic (EN p. 179). It gives no successes.
+    clearTakeCover: entry("pilot", ["pil"], true, "target", "clearTakeCover"),
 
     // Science officer
     improveCountermeasures: entry("scienceOfficer", ["com", "eng", "phs"], false, "own", "ownDCHard", "freePatchHull"),

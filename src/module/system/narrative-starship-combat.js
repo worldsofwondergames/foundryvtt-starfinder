@@ -3,14 +3,20 @@
  * actions for the GM, and runs the Resolve phase. The rules are in rules/narrative-starship and are pure.
  * Nothing here touches Foundry when the module loads, so tests can import it.
  */
+import { openNarrativeTacticsDialog, refreshNarrativeTacticsDialog } from "../apps/narrative-tactics-dialog.js";
 import { RPC } from "../rpc.js";
 import { applyCrewAction, crewActionDCShip, resolveNarrativeRound } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, NARRATIVE_ROLES, dcFor } from "../rules/narrative-starship/crew-actions.js";
+import { endOfRound } from "../rules/narrative-starship/round-end.js";
 import { initialState } from "../rules/narrative-starship/state.js";
-import { forceHardFor } from "../rules/narrative-starship/tactics.js";
+import {
+    NARRATIVE_TACTICS, applyTactic, chooseTactic, enemyCheckBonus, forceHardFor, presetNextTactic, revealPending, tacticDC,
+    tacticRollCount
+} from "../rules/narrative-starship/tactics.js";
 
 export const NARRATIVE_COMBAT_TYPE = "narrativeStarship";
 /** Phase indexes of the narrative combat type. */
+export const TACTICS_PHASE = 1;
 export const CREW_ACTIONS_PHASE = 2;
 export const RESOLVE_PHASE = 3;
 
@@ -196,13 +202,28 @@ async function handleCrewAction(message) {
     await saveNarrativeState(combat, result.state);
     const lines = await applyEffects(combat, result.effects);
     await postCrewActionCard({ combat, actor, input, action, dc, result, lines });
+    if (action.effect === "forceTacticReveal" && result.success) await askForNextTactic(combat, input.targetId);
+}
+
+/**
+ * After Prognosticate, tells the GM to pick the enemy's tactic for next round now, and opens the tactics
+ * dialog where the GM picks it. The dialog is not waited for, so the combat's queue keeps moving.
+ */
+async function askForNextTactic(combat, enemyId) {
+    const name = shipActor(combat, enemyId)?.name ?? enemyId;
+    await ChatMessage.create({
+        content: `<p>${game.i18n.format(LABEL + "TacticsDialog.RevealWhisper", { ship: name })}</p>`,
+        whisper: ChatMessage.getWhisperRecipients("GM").map(u => u.id),
+        speaker: { alias: combat.getCombatName?.() ?? "" }
+    });
+    openNarrativeTacticsDialog(combat);
 }
 
 /**
  * Applies heal, hit, and Resolve effects to the documents.
  * @returns {Promise<string[]>} A line of text for each effect, for the result card.
  */
-async function applyEffects(combat, effects) {
+export async function applyEffects(combat, effects) {
     const lines = [];
     for (const effect of effects) {
         if (effect.kind === "heal" || effect.kind === "hit") {
@@ -279,40 +300,169 @@ export function onNarrativeCrewActionRejected(message) {
 
 /**
  * Resolve phase, run by the active GM when a narrative combat moves forward into it:
- * successes become hits, HP drops, and a summary goes to chat.
+ * successes become hits, HP drops, fleeing enemies leave, and a summary goes to chat.
  * @param {Combat} combat
+ * @param {number} [round] The round to resolve. Defaults to the combat's round. The round-advance path passes
+ *   the round that ended without a Resolve phase.
  */
-export async function resolveNarrativePhase(combat) {
-    return queueForCombat(combat.id, () => resolveRoundNow(combat));
+export async function resolveNarrativePhase(combat, round = combat.round) {
+    return queueForCombat(combat.id, () => resolveRoundNow(combat, round));
 }
 
-async function resolveRoundNow(combat) {
+async function resolveRoundNow(combat, round) {
     const state = combat.getFlag("sfrpg", "narrative");
-    if (!state || combat.getFlag("sfrpg", "narrativeResolvedRound") === combat.round) return;
+    if (!state || combat.getFlag("sfrpg", "narrativeResolvedRound") === round) return;
 
     const ships = {};
     for (const id of Object.keys(state.ships)) {
         const derived = shipActor(combat, id)?.system.narrative?.derived ?? {};
         ships[id] = { threshold: derived.threshold, hpValue: derived.hpValue };
     }
-    const result = resolveNarrativeRound(state, ships, combat.round);
+    // Successes become hits first, so Flee sees the HP the ship has left at the end of the round.
+    const result = resolveNarrativeRound(state, ships, round);
+    const end = endOfRound(result.state, result.hp);
 
     for (const [id, hits] of Object.entries(result.hits)) {
         if (hits <= 0) continue;
         await shipActor(combat, id)?.update({ "system.narrative.hp.value": result.hp[id] });
     }
-    await saveNarrativeState(combat, result.state);
-    await combat.setFlag("sfrpg", "narrativeResolvedRound", combat.round);
+    await saveNarrativeState(combat, end.state);
+    await combat.setFlag("sfrpg", "narrativeResolvedRound", round);
 
     const name = id => shipActor(combat, id)?.name ?? id;
     const content = await foundry.applications.handlebars.renderTemplate("systems/sfrpg/templates/chat/narrative-resolve.hbs", {
-        round: combat.round,
+        round,
         hits: Object.entries(result.hits).filter(([, n]) => n > 0)
             .map(([id, n]) => ({ name: name(id), hits: n, hp: result.hp[id] })),
         out: result.out.map(name),
-        ended: result.ended ? game.i18n.localize(`${LABEL}Resolve.${result.ended}`) : ""
+        fled: end.fled.map(name),
+        ended: end.ended ? game.i18n.localize(`${LABEL}Resolve.${end.ended}`) : ""
     });
     await ChatMessage.create({ speaker: { alias: combat.getCombatName?.() ?? "" }, content });
+}
+
+/**
+ * Rolls an enemy tactic for the GM. It records the choice, rolls the checks, applies the result, and posts the
+ * tactic card. Runs in the combat's queue. Shows a warning and changes nothing when the tactic is refused.
+ * @param {Combat} combat
+ * @param {{enemyId: string, tactic: string, targetId?: string, choice?: "average"|"hard"}} input
+ * @returns {Promise<boolean>} Whether the tactic was used.
+ */
+export async function runEnemyTactic(combat, input) {
+    return queueForCombat(combat.id, () => runEnemyTacticNow(combat, input));
+}
+
+function warnTactic(reason) {
+    ui.notifications.warn(game.i18n.localize(`${LABEL}TacticRejected.${reason}`));
+    return false;
+}
+
+async function runEnemyTacticNow(combat, { enemyId, tactic, targetId, choice }) {
+    if (!isNarrativeCombat(combat)) return warnTactic("noCombat");
+    if (combat.flags.sfrpg?.phase !== TACTICS_PHASE) return warnTactic("wrongPhase");
+    const state = combat.getFlag("sfrpg", "narrative");
+    const round = combat.round;
+    const target = NARRATIVE_TACTICS[tactic]?.pcTarget ? targetId : null;
+
+    let chosen;
+    try {
+        chosen = chooseTactic(state, enemyId, tactic, target, round);
+    } catch (error) {
+        return warnTactic(error.message);
+    }
+
+    const enemy = shipActor(combat, enemyId);
+    const targetShip = target ? shipActor(combat, target) : null;
+    const targetDerived = targetShip?.system.narrative?.derived ?? {};
+    const dcs = { average: targetDerived.averageDC, hard: targetDerived.hardDC };
+    const skillBonus = Number(enemy?.system.narrative?.derived?.skillBonus ?? 0);
+    const bonus = enemyCheckBonus(chosen, enemyId, round);
+    const count = tacticRollCount(chosen, { enemyId, tactic }, round);
+    const input = { enemyId, tactic, targetId: target, dcs, choice };
+
+    // Catch a refusal, such as a missing DC choice, before rolling.
+    const check = applyTactic(chosen, { ...input, rolls: Array(count).fill(0) }, round);
+    const refused = check.effects.find(e => e.kind === "rejected");
+    if (refused) return warnTactic(refused.reason);
+
+    const rolls = [];
+    for (let i = 0; i < count; i++) {
+        rolls.push(await new Roll("1d20 + @skillBonus + @bonus", { skillBonus, bonus }).evaluate());
+    }
+    const result = applyTactic(chosen, { ...input, rolls: rolls.map(r => r.total) }, round);
+    const rejected = result.effects.find(e => e.kind === "rejected");
+    if (rejected) return warnTactic(rejected.reason);
+
+    await saveNarrativeState(combat, result.state);
+    const lines = await applyEffects(combat, result.effects);
+    const dc = count > 0 ? tacticDC(chosen, input, dcs, round) : null;
+    await postTacticCard({ combat, enemy, targetShip, tactic, rolls, dc, result, lines });
+    return true;
+}
+
+async function postTacticCard({ combat, enemy, targetShip, tactic, rolls, dc, result, lines }) {
+    const manual = result.effects.some(e => e.kind === "manual");
+    const worst = rolls.length ? Math.min(...rolls.map(r => r.total)) : null;
+    const abilities = manual
+        ? await foundry.applications.ux.TextEditor.enrichHTML(enemy?.system.narrative?.specialAbilities ?? "", {
+            rollData: enemy?.getRollData() ?? {}
+        })
+        : "";
+    const content = await foundry.applications.handlebars.renderTemplate("systems/sfrpg/templates/chat/narrative-tactic.hbs", {
+        tacticName: game.i18n.localize(`${LABEL}Tactics.${tactic}.Name`),
+        shipName: enemy?.name ?? "",
+        targetName: targetShip?.name ?? "",
+        rollsHTML: await Promise.all(rolls.map(r => r.render())),
+        hasCheck: rolls.length > 0,
+        dc,
+        success: rolls.length > 0 && worst >= dc,
+        effectText: game.i18n.localize(`${LABEL}Tactics.${tactic}.Effect`),
+        lines,
+        manual,
+        abilities
+    });
+    await ChatMessage.create({
+        speaker: { alias: enemy?.name ?? combat.getCombatName?.() ?? "" },
+        content,
+        rolls,
+        flags: { sfrpg: { narrativeTactic: true } }
+    });
+}
+
+/**
+ * Records the GM's pick for an enemy's next-round tactic after Prognosticate. Runs in the combat's queue.
+ * @param {Combat} combat
+ * @param {{enemyId: string, tactic: string, targetId?: string}} input
+ * @returns {Promise<boolean>} Whether it was saved.
+ */
+export async function presetEnemyTactic(combat, { enemyId, tactic, targetId }) {
+    return queueForCombat(combat.id, async () => {
+        const state = combat.getFlag("sfrpg", "narrative");
+        if (!isNarrativeCombat(combat) || !state) return warnTactic("noCombat");
+        let next;
+        try {
+            next = presetNextTactic(state, enemyId, tactic, targetId ?? null, combat.round);
+        } catch (error) {
+            return warnTactic(error.message);
+        }
+        await saveNarrativeState(combat, next);
+        return true;
+    });
+}
+
+/**
+ * Whether the GM sees the Enemy Tactics button on an enemy ship's sheet: during Enemy Tactics, or while
+ * Prognosticate waits for the GM to pick the ship's next tactic.
+ * @param {Actor} ship
+ * @returns {Combat|null} The combat the button opens the dialog for.
+ */
+export function tacticsCombatFor(ship) {
+    if (!game.user.isGM) return null;
+    const combat = narrativeCombatFor(ship.id);
+    const state = combat?.getFlag("sfrpg", "narrative");
+    if (state?.ships[ship.id]?.side !== "enemy") return null;
+    if (combat.flags.sfrpg?.phase === TACTICS_PHASE || revealPending(state, ship.id, combat.round)) return combat;
+    return null;
 }
 
 /**
@@ -340,6 +490,7 @@ function onUpdateCombat(combat, changed) {
     if (combat.getCombatType?.() !== NARRATIVE_COMBAT_TYPE) return;
     const flags = changed.flags?.sfrpg ?? {};
     if (!("round" in changed) && !("phase" in flags) && !("narrative" in flags)) return;
+    refreshNarrativeTacticsDialog(combat);
     for (const combatant of combat.combatants) {
         const sheet = combatant.actor?.sheet;
         if (combatant.actor?.type === "starship" && sheet?.rendered) sheet.render(false);

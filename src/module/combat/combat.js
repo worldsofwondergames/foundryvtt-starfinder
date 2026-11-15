@@ -9,7 +9,9 @@ import { nextCombatType, starshipCombatTypeForMode } from "../rules/narrative-st
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 import { runTurnEvent } from "./turn-event.js";
-import { RESOLVE_PHASE, resolveNarrativePhase } from "../system/narrative-starship-combat.js";
+import { openNarrativeTacticsDialog } from "../apps/narrative-tactics-dialog.js";
+import { missedResolveRound } from "../rules/narrative-starship/round-end.js";
+import { RESOLVE_PHASE, TACTICS_PHASE, resolveNarrativePhase } from "../system/narrative-starship-combat.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
 /*
 The following hooks were added:
@@ -373,6 +375,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
             newRound: nextRound,
             oldPhase: currentPhase,
             newPhase: newPhase,
+            oldPhaseIndex: this.flags.sfrpg.phase,
+            newPhaseIndex: nextPhase,
             oldCombatant: currentPhase.iterateTurns ? this.turns[this.turn] : null,
             newCombatant: newPhase.iterateTurns ? this.turns[nextTurn] : null,
             direction: updateOptions.direction || nextRound - this.round || nextTurn - this.turn
@@ -438,9 +442,25 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 if (eventData.direction > 0) await this._postTurnStartFailures(eventData);
                 await applyMechTurnChanges(eventData);
                 // Moving forward into a narrative combat's Resolve phase turns successes into hits.
-                if (this.getCombatType() === "narrativeStarship" && eventData.isNewPhase && eventData.direction > 0
+                const narrative = this.getCombatType() === "narrativeStarship";
+                if (narrative && eventData.isNewPhase && eventData.direction > 0
                     && this.flags.sfrpg.phase === RESOLVE_PHASE) {
                     await resolveNarrativePhase(this);
+                }
+                // Moving to a new round from Enemy Tactics or Crew Actions skips the Resolve phase, so run it once here.
+                const missed = missedResolveRound({
+                    combatType: this.getCombatType(),
+                    isNewRound: eventData.isNewRound,
+                    direction: eventData.direction,
+                    oldPhaseIndex: eventData.oldPhaseIndex,
+                    oldRound: eventData.oldRound,
+                    resolvedRound: this.getFlag("sfrpg", "narrativeResolvedRound")
+                });
+                if (missed !== null) await resolveNarrativePhase(this, missed);
+                // The GM picks each enemy's tactic when Enemy Tactics starts. Not waited for: it is a window.
+                if (narrative && eventData.isNewPhase && eventData.direction > 0
+                    && this.flags.sfrpg.phase === TACTICS_PHASE) {
+                    openNarrativeTacticsDialog(this);
                 }
             });
         }

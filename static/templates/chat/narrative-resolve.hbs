@@ -11,6 +11,9 @@
         {{#each out as |name|}}
         <p>{{localize "SFRPG.NarrativeStarship.Resolve.Out" ship=name}}</p>
         {{/each}}
+        {{#each fled as |name|}}
+        <p>{{localize "SFRPG.NarrativeStarship.Resolve.Fled" ship=name}}</p>
+        {{/each}}
         {{#if ended}}
         <p><strong>{{ended}}</strong></p>
         {{/if}}

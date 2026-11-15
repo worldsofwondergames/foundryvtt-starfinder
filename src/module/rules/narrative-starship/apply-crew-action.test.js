@@ -171,6 +171,62 @@ describe("applyCrewAction", () => {
     });
 });
 
+describe("Take Cover", () => {
+    const covered = () => {
+        const s = fresh();
+        return { ...s, ships: { ...s.ships, e1: { ...s.ships.e1, flags: ["takeCover"] } } };
+    };
+
+    it("rejects an action that targets a ship taking cover", () => {
+        const r = act(covered(), { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1", skillKey: "pil" });
+        expect(r.effects).toEqual([{ kind: "rejected", reason: "takeCover" }]);
+        expect(r.state.ships.e1.successes).toBe(0);
+    });
+
+    it("still allows actions against another enemy", () => {
+        const r = act(covered(), { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e2", skillKey: "pil" });
+        expect(r.successes).toBe(1);
+    });
+
+    it("rejects a Resolve rider that gives the covered ship a success", () => {
+        const r = act(covered(), {
+            actorId: "mo", role: "magicOfficer", actionKey: "empowerCrew", skillKey: "mys", spentResolve: true, targetId: "e1"
+        });
+        expect(r.effects).toEqual([{ kind: "rejected", reason: "takeCover" }]);
+    });
+
+    it("rejects Harry Enemy's second target when it is taking cover", () => {
+        const r = act(covered(), {
+            actorId: "g1", role: "gunner", actionKey: "harryEnemy", skillKey: "blu", targetId: "e2", secondTargetId: "e1", spentResolve: true
+        });
+        expect(r.effects).toEqual([{ kind: "rejected", reason: "takeCover" }]);
+    });
+
+    it("the pilot's check clears the cover without a success, and then others can target the ship", () => {
+        const cleared = act(covered(), { actorId: "pil", role: "pilot", actionKey: "clearTakeCover", targetId: "e1", skillKey: "pil" });
+        expect(cleared.success).toBe(true);
+        expect(cleared.successes).toBe(0);
+        expect(cleared.state.ships.e1.successes).toBe(0);
+        expect(cleared.state.ships.e1.flags).not.toContain("takeCover");
+        const after = act(cleared.state, { actorId: "g1", role: "gunner", actionKey: "fireAtWill", targetId: "e1", skillKey: "acr" });
+        expect(after.state.ships.e1.successes).toBe(1);
+    });
+
+    it("a failed pilot check leaves the cover in place", () => {
+        const r = act(covered(), { actorId: "pil", role: "pilot", actionKey: "clearTakeCover", targetId: "e1", skillKey: "pil", total: 10 });
+        expect(r.success).toBe(false);
+        expect(r.state.ships.e1.flags).toContain("takeCover");
+        expect(r.state.actedThisRound.pil).toBe(1);
+    });
+
+    it("the pilot's check needs Piloting and a ship that is taking cover", () => {
+        expect(act(covered(), { actorId: "pil", role: "pilot", actionKey: "clearTakeCover", targetId: "e1", skillKey: "acr" }).effects)
+            .toEqual([{ kind: "rejected", reason: "pilotingOnly" }]);
+        expect(act(fresh(), { actorId: "pil", role: "pilot", actionKey: "clearTakeCover", targetId: "e1", skillKey: "pil" }).effects)
+            .toEqual([{ kind: "rejected", reason: "notTakingCover" }]);
+    });
+});
+
 describe("rollBonuses", () => {
     it("adds Provide Aid to the ally's next check, then uses it up", () => {
         let r = act(fresh(), { actorId: "cap", role: "captain", actionKey: "provideAid", allyId: "pil", skillKey: "dip" });

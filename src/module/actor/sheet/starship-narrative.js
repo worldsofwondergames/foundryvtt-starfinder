@@ -1,4 +1,5 @@
 import { openNarrativeCrewActionDialog } from "../../apps/narrative-crew-action-dialog.js";
+import { openNarrativeTacticsDialog } from "../../apps/narrative-tactics-dialog.js";
 import { showStandardSheetToggle } from "../../rules/narrative-starship/mode.js";
 import {
     hpFromPipClick,
@@ -8,7 +9,7 @@ import {
     normalizeNarrativeFormData,
     skillModifierView
 } from "../../rules/narrative-starship/sheet-view.js";
-import { actableCrew } from "../../system/narrative-starship-combat.js";
+import { actableCrew, tacticsCombatFor } from "../../system/narrative-starship-combat.js";
 import { ActorSheetSFRPGStarship } from "./starship.js";
 
 /**
@@ -50,7 +51,9 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             skillModifiers: skillModifierView(narrative.skillModifiers, skills),
             showStandardToggle: showStandardSheetToggle(game.settings.get("sfrpg", "starshipCombatMode")),
             // Act buttons during the Crew Actions phase, keyed by role and crew actor id.
-            actable: layout === "pc" ? actableCrew(this.actor)?.actable ?? null : null
+            actable: layout === "pc" ? actableCrew(this.actor)?.actable ?? null : null,
+            // The GM's Enemy Tactics button on an enemy ship.
+            showTactics: layout === "npc" && Boolean(tacticsCombatFor(this.actor))
         };
 
         data.enrichedSpecialAbilities = await foundry.applications.ux.TextEditor.enrichHTML(narrative.specialAbilities ?? "", {
@@ -76,6 +79,17 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         html.find(".narrative-skill-remove").click(this._onSkillModifierRemove.bind(this));
         html.find(".narrative-standard-toggle").click(this._onStandardSheetToggle.bind(this));
         html.find(".narrative-act").click(this._onNarrativeAct.bind(this));
+        html.find(".narrative-tactics-open").click(this._onOpenTactics.bind(this));
+    }
+
+    /**
+     * Opens the GM's Enemy Tactics dialog for the combat this ship is in.
+     * @param {Event} event The click event
+     */
+    _onOpenTactics(event) {
+        event.preventDefault();
+        const combat = tacticsCombatFor(this.actor);
+        if (combat) openNarrativeTacticsDialog(combat);
     }
 
     /**

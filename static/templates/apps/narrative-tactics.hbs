@@ -1,0 +1,81 @@
+<div class="narrative-tactics-body">
+    <p class="hint">{{localize "SFRPG.NarrativeStarship.TacticsDialog.DialogHint" round=round}}</p>
+    {{#each rows as |row|}}
+    <section class="narrative-tactic-row" data-enemy-id="{{row.id}}">
+        <h3>{{row.name}}</h3>
+        {{#if row.chosen}}
+        <p class="narrative-tactic-chosen">
+            {{#if row.chosenTarget}}
+            {{localize "SFRPG.NarrativeStarship.TacticsDialog.ChosenTarget" tactic=row.chosen ship=row.chosenTarget}}
+            {{else}}
+            {{localize "SFRPG.NarrativeStarship.TacticsDialog.Chosen" tactic=row.chosen}}
+            {{/if}}
+        </p>
+        {{else if @root.canRoll}}
+        <div class="narrative-tactic-group" data-group="now">
+            {{#if row.forced}}
+            <p class="hint">{{localize "SFRPG.NarrativeStarship.TacticsDialog.Forced"}}</p>
+            {{/if}}
+            <div class="form-group">
+                <label>{{localize "SFRPG.NarrativeStarship.TacticsDialog.Tactic"}}</label>
+                <div class="form-fields">
+                    <select data-field="tactic">
+                        {{#each row.tactics as |option|}}
+                        <option value="{{option.value}}" data-pc-target="{{option.pcTarget}}" title="{{option.title}}" {{#if option.disabled}}disabled{{/if}} {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" data-part="target">
+                <label>{{localize "SFRPG.NarrativeStarship.TacticsDialog.Target"}}</label>
+                <div class="form-fields">
+                    <select data-field="target" {{#if row.targetLocked}}disabled{{/if}}>
+                        {{#each row.targets as |ship|}}
+                        <option value="{{ship.id}}" {{#if ship.selected}}selected{{/if}}>{{ship.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" data-part="choice">
+                <label>{{localize "SFRPG.NarrativeStarship.TacticsDialog.DC"}}</label>
+                <div class="form-fields">
+                    <select data-field="choice">
+                        <option value="average">{{localize "SFRPG.NarrativeStarship.AverageDC"}}</option>
+                        <option value="hard">{{localize "SFRPG.NarrativeStarship.HardDC"}}</option>
+                    </select>
+                </div>
+            </div>
+            <button type="button" data-action="roll"><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Dialog.Roll"}}</button>
+        </div>
+        {{/if}}
+        {{#if row.reveal}}
+        <div class="narrative-tactic-group" data-group="next">
+            <p class="hint">{{localize "SFRPG.NarrativeStarship.TacticsDialog.RevealHint"}}</p>
+            <div class="form-group">
+                <label>{{localize "SFRPG.NarrativeStarship.TacticsDialog.NextTactic"}}</label>
+                <div class="form-fields">
+                    <select data-field="tactic">
+                        {{#each row.reveal.tactics as |option|}}
+                        <option value="{{option.value}}" data-pc-target="{{option.pcTarget}}" title="{{option.title}}" {{#if option.disabled}}disabled{{/if}} {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" data-part="target">
+                <label>{{localize "SFRPG.NarrativeStarship.TacticsDialog.Target"}}</label>
+                <div class="form-fields">
+                    <select data-field="target">
+                        {{#each row.reveal.targets as |ship|}}
+                        <option value="{{ship.id}}">{{ship.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+            </div>
+            <button type="button" data-action="preset"><i class="fas fa-lock"></i> {{localize "SFRPG.NarrativeStarship.TacticsDialog.SetNext"}}</button>
+        </div>
+        {{/if}}
+    </section>
+    {{else}}
+    <p>{{localize "SFRPG.NarrativeStarship.TacticsDialog.NoEnemies"}}</p>
+    {{/each}}
+</div>

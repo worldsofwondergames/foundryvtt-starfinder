@@ -3,7 +3,8 @@ import { dcFor, NARRATIVE_CREW_ACTIONS } from "./crew-actions.js";
 import { resolveNarrativeRound, rollBonuses } from "./apply-crew-action.js";
 import { addModifier, initialState, modifiersFor, resolveRound } from "./state.js";
 import {
-    NARRATIVE_TACTICS, applyTactic, availableTactics, chooseTactic, enemyCheckBonus, forceHardFor, tacticDC, tacticRollCount
+    NARRATIVE_TACTICS, applyTactic, availableNextTactics, availableTactics, chooseTactic, enemyCheckBonus, forceHardFor, presetNextTactic, revealPending,
+    tacticDC, tacticRollCount
 } from "./tactics.js";
 
 const SHIPS = [
@@ -108,11 +109,63 @@ describe("chooseTactic", () => {
         expect(() => chooseTactic(state, "e1", "openFire", "pc2", ROUND)).toThrow("forcedTarget");
     });
 
+    it("refuses a second tactic for an enemy that already chose one this round", () => {
+        const state = chooseTactic(fresh(), "e1", "ram", "pc1", ROUND);
+        expect(() => chooseTactic(state, "e1", "openFire", "pc1", ROUND)).toThrow("alreadyChosen");
+    });
+
     it("is cleared by resolveRound at the end of the round", () => {
         const state = chooseTactic(fresh(), "e1", "ram", "pc1", ROUND);
         const after = resolveRound(state, {}, {}, ROUND).state;
         expect(after.ships.e1.tactic).toBeNull();
         expect(after.ships.e1.tacticTarget).toBeNull();
+    });
+});
+
+describe("Prognosticate: presetNextTactic", () => {
+    /** The state after a successful Prognosticate against e1 this round. */
+    const prognosticated = () => addModifier(fresh(), { target: "e1", kind: "revealTactic", value: 1, expiresAfterRound: ROUND + 1 });
+
+    it("is pending only in the round Prognosticate succeeded and until the GM picks", () => {
+        const state = prognosticated();
+        expect(revealPending(state, "e1", ROUND)).toBe(true);
+        expect(revealPending(state, "e2", ROUND)).toBe(false);
+        expect(revealPending(state, "e1", ROUND + 1)).toBe(false);
+        const picked = presetNextTactic(state, "e1", "ram", "pc2", ROUND);
+        expect(revealPending(picked, "e1", ROUND)).toBe(false);
+    });
+
+    it("sets next round's tactic, which locks the choice next round", () => {
+        const state = presetNextTactic(prognosticated(), "e1", "ram", "pc2", ROUND);
+        expect(state.ships.e1.forcedTactic).toEqual({ tactic: "ram", targetShip: "pc2", round: ROUND + 1 });
+        expect(statusOf(state, "e1", "openFire", ROUND + 1)).toEqual({ key: "openFire", disabled: true, reason: "forced" });
+        expect(() => chooseTactic(state, "e1", "ram", "pc1", ROUND + 1)).toThrow("forcedTarget");
+        expect(chooseTactic(state, "e1", "ram", "pc2", ROUND + 1).ships.e1.tactic).toBe("ram");
+    });
+
+    it("keeps a target only for tactics that target a PC ship", () => {
+        const state = presetNextTactic(prognosticated(), "e1", "raiseShields", "pc2", ROUND);
+        expect(state.ships.e1.forcedTactic).toEqual({ tactic: "raiseShields", targetShip: null, round: ROUND + 1 });
+    });
+
+    it("lists next round's tactics without counting this round's choices as taken", () => {
+        const state = chooseTactic(prognosticated(), "e2", "ram", "pc1", ROUND);
+        expect(statusOf(state, "e1", "ram").reason).toBe("taken");
+        expect(availableNextTactics(state, "e1", ROUND).find(t => t.key === "ram").disabled).toBe(false);
+        expect(presetNextTactic(state, "e1", "ram", "pc1", ROUND).ships.e1.forcedTactic.tactic).toBe("ram");
+    });
+
+    it("refuses without a Prognosticate this round", () => {
+        expect(() => presetNextTactic(fresh(), "e1", "ram", "pc1", ROUND)).toThrow("noReveal");
+    });
+
+    it("refuses what next round's rules refuse", () => {
+        const locked = { ...prognosticated(), allOutAttackLockedUntilRound: ROUND + 1 };
+        expect(() => presetNextTactic(locked, "e1", "allOutAttack", "pc1", ROUND)).toThrow("locked");
+        const other = prognosticated();
+        other.ships.e2.forcedTactic = { tactic: "ram", targetShip: "pc1", round: ROUND + 1 };
+        expect(() => presetNextTactic(other, "e1", "ram", "pc1", ROUND)).toThrow("taken");
+        expect(() => presetNextTactic(prognosticated(), "e1", "ram", "e2", ROUND)).toThrow("badTarget");
     });
 });
 
