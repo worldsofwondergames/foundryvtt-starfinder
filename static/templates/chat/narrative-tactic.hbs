@@ -10,6 +10,16 @@
         {{#each rollsHTML as |html|}}
         {{{html}}}
         {{/each}}
+        {{#if quantumDefender}}
+        <p class="narrative-quantum-defender">{{localize "SFRPG.NarrativeStarship.UpgradeCard.QuantumUsed" ship=targetName}}</p>
+        {{#each rerollsHTML as |html|}}
+        {{{html}}}
+        {{/each}}
+        {{/if}}
+        {{#if mantleHTML}}
+        {{{mantleHTML}}}
+        <p class="narrative-mantle-result">{{mantleText}}</p>
+        {{/if}}
         {{#if hasCheck}}
         <p class="narrative-tactic-result {{#if success}}success{{else}}failure{{/if}}">
             {{#if success}}

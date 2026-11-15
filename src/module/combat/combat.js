@@ -11,7 +11,9 @@ import { applyMechTurnChanges } from "./mech-turn-changes.js";
 import { runTurnEvent } from "./turn-event.js";
 import { openNarrativeTacticsDialog } from "../apps/narrative-tactics-dialog.js";
 import { missedResolveRound } from "../rules/narrative-starship/round-end.js";
-import { RESOLVE_PHASE, TACTICS_PHASE, resolveNarrativePhase } from "../system/narrative-starship-combat.js";
+import {
+    CREW_ACTIONS_PHASE, RESOLVE_PHASE, TACTICS_PHASE, postVirtualIntelligenceCards, resolveNarrativePhase
+} from "../system/narrative-starship-combat.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
 /*
 The following hooks were added:
@@ -461,6 +463,11 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 if (narrative && eventData.isNewPhase && eventData.direction > 0
                     && this.flags.sfrpg.phase === TACTICS_PHASE) {
                     openNarrativeTacticsDialog(this);
+                }
+                // Virtual Intelligence offers its Provide Aid roll to the GM when Crew Actions starts.
+                if (narrative && eventData.isNewPhase && eventData.direction > 0
+                    && this.flags.sfrpg.phase === CREW_ACTIONS_PHASE) {
+                    await postVirtualIntelligenceCards(this);
                 }
             });
         }

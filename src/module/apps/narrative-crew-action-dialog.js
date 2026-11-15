@@ -4,7 +4,8 @@ import { RPC } from "../rpc.js";
 import { actionNeeds, applyCrewAction, grantsSuccesses, rollBonuses, rolesOf } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles } from "../rules/narrative-starship/crew-actions.js";
 import { modifiersFor } from "../rules/narrative-starship/state.js";
-import { crewByShip, shipActor, usableSkills } from "../system/narrative-starship-combat.js";
+import { canUseTrackingWeapons, hasUpgrade } from "../rules/narrative-starship/upgrades.js";
+import { crewActionDC, crewByShip, shipActor, usableSkills } from "../system/narrative-starship-combat.js";
 
 const LABEL = "SFRPG.NarrativeStarship.";
 const FREE_PATCH = "patchHull:free";
@@ -65,6 +66,20 @@ async function rollCrewCheck({ actor, ship, skillKey, bonuses, free, title }) {
     return result?.roll ?? null;
 }
 
+/**
+ * Asks the player whether to use Tracking Weapons on a failed check.
+ * @returns {Promise<boolean>}
+ */
+async function askTrackingWeapons(total, dc) {
+    const answer = await foundry.applications.api.DialogV2.confirm({
+        window: { title: game.i18n.localize(LABEL + "Upgrades.trackingWeapons.Name") },
+        content: `<p>${game.i18n.format(LABEL + "Dialog.TrackingAsk", { total, dc })}</p>`,
+        yes: { label: game.i18n.localize(LABEL + "Dialog.TrackingReroll") },
+        rejectClose: false
+    });
+    return answer === true;
+}
+
 /** Shows the rows the chosen action needs. */
 function updateRows(form) {
     const option = form.elements.actionKey.selectedOptions[0];
@@ -76,7 +91,9 @@ function updateRows(form) {
         ally: needs.ally === "always" || (needs.ally === "resolve" && resolve),
         secondAlly: needs.secondAlly && resolve,
         targetAction: needs.targetAction,
-        resolve: option?.dataset.resolve === "true"
+        resolve: option?.dataset.resolve === "true",
+        mineLayer: needs.enemy,
+        navScram: needs.enemy
     };
     if (!show.resolve) form.elements.spentResolve.checked = false;
     for (const row of form.querySelectorAll(".nca-row")) row.hidden = !show[row.dataset.row];
@@ -134,6 +151,10 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
         .map(key => ({ value: key, label: game.i18n.localize(`${LABEL}CrewActions.${key}.Name`) }));
     const usedLastRound = state.skillsLastRound?.[actor.id] ?? [];
     const resolveValue = actor.system.attributes?.rp?.value ?? 0;
+    // Once-per-combat upgrades the crew can use with an action that targets an enemy ship.
+    const upgrades = ship.system.narrative?.upgrades;
+    const usedOnce = state.usedOnce?.[ship.id] ?? [];
+    const unused = key => hasUpgrade(upgrades, key) && !usedOnce.includes(key);
 
     const content = await foundry.applications.handlebars.renderTemplate("systems/sfrpg/templates/apps/narrative-crew-action.hbs", {
         actions,
@@ -143,7 +164,9 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
         skills: skillOptions(actor, roles, usedLastRound),
         lastSkillLabel: usedLastRound.map(key => skillName(actor, key)).join(", "),
         hasResolve: resolveValue > 0,
-        resolveValue
+        resolveValue,
+        mineLayer: unused("mineLayer"),
+        navScram: unused("navScramModule")
     });
 
     const data = await foundry.applications.api.DialogV2.wait({
@@ -183,7 +206,9 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
         targetAction: needs.targetAction ? data.targetAction : undefined,
         skillKey: data.skillKey,
         spentResolve,
-        free
+        free,
+        mineLayer: needs.enemy && unused("mineLayer") && Boolean(data.mineLayer),
+        navScram: needs.enemy && unused("navScramModule") && Boolean(data.navScram)
     };
 
     // Catch a refused action before the roll. The GM checks again with the real roll.
@@ -195,7 +220,7 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
     }
 
     const bonuses = rollBonuses(state, { shipId: ship.id, actorId: actor.id, actionKey, targetId: payload.targetId }, round);
-    const roll = await rollCrewCheck({
+    const rollOnce = () => rollCrewCheck({
         actor,
         ship,
         skillKey: payload.skillKey,
@@ -206,7 +231,19 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
             skill: skillName(actor, payload.skillKey)
         })
     });
+    let roll = await rollOnce();
     if (!roll) return;
+
+    // Tracking Weapons: a gunner may reroll a failed check against an enemy ship once per combat.
+    const dc = crewActionDC(combat, state, payload);
+    const failed = dc !== null && roll.total < dc;
+    if (failed && canUseTrackingWeapons(state, { ...payload, success: false }, upgrades) && await askTrackingWeapons(roll.total, dc)) {
+        const reroll = await rollOnce();
+        if (reroll) {
+            roll = reroll;
+            payload.trackingWeapons = true;
+        }
+    }
 
     const status = RPC.sendMessageTo("gm", "narrativeCrewAction", { ...payload, total: roll.total, roll: roll.toJSON() });
     if (status === "errorRecipientNotAvailable") ui.notifications.warn(game.i18n.localize(LABEL + "Rejected.noGM"));

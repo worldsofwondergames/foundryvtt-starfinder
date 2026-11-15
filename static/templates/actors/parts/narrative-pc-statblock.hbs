@@ -23,6 +23,33 @@
         {{/if}}
     </ol>
 
+    {{#if narrative.onceButtons.length}}
+    <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.UpgradeButtons.Header"}}</h3>
+    <ol class="narrative-upgrade-buttons">
+        {{#each narrative.onceButtons as |button|}}
+        <li class="flexrow">
+            <button type="button" class="narrative-upgrade-use{{#if button.used}} used{{/if}}" data-upgrade="{{button.key}}" data-tooltip="{{button.hint}}" {{#unless button.clickable}}disabled{{/unless}}>
+                {{button.label}}{{#if button.used}} ({{localize "SFRPG.NarrativeStarship.UpgradeButtons.UsedLabel"}}){{/if}}
+            </button>
+        </li>
+        {{/each}}
+    </ol>
+    {{/if}}
+
+    <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.UpgradesHeader"}}</h3>
+    <ol class="narrative-upgrade-list">
+        {{#each narrative.upgrades as |row|}}
+        <li class="narrative-upgrade flexrow" data-upgrade="{{row.key}}">
+            <span class="narrative-upgrade-name" data-tooltip="{{row.effect}}">{{row.label}}</span>
+            {{#if row.numeric}}
+            <input class="narrative-upgrade-count" type="number" step="1" min="0" {{#if row.max}}max="{{row.max}}"{{/if}} value="{{row.count}}" {{#unless @root.editable}}disabled{{/unless}} />
+            {{else}}
+            <input class="narrative-upgrade-check" type="checkbox" {{checked row.checked}} {{#unless @root.editable}}disabled{{/unless}} />
+            {{/if}}
+        </li>
+        {{/each}}
+    </ol>
+
     <h3 class="form-header">{{localize "SFRPG.StarshipSheet.Crew.Header"}}</h3>
     {{> "systems/sfrpg/templates/actors/parts/starship-crew-roster.hbs" crew=crew}}
 </div>

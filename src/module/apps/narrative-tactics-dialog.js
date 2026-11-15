@@ -1,5 +1,6 @@
 import { NARRATIVE_TACTICS, availableNextTactics, availableTactics, revealPending } from "../rules/narrative-starship/tactics.js";
-import { TACTICS_PHASE, presetEnemyTactic, runEnemyTactic, shipActor } from "../system/narrative-starship-combat.js";
+import { pendingMines } from "../rules/narrative-starship/upgrades.js";
+import { TACTICS_PHASE, presetEnemyTactic, rollEnemyMines, runEnemyTactic, shipActor } from "../system/narrative-starship-combat.js";
 
 const LABEL = "SFRPG.NarrativeStarship.";
 
@@ -54,7 +55,8 @@ function tacticsAppClass() {
             position: { width: 560, height: "auto" },
             actions: {
                 roll: NarrativeTacticsDialog.#onRoll,
-                preset: NarrativeTacticsDialog.#onPreset
+                preset: NarrativeTacticsDialog.#onPreset,
+                mines: NarrativeTacticsDialog.#onMines
             }
         };
 
@@ -85,7 +87,9 @@ function tacticsAppClass() {
                         tactics: tacticOptions(statuses, forced?.tactic ?? firstOpen(statuses)),
                         targets: targetsFor(forced?.targetShip),
                         targetLocked: Boolean(forced?.targetShip),
-                        forced: Boolean(forced)
+                        forced: Boolean(forced),
+                        // Mine Layer: the ship's mines check comes before its tactic.
+                        mines: ship.tactic ? null : pendingMines(state, id, round)
                     };
                     if (revealPending(state, id, round)) {
                         const next = availableNextTactics(state, id, round);
@@ -120,6 +124,12 @@ function tacticsAppClass() {
             const input = NarrativeTacticsDialog.#read(target);
             target.disabled = true;
             await runEnemyTactic(this.combat, input);
+            if (this.rendered) this.render();
+        }
+
+        static async #onMines(event, target) {
+            target.disabled = true;
+            await rollEnemyMines(this.combat, target.closest(".narrative-tactic-row").dataset.enemyId);
             if (this.rendered) this.render();
         }
 

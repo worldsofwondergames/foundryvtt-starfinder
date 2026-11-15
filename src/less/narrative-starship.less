@@ -64,13 +64,16 @@
     }
 
     .narrative-stats,
-    .narrative-skill-list {
+    .narrative-skill-list,
+    .narrative-upgrade-list,
+    .narrative-upgrade-buttons {
         list-style: none;
         margin: 0;
         padding: 0;
     }
 
     .narrative-stat,
+    .narrative-upgrade,
     .narrative-skill-row,
     .narrative-skill-new {
         align-items: center;
@@ -142,5 +145,23 @@
         .editor {
             min-height: 120px;
         }
+    }
+
+    .narrative-upgrade {
+        .narrative-upgrade-name {
+            flex: 1;
+        }
+
+        input[type="number"] {
+            flex: 0 0 60px;
+        }
+
+        input[type="checkbox"] {
+            flex: 0 0 auto;
+        }
+    }
+
+    .narrative-upgrade-use.used {
+        opacity: 0.5;
     }
 }

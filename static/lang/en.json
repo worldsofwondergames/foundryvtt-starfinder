@@ -2932,6 +2932,7 @@
                 "AnySkill": "Any skill",
                 "FreePatchHull": "Patch Hull (free, -2)",
                 "LastSkill": "Used last round, so not available now: {skill}",
+                "LayMines": "Lay mines with this action (Mine Layer)",
                 "Preferred": "Preferred skills: {skills}. Other skills use the Hard DC.",
                 "Roll": "Roll",
                 "RollTitle": "{action}: {skill}",
@@ -2941,7 +2942,10 @@
                 "SpendResolve": "Spend 1 Resolve Point ({value} left)",
                 "Target": "Target",
                 "TargetAction": "Action to boost",
-                "Title": "Crew Action: {name}"
+                "Title": "Crew Action: {name}",
+                "TrackingAsk": "The check failed: {total} against DC {dc}. Use Tracking Weapons to reroll it? It can be used once per combat.",
+                "TrackingReroll": "Reroll (Tracking Weapons)",
+                "UseNavScram": "Activate the Nav-Scram Module with this action"
             },
             "HP": "HP",
             "HPPipsHint": "Click a pip to set the ship's current HP",
@@ -2950,18 +2954,22 @@
             "OverrideHint": "Leave empty to use the derived value",
             "RangedAttack": "Ranged attack",
             "Rejected": {
+                "aidUsed": "This ship's Virtual Intelligence has already given aid this round.",
                 "alreadyActed": "That crew member has already acted this round.",
                 "badAction": "Choose an action that gives successes.",
                 "badAlly": "That ally can't be chosen for this action.",
                 "badRoll": "The roll could not be read.",
                 "badSkill": "That crew member can't use that skill.",
                 "badTarget": "Choose an enemy ship that is still in the fight.",
+                "mantlePhase": "The Displacement Mantle can only be activated during the Enemy Tactics phase, before the tactics against the ship are rolled.",
                 "noCombat": "There is no narrative starship combat running.",
                 "noFreeAction": "This crew member has no free Patch Hull to use.",
                 "noGM": "No GM is connected to apply the action.",
                 "noResolve": "You have no Resolve Points to spend.",
                 "noResolveRider": "This action can't spend Resolve.",
                 "noSkill": "Choose a skill.",
+                "noTrackingWeapons": "Tracking Weapons only rerolls a gunner's check that targets an enemy ship.",
+                "noUpgrade": "This ship doesn't have that upgrade.",
                 "notCrew": "That crew member doesn't hold this role on the ship.",
                 "notGunner": "Only gunners can use a ranged attack.",
                 "notOwner": "You don't own that crew member.",
@@ -2970,6 +2978,8 @@
                 "sameSkill": "Pick a different skill than the one used last round.",
                 "takeCover": "That ship is taking cover. Only the pilot's Negate Take Cover check can target it this round.",
                 "unknownAction": "That action isn't known.",
+                "upgradeElsewhere": "This upgrade is used from the crew action dialog or the enemy's tactic roll, not from the sheet.",
+                "upgradeUsed": "This ship has already used that upgrade in this combat.",
                 "wrongPhase": "Crew actions can only be taken during the Crew Actions phase.",
                 "wrongRole": "That crew member doesn't hold the role this action needs.",
                 "wrongSide": "Only crew on a player ship can take crew actions."
@@ -3029,8 +3039,11 @@
                 "forced": "This ship must use the tactic that was forced on it.",
                 "forcedTarget": "This ship must target the player ship that forced its tactic.",
                 "locked": "No enemy ship can use All-Out Attack again until after the next round.",
+                "minesFirst": "This ship must roll its Mine Layer check before it chooses a tactic.",
                 "noChoice": "Choose the Average or Hard DC for Cruel Taunt.",
                 "noCombat": "There is no started narrative starship combat.",
+                "noMantleRoll": "The Displacement Mantle roll is missing.",
+                "noMines": "No mines are waiting for this ship this round.",
                 "noReveal": "Prognosticate did not succeed against this ship this round.",
                 "notEnemy": "Only enemy ships use tactics.",
                 "taken": "Another enemy ship already has this tactic.",
@@ -3099,6 +3112,8 @@
                 "DialogHint": "Round {round}. Pick one tactic for each enemy ship. Two enemy ships can't use the same tactic in a round.",
                 "DialogTitle": "Enemy Tactics",
                 "Forced": "Draw Fire or Prognosticate set this ship's tactic for this round.",
+                "Mines": "Roll the Mine Layer check",
+                "MinesHint": "Mines were laid in this ship's path. Before it chooses a tactic, it rolls a skill check against DC {dc} or takes 1 hit.",
                 "NextTactic": "Next round's tactic",
                 "NoEnemies": "No enemy ship is in the fight.",
                 "Open": "Enemy Tactics",
@@ -3110,6 +3125,32 @@
             },
             "Threshold": "Threshold",
             "TierHint": "Set the tier to the party's Average Party Level",
+            "UpgradeButtons": {
+                "Header": "Once-per-Combat Upgrades",
+                "Used": "Used in this combat.",
+                "UsedLabel": "used",
+                "displacementMantle": "Click during the Enemy Tactics phase. For the rest of the round, each tactic that targets this ship fails on a d100 roll of 20 or less.",
+                "mineLayer": "Use it from the crew action dialog with an action that targets an enemy ship.",
+                "navScramModule": "Use it from the crew action dialog with an action that targets an enemy ship.",
+                "quantumDefender": "The GM is asked whether to use it when an enemy tactic would hit this ship.",
+                "trackingWeapons": "A gunner is asked whether to use it after failing a check against an enemy ship."
+            },
+            "UpgradeCard": {
+                "AidButton": "Provide Aid (Virtual Intelligence)",
+                "AidFailure": "Virtual Intelligence fails to aid {ally} against DC {dc}.",
+                "AidPrompt": "{ship}'s Virtual Intelligence can attempt Provide Aid for a crew member who hasn't acted this round.",
+                "AidSuccess": "Virtual Intelligence aids {ally} against DC {dc}: +{value} on their next check this round.",
+                "MantleBlocked": "Displacement Mantle: rolled {roll}. The tactic fails.",
+                "MantleMissed": "Displacement Mantle: rolled {roll}. The tactic is not stopped.",
+                "MantleOn": "{ship} activates its Displacement Mantle. For the rest of the round, each tactic that targets it fails on a d100 roll of 20 or less.",
+                "MineLayer": "Mine Layer: mines are laid in the path of {ship}. It rolls against them next round before it chooses a tactic.",
+                "MinesAvoided": "{ship} gets through the mines (DC {dc}).",
+                "MinesHit": "{ship} fails to avoid the mines (DC {dc}) and takes 1 hit.",
+                "NavScram": "Nav-Scram Module: {ship} takes a -2 penalty to its skill checks for {rounds} rounds, counting this one.",
+                "QuantumAsk": "{enemy}'s check would hit {ship}. Use {ship}'s Quantum Defender to make {enemy} reroll the check and take the new result?",
+                "QuantumUsed": "Quantum Defender: {ship} makes the enemy reroll the check.",
+                "TrackingWeapons": "Tracking Weapons: the gunner rerolled a failed check."
+            },
             "Upgrades": {
                 "ablativePlating": {
                     "Effect": "The ship ignores the first hit it takes in a narrative starship combat.",
@@ -3132,7 +3173,7 @@
                     "Name": "Mine Layer"
                 },
                 "navScramModule": {
-                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew activates the module. That ship takes a 2 penalty to its skill checks for 1d4 rounds.",
+                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew activates the module. That ship takes a -2 penalty to its skill checks for 1d4 rounds.",
                     "Name": "Nav-Scram Module"
                 },
                 "quantumDefender": {
@@ -3152,6 +3193,7 @@
                     "Name": "Virtual Intelligence"
                 }
             },
+            "UpgradesHeader": "Upgrades",
             "UseStandardSheet": "Use the standard sheet"
         },
         "Necrograft": "Necrograft",

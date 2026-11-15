@@ -80,6 +80,23 @@
     <p class="hint">{{localize "SFRPG.NarrativeStarship.Dialog.LastSkill" skill=lastSkillLabel}}</p>
     {{/if}}
 
+    {{#if mineLayer}}
+    <div class="form-group nca-row" data-row="mineLayer">
+        <label class="checkbox">
+            <input type="checkbox" name="mineLayer" />
+            {{localize "SFRPG.NarrativeStarship.Dialog.LayMines"}}
+        </label>
+    </div>
+    {{/if}}
+    {{#if navScram}}
+    <div class="form-group nca-row" data-row="navScram">
+        <label class="checkbox">
+            <input type="checkbox" name="navScram" />
+            {{localize "SFRPG.NarrativeStarship.Dialog.UseNavScram"}}
+        </label>
+    </div>
+    {{/if}}
+
     <div class="form-group nca-row" data-row="resolve">
         <label class="checkbox">
             <input type="checkbox" name="spentResolve" {{#unless hasResolve}}disabled{{/unless}} />

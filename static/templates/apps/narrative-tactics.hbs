@@ -11,6 +11,11 @@
             {{localize "SFRPG.NarrativeStarship.TacticsDialog.Chosen" tactic=row.chosen}}
             {{/if}}
         </p>
+        {{else if (and @root.canRoll row.mines)}}
+        <div class="narrative-tactic-group narrative-tactic-mines">
+            <p class="hint">{{localize "SFRPG.NarrativeStarship.TacticsDialog.MinesHint" dc=row.mines.dc}}</p>
+            <button type="button" data-action="mines"><i class="fas fa-bomb"></i> {{localize "SFRPG.NarrativeStarship.TacticsDialog.Mines"}}</button>
+        </div>
         {{else if @root.canRoll}}
         <div class="narrative-tactic-group" data-group="now">
             {{#if row.forced}}

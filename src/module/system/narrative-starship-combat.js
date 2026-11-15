@@ -5,14 +5,19 @@
  */
 import { openNarrativeTacticsDialog, refreshNarrativeTacticsDialog } from "../apps/narrative-tactics-dialog.js";
 import { RPC } from "../rpc.js";
-import { applyCrewAction, crewActionDCShip, resolveNarrativeRound } from "../rules/narrative-starship/apply-crew-action.js";
+import {
+    applyCrewAction, applyVirtualIntelligenceAid, crewActionDCShip, resolveNarrativeRound, rolesOf
+} from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, NARRATIVE_ROLES, dcFor } from "../rules/narrative-starship/crew-actions.js";
 import { endOfRound, fleeingEnemies } from "../rules/narrative-starship/round-end.js";
 import { initialState } from "../rules/narrative-starship/state.js";
-import { absorbHit, hasUpgrade } from "../rules/narrative-starship/upgrades.js";
 import {
-    NARRATIVE_TACTICS, applyTactic, chooseTactic, enemyCheckBonus, forceHardFor, presetNextTactic, revealPending, tacticDC,
-    tacticRollCount
+    absorbHit, activateMantle, applyActionUpgrades, hasUpgrade, pendingMines, quantumDefenderShip, resolveMines, useOnce,
+    virtualIntelligenceBonus
+} from "../rules/narrative-starship/upgrades.js";
+import {
+    NARRATIVE_TACTICS, applyTactic, chooseTactic, enemyCheckBonus, forceHardFor, mantleCheckNeeded, presetNextTactic,
+    revealPending, tacticDC, tacticRollCount
 } from "../rules/narrative-starship/tactics.js";
 
 export const NARRATIVE_COMBAT_TYPE = "narrativeStarship";
@@ -148,8 +153,34 @@ function readPayload(payload) {
         total: Number(payload?.total),
         spentResolve: payload?.spentResolve === true,
         free: payload?.free === true,
+        mineLayer: payload?.mineLayer === true,
+        navScram: payload?.navScram === true,
+        trackingWeapons: payload?.trackingWeapons === true,
         roll: payload?.roll
     };
+}
+
+/**
+ * The DC of a crew action, from the ship stats this client has. The GM uses it to judge the action, and the
+ * player's client uses it to offer the Tracking Weapons reroll.
+ * @param {Combat} combat
+ * @param {object} state
+ * @param {{actionKey: string, shipId: string, targetId?: string, skillKey: string}} input
+ * @returns {number|null} null when the ship whose DC is used is not in the combat.
+ */
+export function crewActionDC(combat, state, input) {
+    const action = NARRATIVE_CREW_ACTIONS[input.actionKey];
+    if (!action) return null;
+    const dcShipId = crewActionDCShip(input.actionKey, input);
+    const dcShip = state.ships[dcShipId] ? shipActor(combat, dcShipId) : null;
+    if (!dcShip) return null;
+    const derived = dcShip.system.narrative?.derived ?? {};
+    const forceHard = forceHardFor(state, {
+        shipId: input.shipId,
+        targetId: action.dcOf === "target" ? input.targetId : undefined,
+        skillKey: input.skillKey
+    }, combat.round);
+    return dcFor(action, input.skillKey, { average: derived.averageDC, hard: derived.hardDC }, forceHard);
 }
 
 /**
@@ -178,16 +209,8 @@ async function handleCrewAction(message) {
     if (!state || !action) return reply(message.sender, "unknownAction");
 
     // The DC comes from the ship stats on this client, never from the player.
-    const dcShipId = crewActionDCShip(input.actionKey, input);
-    const dcShip = state.ships[dcShipId] ? shipActor(combat, dcShipId) : null;
-    if (!dcShip) return reply(message.sender, "badTarget");
-    const derived = dcShip.system.narrative?.derived ?? {};
-    const forceHard = forceHardFor(state, {
-        shipId: input.shipId,
-        targetId: action.dcOf === "target" ? input.targetId : undefined,
-        skillKey: input.skillKey
-    }, combat.round);
-    const dc = dcFor(action, input.skillKey, { average: derived.averageDC, hard: derived.hardDC }, forceHard);
+    const dc = crewActionDC(combat, state, input);
+    if (dc === null) return reply(message.sender, "badTarget");
 
     const result = applyCrewAction(state, {
         ...input,
@@ -200,8 +223,25 @@ async function handleCrewAction(message) {
     const rejected = result.effects.find(e => e.kind === "rejected");
     if (rejected) return reply(message.sender, rejected.reason);
 
-    await saveNarrativeState(combat, result.state);
-    const lines = await applyEffects(combat, result.effects);
+    // Mine Layer, Nav-Scram Module and Tracking Weapons are used up before anything is applied.
+    const ship = shipActor(combat, input.shipId);
+    const navScramRoll = input.navScram ? await new Roll("1d4").evaluate() : null;
+    const upgraded = applyActionUpgrades(result.state, {
+        ...input,
+        upgrades: ship?.system.narrative?.upgrades,
+        averageDC: ship?.system.narrative?.derived?.averageDC,
+        navScramRoll: navScramRoll?.total
+    }, combat.round);
+    if (!upgraded.ok) return reply(message.sender, upgraded.reason);
+
+    await saveNarrativeState(combat, upgraded.state);
+    const lines = [...upgradeLines(combat, input, navScramRoll), ...await applyEffects(combat, result.effects)];
+    if (navScramRoll) {
+        await navScramRoll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            flavor: game.i18n.localize(LABEL + "Upgrades.navScramModule.Name")
+        });
+    }
     await postCrewActionCard({ combat, actor, input, action, dc, result, lines });
     if (action.effect === "forceTacticReveal" && result.success) await askForNextTactic(combat, input.targetId);
 }
@@ -265,6 +305,16 @@ export async function applyEffects(combat, effects) {
             lines.push(game.i18n.format(LABEL + key, { name: target.name }));
         }
     }
+    return lines;
+}
+
+/** Lines for the crew action card about the upgrades used with the action. */
+function upgradeLines(combat, input, navScramRoll) {
+    const target = shipActor(combat, input.targetId)?.name ?? input.targetId;
+    const lines = [];
+    if (input.trackingWeapons) lines.push(game.i18n.localize(LABEL + "UpgradeCard.TrackingWeapons"));
+    if (input.mineLayer) lines.push(game.i18n.format(LABEL + "UpgradeCard.MineLayer", { ship: target }));
+    if (navScramRoll) lines.push(game.i18n.format(LABEL + "UpgradeCard.NavScram", { ship: target, rounds: navScramRoll.total }));
     return lines;
 }
 
@@ -417,6 +467,8 @@ async function runEnemyTacticNow(combat, { enemyId, tactic, targetId, choice }) 
     const state = combat.getFlag("sfrpg", "narrative");
     const round = combat.round;
     const target = NARRATIVE_TACTICS[tactic]?.pcTarget ? targetId : null;
+    // Mine Layer: the ship makes its mines check before it chooses a tactic.
+    if (pendingMines(state, enemyId, round)) return warnTactic("minesFirst");
 
     let chosen;
     try {
@@ -435,41 +487,87 @@ async function runEnemyTacticNow(combat, { enemyId, tactic, targetId, choice }) 
     const input = { enemyId, tactic, targetId: target, dcs, choice };
 
     // Catch a refusal, such as a missing DC choice, before rolling.
-    const check = applyTactic(chosen, { ...input, rolls: Array(count).fill(0) }, round);
+    const check = applyTactic(chosen, { ...input, rolls: Array(count).fill(0), mantleRoll: 100 }, round);
     const refused = check.effects.find(e => e.kind === "rejected");
     if (refused) return warnTactic(refused.reason);
 
-    const rolls = [];
-    for (let i = 0; i < count; i++) {
-        rolls.push(await new Roll("1d20 + @skillBonus + @bonus", { skillBonus, bonus }).evaluate());
-    }
-    const result = applyTactic(chosen, { ...input, rolls: rolls.map(r => r.total) }, round);
+    const rollChecks = async () => {
+        const list = [];
+        for (let i = 0; i < count; i++) {
+            list.push(await new Roll("1d20 + @skillBonus + @bonus", { skillBonus, bonus }).evaluate());
+        }
+        return list;
+    };
+    const rolls = await rollChecks();
+    // Displacement Mantle: one d100 for each tactic that targets the ship this round.
+    const mantleRoll = mantleCheckNeeded(chosen, input, round) ? await new Roll("1d100").evaluate() : null;
+    let result = applyTactic(chosen, { ...input, rolls: rolls.map(r => r.total), mantleRoll: mantleRoll?.total }, round);
     const rejected = result.effects.find(e => e.kind === "rejected");
     if (rejected) return warnTactic(rejected.reason);
+
+    // Quantum Defender: the GM decides whether the hit PC ship makes the enemy reroll. The answer is waited for,
+    // so the combat's queue waits too.
+    let rerolls = [];
+    const upgradesById = Object.fromEntries(Object.keys(chosen.ships)
+        .map(id => [id, shipActor(combat, id)?.system.narrative?.upgrades]));
+    const defender = quantumDefenderShip(result.state, result.effects, upgradesById);
+    if (defender && await askQuantumDefender(combat, defender, enemy)) {
+        const used = useOnce(chosen, defender, "quantumDefender");
+        if (used.ok) {
+            rerolls = await rollChecks();
+            result = applyTactic(used.state, { ...input, rolls: rerolls.map(r => r.total), mantleRoll: mantleRoll?.total }, round);
+        }
+    }
 
     await saveNarrativeState(combat, result.state);
     const lines = await applyEffects(combat, result.effects);
     const dc = count > 0 ? tacticDC(chosen, input, dcs, round) : null;
-    await postTacticCard({ combat, enemy, targetShip, tactic, rolls, dc, result, lines });
+    await postTacticCard({ combat, enemy, targetShip, tactic, rolls, rerolls, mantleRoll, dc, result, lines });
     return true;
 }
 
-async function postTacticCard({ combat, enemy, targetShip, tactic, rolls, dc, result, lines }) {
+/**
+ * Asks the GM whether a PC ship uses its Quantum Defender against the hit it is about to take.
+ * @returns {Promise<boolean>}
+ */
+async function askQuantumDefender(combat, shipId, enemy) {
+    const ship = foundry.utils.escapeHTML(shipActor(combat, shipId)?.name ?? shipId);
+    const enemyName = foundry.utils.escapeHTML(enemy?.name ?? "");
+    const answer = await foundry.applications.api.DialogV2.confirm({
+        window: { title: game.i18n.localize(LABEL + "Upgrades.quantumDefender.Name") },
+        content: `<p>${game.i18n.format(LABEL + "UpgradeCard.QuantumAsk", { ship, enemy: enemyName })}</p>`,
+        rejectClose: false
+    });
+    return answer === true;
+}
+
+async function postTacticCard({ combat, enemy, targetShip, tactic, rolls, rerolls, mantleRoll, dc, result, lines }) {
     const manual = result.effects.some(e => e.kind === "manual");
-    const worst = rolls.length ? Math.min(...rolls.map(r => r.total)) : null;
+    const blocked = result.effects.some(e => e.kind === "mantleBlocked");
+    const final = rerolls.length ? rerolls : rolls;
+    const worst = final.length ? Math.min(...final.map(r => r.total)) : null;
     const abilities = manual
         ? await foundry.applications.ux.TextEditor.enrichHTML(enemy?.system.narrative?.specialAbilities ?? "", {
             rollData: enemy?.getRollData() ?? {}
         })
         : "";
+    let mantleText = "";
+    if (mantleRoll) {
+        const key = blocked ? "UpgradeCard.MantleBlocked" : "UpgradeCard.MantleMissed";
+        mantleText = game.i18n.format(LABEL + key, { roll: mantleRoll.total });
+    }
     const content = await foundry.applications.handlebars.renderTemplate("systems/sfrpg/templates/chat/narrative-tactic.hbs", {
         tacticName: game.i18n.localize(`${LABEL}Tactics.${tactic}.Name`),
         shipName: enemy?.name ?? "",
         targetName: targetShip?.name ?? "",
         rollsHTML: await Promise.all(rolls.map(r => r.render())),
-        hasCheck: rolls.length > 0,
+        rerollsHTML: await Promise.all(rerolls.map(r => r.render())),
+        quantumDefender: rerolls.length > 0,
+        mantleHTML: mantleRoll ? await mantleRoll.render() : "",
+        mantleText,
+        hasCheck: final.length > 0,
         dc,
-        success: rolls.length > 0 && worst >= dc,
+        success: final.length > 0 && worst >= dc && !blocked,
         effectText: game.i18n.localize(`${LABEL}Tactics.${tactic}.Effect`),
         lines,
         manual,
@@ -478,8 +576,39 @@ async function postTacticCard({ combat, enemy, targetShip, tactic, rolls, dc, re
     await ChatMessage.create({
         speaker: { alias: enemy?.name ?? combat.getCombatName?.() ?? "" },
         content,
-        rolls,
+        rolls: [...rolls, ...rerolls, ...(mantleRoll ? [mantleRoll] : [])],
         flags: { sfrpg: { narrativeTactic: true } }
+    });
+}
+
+/**
+ * Rolls an enemy ship's Mine Layer check for the GM: d20 + its skill bonus + its check modifiers against the DC
+ * the mines were laid with. On a failure the ship takes 1 hit. Runs in the combat's queue.
+ * @param {Combat} combat
+ * @param {string} enemyId
+ * @returns {Promise<boolean>} Whether the check was rolled.
+ */
+export async function rollEnemyMines(combat, enemyId) {
+    return queueForCombat(combat.id, async () => {
+        if (!isNarrativeCombat(combat)) return warnTactic("noCombat");
+        if (combat.flags.sfrpg?.phase !== TACTICS_PHASE) return warnTactic("wrongPhase");
+        const state = combat.getFlag("sfrpg", "narrative");
+        const round = combat.round;
+        if (!pendingMines(state, enemyId, round)) return warnTactic("noMines");
+        const enemy = shipActor(combat, enemyId);
+        const skillBonus = Number(enemy?.system.narrative?.derived?.skillBonus ?? 0);
+        const bonus = enemyCheckBonus(state, enemyId, round);
+        const roll = await new Roll("1d20 + @skillBonus + @bonus", { skillBonus, bonus }).evaluate();
+        const result = resolveMines(state, enemyId, roll.total, round);
+        if (result.effects.some(e => e.kind === "rejected")) return warnTactic("noMines");
+        await saveNarrativeState(combat, result.state);
+        const lines = await applyEffects(combat, result.effects);
+        const key = result.success ? "UpgradeCard.MinesAvoided" : "UpgradeCard.MinesHit";
+        const flavor = [game.i18n.format(LABEL + key, { ship: enemy?.name ?? enemyId, dc: result.dc }), ...lines]
+            .map(line => `<p>${foundry.utils.escapeHTML(line)}</p>`)
+            .join("");
+        await roll.toMessage({ speaker: { alias: enemy?.name ?? enemyId }, flavor });
+        return true;
     });
 }
 
@@ -539,6 +668,161 @@ export function actableCrew(ship) {
     return { combat, actable };
 }
 
+/**
+ * The sheet's once-per-combat upgrade buttons for a PC ship: shown during a started narrative combat that has the
+ * ship, to the GM and the ship's owners.
+ * @param {Actor} ship
+ * @returns {{combat: Combat, used: string[]}|null}
+ */
+export function upgradeButtonsCombatFor(ship) {
+    if (!game.user.isGM && !ship.isOwner) return null;
+    const combat = narrativeCombatFor(ship.id);
+    const state = combat?.getFlag("sfrpg", "narrative");
+    if (state?.ships[ship.id]?.side !== "pc") return null;
+    return { combat, used: state.usedOnce?.[ship.id] ?? [] };
+}
+
+/**
+ * Asks the GM to use a once-per-combat upgrade from the sheet. Only Displacement Mantle has a button; the
+ * others are used from the crew action dialog or the enemy tactic roll.
+ * @param {Combat} combat
+ * @param {Actor} ship
+ * @param {string} key
+ */
+export function requestUpgradeUse(combat, ship, key) {
+    const status = RPC.sendMessageTo("gm", "narrativeUseUpgrade", { combatId: combat.id, shipId: ship.id, key });
+    if (status === "errorRecipientNotAvailable") ui.notifications.warn(game.i18n.localize(LABEL + "Rejected.noGM"));
+}
+
+/**
+ * GM handler for the narrativeUseUpgrade RPC event. Only the active GM runs it.
+ * @param {{sender: string, payload: object}} message
+ */
+export async function onNarrativeUseUpgradeRequest(message) {
+    if (!game.users.activeGM?.isSelf) return;
+    const combatId = typeof message.payload?.combatId === "string" ? message.payload.combatId : "";
+    return queueForCombat(combatId, () => handleUseUpgrade(message));
+}
+
+async function handleUseUpgrade(message) {
+    const { combatId, shipId, key } = message.payload ?? {};
+    const user = game.users.get(message.sender);
+    const combat = game.combats.get(combatId);
+    if (!isNarrativeCombat(combat)) return reply(message.sender, "noCombat");
+    const state = combat.getFlag("sfrpg", "narrative");
+    const ship = state?.ships[shipId] ? shipActor(combat, shipId) : null;
+    if (!user || !ship?.testUserPermission(user, "OWNER")) return reply(message.sender, "notOwner");
+    if (key !== "displacementMantle") return reply(message.sender, "upgradeElsewhere");
+    if (combat.flags.sfrpg?.phase !== TACTICS_PHASE) return reply(message.sender, "mantlePhase");
+
+    const result = activateMantle(state, shipId, ship.system.narrative?.upgrades, combat.round);
+    if (!result.ok) return reply(message.sender, result.reason);
+    await saveNarrativeState(combat, result.state);
+    await ChatMessage.create({
+        speaker: { alias: ship.name },
+        content: `<p>${game.i18n.format(LABEL + "UpgradeCard.MantleOn", { ship: foundry.utils.escapeHTML(ship.name) })}</p>`
+    });
+}
+
+/**
+ * At the start of the Crew Actions phase, whispers the GM a Virtual Intelligence card for each PC ship that has
+ * the upgrade and is still in the fight.
+ * @param {Combat} combat
+ */
+export async function postVirtualIntelligenceCards(combat) {
+    const state = combat.getFlag("sfrpg", "narrative");
+    if (!state) return;
+    for (const [id, data] of Object.entries(state.ships)) {
+        const ship = shipActor(combat, id);
+        if (data.side !== "pc" || data.flags.includes("out")) continue;
+        if (!hasUpgrade(ship?.system.narrative?.upgrades, "virtualIntelligence")) continue;
+        const name = foundry.utils.escapeHTML(ship.name);
+        const button = game.i18n.localize(LABEL + "UpgradeCard.AidButton");
+        await ChatMessage.create({
+            speaker: { alias: ship.name },
+            whisper: ChatMessage.getWhisperRecipients("GM").map(u => u.id),
+            content: `<div class="sfrpg chat-card narrative-vi-card"><p>${game.i18n.format(LABEL + "UpgradeCard.AidPrompt", { ship: name })}</p>`
+                + `<button type="button" class="narrative-vi-aid" data-combat-id="${combat.id}" data-ship-id="${id}" data-round="${combat.round}">`
+                + `<i class="fas fa-microchip"></i> ${button}</button></div>`
+        });
+    }
+}
+
+/** Connects the Virtual Intelligence button on a chat card. Only the GM sees it. */
+function onRenderChatMessage(message, html) {
+    const button = html.querySelector?.(".narrative-vi-aid");
+    if (!button) return;
+    if (!game.user.isGM) {
+        button.remove();
+        return;
+    }
+    button.addEventListener("click", event => {
+        event.preventDefault();
+        onVirtualIntelligenceClick(button.dataset);
+    });
+}
+
+/**
+ * Virtual Intelligence: the GM picks a crew member of the ship who has not acted, then the ship rolls
+ * d20 + tier + 3 against its own Average DC. A success gives Provide Aid's bonus. It uses no one's action.
+ * @param {{combatId: string, shipId: string, round: string}} data The button's data.
+ */
+async function onVirtualIntelligenceClick({ combatId, shipId, round }) {
+    const combat = game.combats.get(combatId);
+    const warn = reason => ui.notifications.warn(game.i18n.localize(`${LABEL}Rejected.${reason}`));
+    if (!isNarrativeCombat(combat)) return warn("noCombat");
+    if (combat.flags.sfrpg?.phase !== CREW_ACTIONS_PHASE || String(combat.round) !== round) return warn("wrongPhase");
+    const state = combat.getFlag("sfrpg", "narrative");
+    const shipCrew = crewByShip(combat, state)[shipId] ?? {};
+    const options = [...new Set(Object.values(shipCrew).flat())]
+        .filter(id => !(state.actedThisRound[id] > 0))
+        .map(id => {
+            const roles = rolesOf(shipCrew, id).map(r => game.i18n.localize(`${LABEL}Roles.${r}`))
+                .join(", ");
+            const name = foundry.utils.escapeHTML(game.actors.get(id)?.name ?? id);
+            return `<option value="${id}">${name} (${roles})</option>`;
+        });
+    if (options.length === 0) return warn("badAlly");
+    const allyId = await foundry.applications.api.DialogV2.prompt({
+        window: { title: game.i18n.localize(LABEL + "Upgrades.virtualIntelligence.Name") },
+        content: `<div class="form-group"><label>${game.i18n.localize(LABEL + "Dialog.Ally")}</label>`
+            + `<div class="form-fields"><select name="allyId">${options.join("")}</select></div></div>`,
+        ok: {
+            label: game.i18n.localize(LABEL + "Dialog.Roll"),
+            icon: "fas fa-dice-d20",
+            callback: (event, button) => button.form.elements.allyId.value
+        },
+        rejectClose: false
+    });
+    if (!allyId) return;
+    await queueForCombat(combat.id, () => runVirtualIntelligenceAid(combat, shipId, allyId));
+}
+
+async function runVirtualIntelligenceAid(combat, shipId, allyId) {
+    const warn = reason => ui.notifications.warn(game.i18n.localize(`${LABEL}Rejected.${reason}`));
+    if (combat.flags.sfrpg?.phase !== CREW_ACTIONS_PHASE) return warn("wrongPhase");
+    const state = combat.getFlag("sfrpg", "narrative");
+    const ship = shipActor(combat, shipId);
+    const derived = ship?.system.narrative?.derived ?? {};
+    const bonus = virtualIntelligenceBonus(Number(ship?.system.details?.tier) || 0);
+    const dc = Number(derived.averageDC);
+    // Check first, so a refused aid rolls nothing.
+    const check = applyVirtualIntelligenceAid(state, { shipId, allyId, total: 0, dc, crew: crewByShip(combat, state) }, combat.round);
+    if (!check.ok) return warn(check.reason);
+
+    const roll = await new Roll("1d20 + @bonus", { bonus }).evaluate();
+    const result = applyVirtualIntelligenceAid(state, { shipId, allyId, total: roll.total, dc, crew: crewByShip(combat, state) }, combat.round);
+    if (!result.ok) return warn(result.reason);
+    await saveNarrativeState(combat, result.state);
+    const ally = game.actors.get(allyId)?.name ?? allyId;
+    const key = result.success ? "UpgradeCard.AidSuccess" : "UpgradeCard.AidFailure";
+    const value = roll.total - dc >= 5 ? 3 : 2;
+    await roll.toMessage({
+        speaker: { alias: ship?.name ?? shipId },
+        flavor: `<p>${foundry.utils.escapeHTML(game.i18n.format(LABEL + key, { ally, dc, value }))}</p>`
+    });
+}
+
 /** Redraws open sheets of the ships in a narrative combat when its phase, round, or state changes. */
 function onUpdateCombat(combat, changed) {
     if (combat.getCombatType?.() !== NARRATIVE_COMBAT_TYPE) return;
@@ -555,5 +839,7 @@ function onUpdateCombat(combat, changed) {
 export function initializeNarrativeStarshipCombat() {
     RPC.registerCallback("narrativeCrewAction", "gm", onNarrativeCrewActionRequest);
     RPC.registerCallback("narrativeCrewActionRejected", "local", onNarrativeCrewActionRejected);
+    RPC.registerCallback("narrativeUseUpgrade", "gm", onNarrativeUseUpgradeRequest);
     Hooks.on("updateCombat", onUpdateCombat);
+    Hooks.on("renderChatMessageHTML", onRenderChatMessage);
 }
