@@ -1,0 +1,89 @@
+<div class="narrative-crew-action">
+    <div class="form-group">
+        <label>{{localize "SFRPG.NarrativeStarship.Dialog.Action"}}</label>
+        <div class="form-fields">
+            <select name="actionKey">
+                {{#each actions as |action|}}
+                <option value="{{action.value}}" data-needs="{{action.needs}}" data-resolve="{{action.resolve}}" data-preferred="{{action.preferred}}">{{action.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+    <p class="hint nca-preferred"></p>
+
+    <div class="form-group nca-row" data-row="enemy">
+        <label>{{localize "SFRPG.NarrativeStarship.Dialog.Target"}}</label>
+        <div class="form-fields">
+            <select name="targetId">
+                {{#each enemies as |ship|}}
+                <option value="{{ship.id}}">{{ship.name}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group nca-row" data-row="secondEnemy">
+        <label>{{localize "SFRPG.NarrativeStarship.Dialog.SecondTarget"}}</label>
+        <div class="form-fields">
+            <select name="secondTargetId">
+                {{#each enemies as |ship|}}
+                <option value="{{ship.id}}">{{ship.name}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group nca-row" data-row="ally">
+        <label>{{localize "SFRPG.NarrativeStarship.Dialog.Ally"}}</label>
+        <div class="form-fields">
+            <select name="allyId">
+                {{#each allies as |ally|}}
+                <option value="{{ally.id}}">{{ally.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group nca-row" data-row="secondAlly">
+        <label>{{localize "SFRPG.NarrativeStarship.Dialog.SecondAlly"}}</label>
+        <div class="form-fields">
+            <select name="secondAllyId">
+                {{#each allies as |ally|}}
+                <option value="{{ally.id}}">{{ally.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group nca-row" data-row="targetAction">
+        <label>{{localize "SFRPG.NarrativeStarship.Dialog.TargetAction"}}</label>
+        <div class="form-fields">
+            <select name="targetAction">
+                {{#each successActions as |action|}}
+                <option value="{{action.value}}">{{action.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>{{localize "SFRPG.NarrativeStarship.Dialog.Skill"}}</label>
+        <div class="form-fields">
+            <select name="skillKey">
+                {{#each skills as |skill|}}
+                <option value="{{skill.value}}" {{#if skill.disabled}}disabled{{/if}}>{{skill.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+    </div>
+    {{#if lastSkillLabel}}
+    <p class="hint">{{localize "SFRPG.NarrativeStarship.Dialog.LastSkill" skill=lastSkillLabel}}</p>
+    {{/if}}
+
+    <div class="form-group nca-row" data-row="resolve">
+        <label class="checkbox">
+            <input type="checkbox" name="spentResolve" {{#unless hasResolve}}disabled{{/unless}} />
+            {{localize "SFRPG.NarrativeStarship.Dialog.SpendResolve" value=resolveValue}}
+        </label>
+    </div>
+</div>

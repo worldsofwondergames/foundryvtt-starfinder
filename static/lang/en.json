@@ -2789,103 +2789,192 @@
             }
         },
         "NarrativeStarship": {
+            "Act": "Act",
             "AddSkillModifier": "Add a skill modifier",
             "AverageDC": "Average DC",
+            "Card": {
+                "Failure": "Failure: {total} against DC {dc}.",
+                "Free": "Free action from Improve Countermeasures.",
+                "Healed": "{ship} regains {value} HP.",
+                "Hit": "{ship} takes a hit.",
+                "RegainedResolve": "{name} regains 1 Resolve Point.",
+                "SpentResolve": "{name} spends 1 Resolve Point.",
+                "Success": "Success: {total} against DC {dc}.",
+                "Successes": "Successes gained: {count}",
+                "Target": "Target: {ship}",
+                "Who": "{name} ({role}) rolls {skill}."
+            },
             "CrewActions": {
                 "accessMaintenancePanels": {
+                    "Effect": "The ally rolls their next check twice and keeps the better result.",
                     "Name": "Access Maintenance Panels"
                 },
                 "channelEldritchEnergy": {
+                    "Effect": "Counts as 1 success against the target. Beating the DC by 5 or more lowers its threshold by 1 next round.",
                     "Name": "Channel Eldritch Energy"
                 },
                 "derideEnemyShip": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Deride Enemy Ship"
                 },
                 "drawFire": {
+                    "Effect": "The target must use Open Fire against this ship next round.",
                     "Name": "Draw Fire"
                 },
                 "empowerCrew": {
+                    "Effect": "Each other crew member who has not acted this round gets +1 on their checks this round.",
                     "Name": "Empower Crew"
                 },
                 "enactCunningStratagem": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Enact Cunning Stratagem"
                 },
                 "encourageCrewMember": {
+                    "Effect": "The ally regains 1 Resolve Point.",
                     "Name": "Encourage Crew Member"
                 },
                 "engageExperimentalPrototype": {
+                    "Effect": "The next time this round an ally succeeds at the chosen action, it gives twice as many successes.",
                     "Name": "Engage Experimental Prototype"
                 },
                 "engageFullThrusters": {
+                    "Effect": "Next round the target uses this ship's Hard DC for its tactics and takes a -1 penalty to its checks.",
                     "Name": "Engage Full Thrusters"
                 },
                 "fireAtWill": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Fire at Will"
                 },
                 "giveOrders": {
+                    "Effect": "The ally can take a second action this round.",
                     "Name": "Give Orders"
                 },
                 "harryEnemy": {
+                    "Effect": "The target takes a -2 penalty to skill checks next round.",
                     "Name": "Harry Enemy"
                 },
                 "holdSteady": {
+                    "Effect": "The gunner gets +3 on actions that give successes against the target this round.",
                     "Name": "Hold Steady"
                 },
                 "improveCountermeasures": {
+                    "Effect": "This ship uses its Hard DC against enemy tactics next round.",
                     "Name": "Improve Countermeasures"
                 },
                 "maximizeCrewEfficiency": {
+                    "Effect": "The ally's next action this round that gives successes gives twice as many.",
                     "Name": "Maximize Crew Efficiency"
                 },
                 "outmaneuver": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Outmaneuver"
                 },
                 "overpowerSystems": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Overpower Systems"
                 },
                 "patchHull": {
+                    "Effect": "The ship regains 1 HP.",
                     "Name": "Patch Hull"
                 },
                 "performAudaciousStunt": {
+                    "Effect": "Counts as 2 successes against the target.",
                     "Name": "Perform Audacious Stunt"
                 },
                 "prognosticate": {
+                    "Effect": "The GM picks the target's tactic for next round now. The first action against it next round gets +2.",
                     "Name": "Prognosticate"
                 },
                 "provideAid": {
+                    "Effect": "The ally gets +2 on their check this round, or +3 if this check beat the DC by 5 or more.",
                     "Name": "Provide Aid"
                 },
                 "realignTargetingSystems": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Realign Targeting Systems"
                 },
                 "scanEnemy": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Scan Enemy"
                 },
                 "scryOnEnemy": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Scry on Enemy"
                 },
                 "searchDatabase": {
+                    "Effect": "Checks against the target's DC get +1 this round.",
                     "Name": "Search Database"
                 },
                 "targetSystem": {
+                    "Effect": "If the target takes at least 1 hit this round, it takes 1 more.",
                     "Name": "Target System"
                 },
                 "targetWeakSpot": {
+                    "Effect": "Counts as 1 success against the target. Beating the DC by 10 or more also deals 1 hit.",
                     "Name": "Target Weak Spot"
                 },
                 "tauntEnemy": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Taunt Enemy"
                 },
                 "ventThrusterWaste": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
                     "Name": "Vent Thruster Waste"
                 }
+            },
+            "Dialog": {
+                "Action": "Action",
+                "Ally": "Ally",
+                "AnySkill": "Any skill",
+                "FreePatchHull": "Patch Hull (free, -2)",
+                "LastSkill": "You used {skill} last round, so you must pick another skill.",
+                "Preferred": "Preferred skills: {skills}. Other skills use the Hard DC.",
+                "Roll": "Roll",
+                "RollTitle": "{action}: {skill}",
+                "SecondAlly": "Second ally",
+                "SecondTarget": "Second target",
+                "Skill": "Skill",
+                "SpendResolve": "Spend 1 Resolve Point ({value} left)",
+                "Target": "Target",
+                "TargetAction": "Action to boost",
+                "Title": "Crew Action: {name}"
             },
             "HP": "HP",
             "HPPipsHint": "Click a pip to set the ship's current HP",
             "HardDC": "Hard DC",
             "Override": "Override",
             "OverrideHint": "Leave empty to use the derived value",
+            "RangedAttack": "Ranged attack",
+            "Rejected": {
+                "alreadyActed": "That crew member has already acted this round.",
+                "badAction": "Choose an action that gives successes.",
+                "badAlly": "That ally can't be chosen for this action.",
+                "badRoll": "The roll could not be read.",
+                "badTarget": "Choose an enemy ship that is still in the fight.",
+                "noCombat": "There is no narrative starship combat running.",
+                "noFreeAction": "This crew member has no free Patch Hull to use.",
+                "noGM": "No GM is connected to apply the action.",
+                "noResolve": "You have no Resolve Points to spend.",
+                "noResolveRider": "This action can't spend Resolve.",
+                "noSkill": "Choose a skill.",
+                "notCrew": "That crew member doesn't hold this role on the ship.",
+                "notGunner": "Only gunners can use a ranged attack.",
+                "notOwner": "You don't own that crew member.",
+                "sameSkill": "Pick a different skill than the one used last round.",
+                "unknownAction": "That action isn't known.",
+                "wrongPhase": "Crew actions can only be taken during the Crew Actions phase.",
+                "wrongRole": "That crew member doesn't hold the role this action needs.",
+                "wrongSide": "Only crew on a player ship can take crew actions."
+            },
             "RemoveSkillModifier": "Remove this skill modifier",
+            "Resolve": {
+                "Hits": "{ship}: hits taken {hits}, HP left {hp}.",
+                "NoHits": "No ship takes a hit this round.",
+                "Out": "{ship} is out of the fight.",
+                "Title": "Round {round} resolved",
+                "pcLoss": "The player ships are out. The enemy wins.",
+                "pcWin": "Every enemy ship is out. The player ships win."
+            },
             "Roles": {
                 "any": "Any Crew Member",
                 "captain": "Captain",
@@ -2895,6 +2984,17 @@
                 "magicOfficer": "Magic Officer",
                 "pilot": "Pilot",
                 "scienceOfficer": "Science Officer"
+            },
+            "RollParts": {
+                "FreePatchHull": "Free Patch Hull",
+                "RangedAttack": "Gunner ranged attack",
+                "Ship": "Ship skill modifier",
+                "allyVsTarget": "Hold Steady",
+                "crewSkill": "Crew modifier",
+                "firstVsTarget": "Prognosticate",
+                "nextCheck": "Ally help",
+                "skill": "Empower Crew",
+                "skillVsTarget": "Search Database"
             },
             "SheetLabel": "Narrative Starship",
             "SkillBonus": "Skill Bonus",

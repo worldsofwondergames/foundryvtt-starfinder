@@ -9,6 +9,7 @@ import { nextCombatType, starshipCombatTypeForMode } from "../rules/narrative-st
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 import { runTurnEvent } from "./turn-event.js";
+import { RESOLVE_PHASE, resolveNarrativePhase } from "../system/narrative-starship-combat.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
 /*
 The following hooks were added:
@@ -436,6 +437,11 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 await this._printChatCards(eventData);
                 if (eventData.direction > 0) await this._postTurnStartFailures(eventData);
                 await applyMechTurnChanges(eventData);
+                // Moving forward into a narrative combat's Resolve phase turns successes into hits.
+                if (this.getCombatType() === "narrativeStarship" && eventData.isNewPhase && eventData.direction > 0
+                    && this.flags.sfrpg.phase === RESOLVE_PHASE) {
+                    await resolveNarrativePhase(this);
+                }
             });
         }
     }

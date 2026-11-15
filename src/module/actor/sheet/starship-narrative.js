@@ -1,3 +1,4 @@
+import { openNarrativeCrewActionDialog } from "../../apps/narrative-crew-action-dialog.js";
 import { showStandardSheetToggle } from "../../rules/narrative-starship/mode.js";
 import {
     hpFromPipClick,
@@ -7,6 +8,7 @@ import {
     normalizeNarrativeFormData,
     skillModifierView
 } from "../../rules/narrative-starship/sheet-view.js";
+import { actableCrew } from "../../system/narrative-starship-combat.js";
 import { ActorSheetSFRPGStarship } from "./starship.js";
 
 /**
@@ -46,7 +48,9 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             hpValue: derived.hpValue,
             hpMax: derived.hpMax,
             skillModifiers: skillModifierView(narrative.skillModifiers, skills),
-            showStandardToggle: showStandardSheetToggle(game.settings.get("sfrpg", "starshipCombatMode"))
+            showStandardToggle: showStandardSheetToggle(game.settings.get("sfrpg", "starshipCombatMode")),
+            // Act buttons during the Crew Actions phase, keyed by role and crew actor id.
+            actable: layout === "pc" ? actableCrew(this.actor)?.actable ?? null : null
         };
 
         data.enrichedSpecialAbilities = await foundry.applications.ux.TextEditor.enrichHTML(narrative.specialAbilities ?? "", {
@@ -71,6 +75,20 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         html.find(".narrative-skill-add").click(this._onSkillModifierAdd.bind(this));
         html.find(".narrative-skill-remove").click(this._onSkillModifierRemove.bind(this));
         html.find(".narrative-standard-toggle").click(this._onStandardSheetToggle.bind(this));
+        html.find(".narrative-act").click(this._onNarrativeAct.bind(this));
+    }
+
+    /**
+     * Opens the crew action dialog for the crew member and role of the clicked Act button.
+     * @param {Event} event The click event
+     */
+    async _onNarrativeAct(event) {
+        event.preventDefault();
+        const button = event.currentTarget;
+        const actor = game.actors.get(button.closest(".crew").dataset.actorId);
+        const found = actableCrew(this.actor);
+        if (!actor || !found) return;
+        await openNarrativeCrewActionDialog({ combat: found.combat, ship: this.actor, actor, role: button.dataset.role });
     }
 
     /**

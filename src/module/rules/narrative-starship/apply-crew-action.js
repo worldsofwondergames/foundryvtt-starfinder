@@ -40,7 +40,7 @@ const ENEMY_TARGET_ACTIONS = new Set(
 /** Own-DC actions whose Resolve rider counts as a success against a chosen enemy. */
 const RESOLVE_SUCCESS_ACTIONS = new Set(["empowerCrew", "searchDatabase", "targetSystem"]);
 
-/** Ally rules: who may be chosen, and whether they must or must not have acted this round. */
+/** Who may be chosen as the ally, and whether they must or must not have acted this round. */
 const ALLY_RULES = {
     provideAid: { notSelf: true, acted: false },
     encourageCrewMember: {},
@@ -54,6 +54,24 @@ const ALLY_RULES = {
 /** Resolve riders that need a second ally or a second enemy. */
 const SECOND_ALLY_ACTIONS = new Set(["provideAid", "encourageCrewMember", "accessMaintenancePanels", "holdSteady"]);
 const SECOND_ENEMY_ACTIONS = new Set(["harryEnemy"]);
+
+/**
+ * What the crew action dialog must ask for with an action.
+ * @param {string} actionKey
+ * @returns {{enemy: boolean, ally: "always"|"resolve"|null, secondAlly: boolean, secondEnemy: boolean,
+ *   resolveEnemy: boolean, targetAction: boolean}}
+ */
+export function actionNeeds(actionKey) {
+    const allyRules = ALLY_RULES[actionKey];
+    return {
+        enemy: ENEMY_TARGET_ACTIONS.has(actionKey),
+        ally: allyRules ? (allyRules.resolveOnly ? "resolve" : "always") : null,
+        secondAlly: SECOND_ALLY_ACTIONS.has(actionKey),
+        secondEnemy: SECOND_ENEMY_ACTIONS.has(actionKey),
+        resolveEnemy: RESOLVE_SUCCESS_ACTIONS.has(actionKey) && !ENEMY_TARGET_ACTIONS.has(actionKey),
+        targetAction: actionKey === "engageExperimentalPrototype"
+    };
+}
 
 /**
  * Whether an action can give skill check successes toward a threshold.
@@ -227,7 +245,7 @@ function validate(state, input, round) {
  * @param {Record<string, Record<string, string[]>>} input.crew Crew by ship and role.
  * @param {number} round
  * @returns {{state: object, effects: Array<object>, success: boolean, successes: number}}
- *   Effects for the caller to apply: heal, hit, regainResolve, spendResolve (target and value), or rejected (reason).
+ *   The caller applies the effects heal, hit, regainResolve, spendResolve (target and value), or rejected (reason).
  */
 export function applyCrewAction(state, input, round) {
     const problem = validate(state, input, round);
@@ -245,7 +263,7 @@ export function applyCrewAction(state, input, round) {
     const effects = [];
     let gained = 0;
 
-    // The roll is made: count the action and use up the bonuses it got.
+    // The roll is made, so count the action and use up the bonuses it got.
     let next = state;
     if (input.free) {
         next = consume(next, actorId, "freePatchHull", round, 1);
@@ -365,8 +383,8 @@ export function applyCrewAction(state, input, round) {
 }
 
 /**
- * Runs the Resolve phase for the crew action effects: threshold changes, successes into hits,
- * Target System's extra hit, and which ships are out.
+ * Runs the Resolve phase for the crew action effects. Applies threshold changes, turns successes into
+ * hits, adds Target System's extra hit, and finds the ships that are out.
  * @param {object} state
  * @param {Record<string, {threshold: number, hpValue: number}>} ships Each ship's derived threshold and remaining HP.
  * @param {number} round

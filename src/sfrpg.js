@@ -71,6 +71,7 @@ import { onApplyOngoingClick, onOngoingConditionSet } from "./module/system/ongo
 import { onConditionItemDisabled, onTimedConditionSet } from "./module/system/condition-timer.js";
 import { onConditionEndCheckClick, onStopBleedingClick, onStopBleedingRequest } from "./module/system/condition-end-check.js";
 import { onMechReplenishClick } from "./module/system/mech-replenish-link.js";
+import { initializeNarrativeStarshipCombat, initializeNarrativeState } from "./module/system/narrative-starship-combat.js";
 import { onChatButtonAnswer, onChatButtonRequest, onRenderSpentButtons, onSingleUseInlineRoll } from "./module/system/chat-button-claim.js";
 import {
     DICE_ICON,
@@ -706,6 +707,7 @@ Hooks.once("setup", function() {
     RPC.registerCallback("releaseChatButton", "gm", onChatButtonRequest);
     RPC.registerCallback("chatButtonAnswer", "local", onChatButtonAnswer);
     RPC.registerCallback("stopBleeding", "gm", onStopBleedingRequest);
+    initializeNarrativeStarshipCombat();
 
     console.log("Starfinder | [SETUP] Initializing remote inventory system");
     initializeRemoteInventory();
@@ -911,6 +913,9 @@ Hooks.on("renderAbstractSidebarTab", async (app) => {
         }
     }
 });
+
+// Narrative starship combat keeps its round state in a combat flag, built when the combat starts.
+CombatSFRPG.startSteps.push(initializeNarrativeState);
 
 // A start of combat step rather than a combatStart hook, which nothing waits
 // for, so the Mech Combat Start card comes before the first round's card.

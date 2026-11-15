@@ -171,11 +171,12 @@ export class DiceSFRPG {
     * @param {String}               data.rollType       Type of roll (options: CONFIG.SFRPG.rollType)
     * @param {Number}               data.difficulty     Optional parameter for checks
     * @param {Tag[]}                [data.tags]         Any roll metadata that will be output on the bottom of the chat card.
+    * @param {string}               [data.mainDie]      The die rolled when the Normal button is used, such as "2d20kh" to roll twice and keep the better.
     * @returns {Promise<RollResult?>}
     */
     static async d20Roll({ event = new Event(''), parts, rollContext, title, speaker, flavor, advantage = true, rollOptions = {},
         critical = 20, fumble = 1, chatMessage = true, onClose, dialogOptions, actorContextKey = "actor",
-        rollType = "roll", difficulty = undefined, tags = []}) {
+        rollType = "roll", difficulty = undefined, tags = [], mainDie = "1d20"}) {
 
         flavor = `${title}${(flavor ? " <br> " + flavor : "")}`;
 
@@ -222,7 +223,7 @@ export class DiceSFRPG {
             }
             return null;
         } else {
-            let dieRoll = "1d20";
+            let dieRoll = mainDie;
             if (rollInfo.button === "disadvantage") {
                 dieRoll = "2d20kl";
             } else if (rollInfo.button === "advantage") {

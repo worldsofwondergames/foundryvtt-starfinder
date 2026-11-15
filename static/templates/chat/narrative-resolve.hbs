@@ -1,0 +1,18 @@
+<div class="sfrpg chat-card narrative-resolve-card">
+    <header class="card-header flexrow">
+        <h3>{{localize "SFRPG.NarrativeStarship.Resolve.Title" round=round}}</h3>
+    </header>
+    <div class="card-content">
+        {{#each hits as |ship|}}
+        <p>{{localize "SFRPG.NarrativeStarship.Resolve.Hits" ship=ship.name hits=ship.hits hp=ship.hp}}</p>
+        {{else}}
+        <p>{{localize "SFRPG.NarrativeStarship.Resolve.NoHits"}}</p>
+        {{/each}}
+        {{#each out as |name|}}
+        <p>{{localize "SFRPG.NarrativeStarship.Resolve.Out" ship=name}}</p>
+        {{/each}}
+        {{#if ended}}
+        <p><strong>{{ended}}</strong></p>
+        {{/if}}
+    </div>
+</div>
