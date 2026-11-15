@@ -2767,6 +2767,17 @@
                 "Inventory": "Inventory"
             }
         },
+        "NarrativeStarship": {
+            "Source": {
+                "ArmorMark": "From the ship's tier, adjusted for armor and defense marks",
+                "CrewSkills": "From the crew's skill modifiers",
+                "Guessed": "Guessed from the ship's tier, replace it if you know better",
+                "Override": "Set by the GM",
+                "Shields": "From the shield category",
+                "Size": "From the ship's size",
+                "Tier": "From the ship's tier"
+            }
+        },
         "Necrograft": "Necrograft",
         "None": "None",
         "Notes": "Notes",
