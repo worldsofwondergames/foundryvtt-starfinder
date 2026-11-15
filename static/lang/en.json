@@ -2791,12 +2791,111 @@
         "NarrativeStarship": {
             "AddSkillModifier": "Add a skill modifier",
             "AverageDC": "Average DC",
+            "CrewActions": {
+                "accessMaintenancePanels": {
+                    "Name": "Access Maintenance Panels"
+                },
+                "channelEldritchEnergy": {
+                    "Name": "Channel Eldritch Energy"
+                },
+                "derideEnemyShip": {
+                    "Name": "Deride Enemy Ship"
+                },
+                "drawFire": {
+                    "Name": "Draw Fire"
+                },
+                "empowerCrew": {
+                    "Name": "Empower Crew"
+                },
+                "enactCunningStratagem": {
+                    "Name": "Enact Cunning Stratagem"
+                },
+                "encourageCrewMember": {
+                    "Name": "Encourage Crew Member"
+                },
+                "engageExperimentalPrototype": {
+                    "Name": "Engage Experimental Prototype"
+                },
+                "engageFullThrusters": {
+                    "Name": "Engage Full Thrusters"
+                },
+                "fireAtWill": {
+                    "Name": "Fire at Will"
+                },
+                "giveOrders": {
+                    "Name": "Give Orders"
+                },
+                "harryEnemy": {
+                    "Name": "Harry Enemy"
+                },
+                "holdSteady": {
+                    "Name": "Hold Steady"
+                },
+                "improveCountermeasures": {
+                    "Name": "Improve Countermeasures"
+                },
+                "maximizeCrewEfficiency": {
+                    "Name": "Maximize Crew Efficiency"
+                },
+                "outmaneuver": {
+                    "Name": "Outmaneuver"
+                },
+                "overpowerSystems": {
+                    "Name": "Overpower Systems"
+                },
+                "patchHull": {
+                    "Name": "Patch Hull"
+                },
+                "performAudaciousStunt": {
+                    "Name": "Perform Audacious Stunt"
+                },
+                "prognosticate": {
+                    "Name": "Prognosticate"
+                },
+                "provideAid": {
+                    "Name": "Provide Aid"
+                },
+                "realignTargetingSystems": {
+                    "Name": "Realign Targeting Systems"
+                },
+                "scanEnemy": {
+                    "Name": "Scan Enemy"
+                },
+                "scryOnEnemy": {
+                    "Name": "Scry on Enemy"
+                },
+                "searchDatabase": {
+                    "Name": "Search Database"
+                },
+                "targetSystem": {
+                    "Name": "Target System"
+                },
+                "targetWeakSpot": {
+                    "Name": "Target Weak Spot"
+                },
+                "tauntEnemy": {
+                    "Name": "Taunt Enemy"
+                },
+                "ventThrusterWaste": {
+                    "Name": "Vent Thruster Waste"
+                }
+            },
             "HP": "HP",
             "HPPipsHint": "Click a pip to set the ship's current HP",
             "HardDC": "Hard DC",
             "Override": "Override",
             "OverrideHint": "Leave empty to use the derived value",
             "RemoveSkillModifier": "Remove this skill modifier",
+            "Roles": {
+                "any": "Any Crew Member",
+                "captain": "Captain",
+                "chiefMate": "Chief Mate",
+                "engineer": "Engineer",
+                "gunner": "Gunner",
+                "magicOfficer": "Magic Officer",
+                "pilot": "Pilot",
+                "scienceOfficer": "Science Officer"
+            },
             "SheetLabel": "Narrative Starship",
             "SkillBonus": "Skill Bonus",
             "SkillBonusGuessed": "This ship has no crew skills to read, so the skill bonus is a guess. Replace it with the stat block's value.",

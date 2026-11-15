@@ -3,6 +3,7 @@ import CheckEnricher from "./system/enrichers/check.js";
 import IconEnricher from "./system/enrichers/icon.js";
 import PPAbilityEnricher from "./system/enrichers/pp-ability.js";
 import TemplateEnricher from "./system/enrichers/template.js";
+import { NARRATIVE_CREW_ACTIONS } from "./rules/narrative-starship/crew-actions.js";
 import { tokenSizes } from "./token/token-sizes.js";
 
 /** @import { ItemSFRPG } from "./item/item.js" */
@@ -2713,6 +2714,8 @@ SFRPG.storageWeightProperties = {
     "slots": "SFRPG.ActorSheet.Inventory.Container.CapacityPropertySlots",
     "level": "SFRPG.ActorSheet.Inventory.Container.CapacityPropertyLevel"
 };
+
+SFRPG.narrativeCrewActions = NARRATIVE_CREW_ACTIONS;
 
 SFRPG.combatTypes = [
     "normal",
