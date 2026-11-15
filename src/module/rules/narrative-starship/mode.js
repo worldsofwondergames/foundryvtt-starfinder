@@ -16,6 +16,22 @@ export function combatTypesForMode(mode) {
 }
 
 /**
+ * The combat type the tracker switches to when the GM steps through the types
+ * offered by the mode. A current type the mode does not offer steps to the
+ * first type, whichever direction was clicked.
+ * @param {string} current
+ * @param {number} direction 1 for next, -1 for previous
+ * @param {"standard"|"narrative"|"both"} mode
+ * @returns {string}
+ */
+export function nextCombatType(current, direction, mode) {
+    const types = combatTypesForMode(mode);
+    const index = types.indexOf(current);
+    if (index === -1) return types[0];
+    return types[(types.length + index + direction) % types.length];
+}
+
+/**
  * Whether the narrative starship sheet is the default sheet for starships.
  * @param {"standard"|"narrative"|"both"} mode
  * @returns {boolean}

@@ -615,6 +615,27 @@
                 "HistoryLimitedStartOfEncounter": "You have reached the start of the encounter, we cannot go back further in history.<br/><br/>Click to dismiss.",
                 "MissingInitiative": "The current phase has reset initiative. Please re-roll initiative on all combatants before continuing.<br/><br/>Click to dismiss."
             },
+            "NarrativeStarship": {
+                "Name": "Narrative Starship Combat",
+                "Phases": {
+                    "1": {
+                        "Description": "Crew members may switch roles now.",
+                        "Name": "Change Roles"
+                    },
+                    "2": {
+                        "Description": "The GM chooses a tactic for each enemy ship.",
+                        "Name": "Enemy Tactics"
+                    },
+                    "3": {
+                        "Description": "Each crew member takes one action, in any order.",
+                        "Name": "Crew Actions"
+                    },
+                    "4": {
+                        "Description": "Successes turn into hits and the round ends.",
+                        "Name": "Resolve"
+                    }
+                }
+            },
             "Normal": {
                 "Name": "Normal Combat",
                 "Phases": {
@@ -3072,6 +3093,8 @@
                 "Name": "Automatically Close Item Summaries"
             },
             "CombatCards": {
+                "NarrativeStarshipHint": "Change which combat chat cards should be displayed during narrative starship combat.",
+                "NarrativeStarshipName": "Narrative starship combat",
                 "NormalHint": "Change which combat chat cards should be displayed during normal combat.",
                 "NormalName": "Normal combat",
                 "StarshipHint": "Change which combat chat cards should be displayed during starship combat.",

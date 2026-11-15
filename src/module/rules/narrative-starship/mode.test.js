@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combatTypesForMode, narrativeSheetIsDefault, showStandardSheetToggle } from "./mode.js";
+import { combatTypesForMode, nextCombatType, narrativeSheetIsDefault, showStandardSheetToggle } from "./mode.js";
 
 describe("combatTypesForMode", () => {
     it("lists standard starship combat for standard mode", () => {
@@ -32,5 +32,26 @@ describe("showStandardSheetToggle", () => {
         expect(showStandardSheetToggle("both")).toBe(true);
         expect(showStandardSheetToggle("narrative")).toBe(false);
         expect(showStandardSheetToggle("standard")).toBe(false);
+    });
+});
+
+describe("nextCombatType", () => {
+    it("wraps forward past the last type", () => {
+        expect(nextCombatType("vehicleChase", 1, "narrative")).toBe("normal");
+    });
+
+    it("wraps backward past the first type", () => {
+        expect(nextCombatType("normal", -1, "narrative")).toBe("vehicleChase");
+    });
+
+    it("steps to the adjacent type", () => {
+        expect(nextCombatType("normal", 1, "narrative")).toBe("narrativeStarship");
+        expect(nextCombatType("narrativeStarship", -1, "narrative")).toBe("normal");
+    });
+
+    it("steps to the first type when the current type is not offered", () => {
+        expect(nextCombatType("starship", 1, "narrative")).toBe("normal");
+        expect(nextCombatType("starship", -1, "narrative")).toBe("normal");
+        expect(nextCombatType("bogus", 1, "standard")).toBe("normal");
     });
 });

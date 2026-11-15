@@ -5,6 +5,7 @@ import RollContext from "../rolls/rollcontext.js";
 import { postRoundEndCheckCards } from "../system/condition-end-check.js";
 import { postTurnStartFailures } from "../system/mech-failure-link.js";
 import { postsPhaseCard } from "../rules/combat-cards.js";
+import { nextCombatType } from "../rules/narrative-starship/mode.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 import { runTurnEvent } from "./turn-event.js";
@@ -79,7 +80,7 @@ export class CombatSFRPG extends foundry.documents.Combat {
             "flags.sfrpg.combatType": combatType,
             "flags.sfrpg.phase": 0,
             "round": 1,
-            "turn": combatType === "starship" ? null : 0
+            "turn": (combatType === "starship" || combatType === "narrativeStarship") ? null : 0
         };
         Hooks.callAll("combatStart", this, update);
         // Work that belongs to the start of the combat, such as resetting mechs,
@@ -136,6 +137,7 @@ export class CombatSFRPG extends foundry.documents.Combat {
         const sortMethod = {
             "normal": CombatSFRPG.normalCombat.initiativeSorting,
             "starship": CombatSFRPG.starshipCombat.initiativeSorting,
+            "narrativeStarship": CombatSFRPG.narrativeStarship.initiativeSorting,
             "vehicleChase": CombatSFRPG.vehicleChase.initiativeSorting
         }[this.getCombatType()] || "desc";
 
@@ -630,6 +632,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 return game.i18n.format(CombatSFRPG.normalCombat.name);
             case "starship":
                 return game.i18n.format(CombatSFRPG.starshipCombat.name);
+            case "narrativeStarship":
+                return game.i18n.format(CombatSFRPG.narrativeStarship.name);
             case "vehicleChase":
                 return game.i18n.format(CombatSFRPG.vehicleChase.name);
         }
@@ -642,6 +646,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 return CombatSFRPG.normalCombat.phases;
             case "starship":
                 return CombatSFRPG.starshipCombat.phases;
+            case "narrativeStarship":
+                return CombatSFRPG.narrativeStarship.phases;
             case "vehicleChase":
                 return CombatSFRPG.vehicleChase.phases;
         }
@@ -1012,12 +1018,10 @@ export class CombatSFRPG extends foundry.documents.Combat {
 
 async function onConfigClicked(combat, direction) {
     const combatType = combat.flags?.sfrpg?.combatType || "normal";
-    const types = ["normal", "starship", "vehicleChase"];
-    const indexOf = types.indexOf(combatType);
-    const wrappedIndex = (types.length + indexOf + direction) % types.length;
+    const mode = game.settings.get("sfrpg", "starshipCombatMode");
 
     const update = {
-        "flags.sfrpg.combatType": types[wrappedIndex]
+        "flags.sfrpg.combatType": nextCombatType(combatType, direction, mode)
     };
     await combat.update(update);
 }
@@ -1059,7 +1063,7 @@ Hooks.on('renderCombatTracker', (app, html, data) => {
     }
 
     // Perform difficulty calculations, and display if appropriate
-    if (game.user.isGM && combatType !== "vehicleChase") {
+    if (game.user.isGM && combatType !== "vehicleChase" && combatType !== "narrativeStarship") {
         const diffDisplay = game.settings.get("sfrpg", "difficultyDisplay");
         if (!diffDisplay) return;
 
@@ -1139,6 +1143,17 @@ CombatSFRPG.starshipCombat = {
             resetInitiative: false
         }
     ]
+};
+
+CombatSFRPG.narrativeStarship = {
+    name: "SFRPG.Combat.NarrativeStarship.Name",
+    initiativeSorting: "desc",
+    phases: [1, 2, 3, 4].map(number => ({
+        name: `SFRPG.Combat.NarrativeStarship.Phases.${number}.Name`,
+        description: `SFRPG.Combat.NarrativeStarship.Phases.${number}.Description`,
+        iterateTurns: false,
+        resetInitiative: false
+    }))
 };
 
 CombatSFRPG.vehicleChase = {
