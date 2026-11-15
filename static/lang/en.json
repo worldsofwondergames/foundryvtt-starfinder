@@ -3017,7 +3017,7 @@
                     "Name": "All-Out Attack"
                 },
                 "cruelTaunt": {
-                    "Effect": "A check against the PC ship's Average or Hard DC. On a success, the crew of that ship take -1 to all skill checks this round, or -2 if the check met the Hard DC.",
+                    "Effect": "A check against the PC ship's Average or Hard DC, chosen by the GM. On a success, the crew of that ship take -1 to all skill checks this round, or -2 if the check was against the Hard DC.",
                     "Name": "Cruel Taunt"
                 },
                 "evasiveManeuvers": {

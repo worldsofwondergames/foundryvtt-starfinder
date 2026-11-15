@@ -3,7 +3,8 @@
  * Pure. The GM's Enemy Tactics dialog builds on this.
  *
  * Modifier kinds tactics write. All last until the end of the round the tactic is used in.
- *   crewSkill      -N to every check by the crew of a PC ship (Cruel Taunt, Ram). Read by rollBonuses.
+ *   crewSkill      -N to every check by the crew of a PC ship (Cruel Taunt, Ram). Cruel Taunt gives -2 only
+ *                  when its check was against the Hard DC. Read by rollBonuses.
  *   thresholdDelta +1 or -1 to the enemy ship's threshold (Raise Shields, Make Repairs). Read by
  *                  resolveNarrativeRound, which keeps the threshold at 1 or more.
  *   dcHardVs       Checks with the listed skills made against the enemy ship use its Hard DC. The target is
@@ -124,13 +125,16 @@ export function forceHardFor(state, { shipId, targetId, skillKey }, round) {
 export function availableTactics(state, enemyId, round) {
     const forced = state.ships[enemyId]?.forcedTactic;
     const forcedKey = forced?.round === round ? forced.tactic : null;
+    // Another enemy's choice, or the tactic another enemy is forced to and has not chosen yet, is taken.
     const taken = new Set(Object.entries(state.ships)
-        .filter(([id, ship]) => id !== enemyId && ship.side === "enemy" && ship.tactic)
-        .map(([, ship]) => ship.tactic));
+        .filter(([id, ship]) => id !== enemyId && ship.side === "enemy")
+        .map(([, ship]) => ship.tactic ?? (ship.forcedTactic?.round === round ? ship.forcedTactic.tactic : null))
+        .filter(Boolean));
     return Object.keys(NARRATIVE_TACTICS).map(key => {
         let reason = null;
+        // The ship's own forced tactic is never taken: Draw Fire's rule wins over the one-ship-per-tactic rule.
         if (forcedKey && key !== forcedKey) reason = "forced";
-        else if (taken.has(key)) reason = "taken";
+        else if (key !== forcedKey && taken.has(key)) reason = "taken";
         else if (key === "allOutAttack" && round <= (state.allOutAttackLockedUntilRound ?? 0)) reason = "locked";
         return reason ? { key, disabled: true, reason } : { key, disabled: false };
     });
@@ -177,7 +181,7 @@ export function chooseTactic(state, enemyId, tactic, targetId, round) {
  * @param {string} [input.targetId] The PC ship.
  * @param {number[]} [input.rolls] Check totals, tacticRollCount of them, each d20 + skill bonus + enemyCheckBonus.
  * @param {{average: number, hard: number}} [input.dcs] The PC target ship's DCs.
- * @param {"average"|"hard"} [input.choice] The GM's DC choice for Cruel Taunt.
+ * @param {"average"|"hard"} [input.choice] The GM's DC choice for Cruel Taunt. Required for Cruel Taunt.
  * @param {number} round
  * @returns {{state: object, effects: Array<object>}} The caller applies hit and heal effects (target, value).
  *   manual means the GM runs it by hand; rejected has a reason and leaves the state unchanged.
@@ -186,6 +190,10 @@ export function applyTactic(state, input, round) {
     const { enemyId, tactic, targetId, dcs } = input;
     const problem = tacticProblem(state, enemyId, tactic, targetId, round);
     if (problem) return { state, effects: [{ kind: "rejected", reason: problem }] };
+
+    if (tactic === "cruelTaunt" && input.choice !== "average" && input.choice !== "hard") {
+        return { state, effects: [{ kind: "rejected", reason: "noChoice" }] };
+    }
 
     const rolls = (input.rolls ?? []).map(Number);
     const count = tacticRollCount(state, input, round);
@@ -224,7 +232,7 @@ export function applyTactic(state, input, round) {
             }
             break;
         case "cruelTaunt":
-            if (success) mod(targetId, "crewSkill", worst >= dcs.hard ? -2 : -1);
+            if (success) mod(targetId, "crewSkill", dc === dcs.hard ? -2 : -1);
             break;
         case "evasiveManeuvers":
             mod(enemyId, "dcHardVs", 1, { skills: [...EVASIVE_SKILLS] });

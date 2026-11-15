@@ -70,6 +70,24 @@ describe("availableTactics", () => {
         // The forced choice is for its own round only.
         expect(availableTactics(state, "e1", ROUND + 1).every(t => !t.disabled)).toBe(true);
     });
+
+    it("never marks a ship's own forced tactic taken, even after another enemy chose it first", () => {
+        let state = fresh();
+        state.ships.e1.forcedTactic = { tactic: "openFire", targetShip: "pc1", round: ROUND };
+        state.ships.e2.tactic = "openFire";
+        expect(statusOf(state, "e1", "openFire")).toEqual({ key: "openFire", disabled: false });
+        state = chooseTactic(state, "e1", "openFire", "pc1", ROUND);
+        expect(state.ships.e1.tactic).toBe("openFire");
+        expect(tactic(state, { tactic: "openFire", rolls: [20] }).effects).toEqual([{ kind: "hit", target: "pc1", value: 1 }]);
+    });
+
+    it("marks a tactic another enemy is forced to as taken before that enemy chooses", () => {
+        const state = fresh();
+        state.ships.e1.forcedTactic = { tactic: "openFire", targetShip: "pc1", round: ROUND };
+        expect(statusOf(state, "e2", "openFire")).toEqual({ key: "openFire", disabled: true, reason: "taken" });
+        expect(() => chooseTactic(state, "e2", "openFire", "pc1", ROUND)).toThrow("taken");
+        expect(statusOf(state, "e2", "openFire", ROUND + 1).disabled).toBe(false);
+    });
 });
 
 describe("chooseTactic", () => {
@@ -192,9 +210,23 @@ describe("applyTactic", () => {
         expect(modifiersFor(state, "pc1", "crewSkill", ROUND)).toBe(-1);
     });
 
-    it("Cruel Taunt against the Average DC that also meets the Hard DC gives -2", () => {
+    it("Cruel Taunt against the Average DC that also meets the Hard DC gives -1", () => {
         const { state } = tactic(fresh(), { tactic: "cruelTaunt", choice: "average", rolls: [25] });
-        expect(modifiersFor(state, "pc1", "crewSkill", ROUND)).toBe(-2);
+        expect(modifiersFor(state, "pc1", "crewSkill", ROUND)).toBe(-1);
+    });
+
+    it("Cruel Taunt forced to the Hard DC by ownDCHard gives -2", () => {
+        const state = addModifier(fresh(), { target: "pc1", kind: "ownDCHard", value: 1, expiresAfterRound: ROUND });
+        const result = tactic(state, { tactic: "cruelTaunt", choice: "average", rolls: [25] });
+        expect(modifiersFor(result.state, "pc1", "crewSkill", ROUND)).toBe(-2);
+    });
+
+    it("Cruel Taunt without a DC choice is rejected", () => {
+        const before = fresh();
+        const { state, effects } = tactic(before, { tactic: "cruelTaunt", rolls: [30] });
+        expect(effects).toEqual([{ kind: "rejected", reason: "noChoice" }]);
+        expect(state).toBe(before);
+        expect(modifiersFor(state, "pc1", "crewSkill", ROUND)).toBe(0);
     });
 
     it("Cruel Taunt against the Hard DC gives -2", () => {
