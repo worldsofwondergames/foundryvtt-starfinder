@@ -1,7 +1,7 @@
 # Version 14.1.9
 
 ## New Features
-- A Starship Combat Mode world setting offers Standard, Narrative or Both. Standard keeps the standard starship sheet as the only starship sheet. Narrative makes the Narrative Starship sheet the default for starships. Both keeps the standard sheet as the default, the Narrative Starship sheet can be chosen from the sheet configuration, and the narrative sheet gets a "Use the standard sheet" button
+- A Starship Combat Mode world setting offers Standard, Narrative or Both. Standard keeps the standard starship sheet as the default. Narrative makes the Narrative Starship sheet the default for starships. Both keeps the standard sheet as the default, the Narrative Starship sheet can be chosen from the sheet configuration, and the narrative sheet gets a "Use the standard sheet" button
 - A Narrative Alternate DCs world setting makes narrative starship DCs use the skill DC table on page 184 of Starfinder Enhanced
 - The Narrative Starship sheet shows a starship the way Starfinder Enhanced pp. 176-184 does. A ship with NPC crew shows the NPC layout: Average DC, Hard DC, HP with clickable pips, threshold, skill bonus and special abilities. They are worked out from the ship's tier, size, armor, defenses, shields and the NPC crew's skills, following page 177. Each has a tooltip naming where its value comes from, and the GM can type an override in any of them. A ship with PC crew shows the PC layout: DCs, HP, skill modifiers and the crew roster
 - The rules journal "Narrative Starship Combat (Optional)" has a "Using Class Abilities" page with the sidebar from page 183, about class abilities that improve skill checks during narrative starship combat
