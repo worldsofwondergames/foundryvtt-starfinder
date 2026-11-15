@@ -34,6 +34,7 @@
  */
 import { NARRATIVE_CREW_ACTIONS, skillAllowed, successesFor } from "./crew-actions.js";
 import { addModifier, addSuccesses, canAct, grantExtraAction, modifiersFor, recordAction, resolveRound } from "./state.js";
+import { absorbHit } from "./upgrades.js";
 
 /** Actions that need an enemy ship chosen. */
 const ENEMY_TARGET_ACTIONS = new Set(
@@ -420,7 +421,8 @@ export function applyCrewAction(state, input, round) {
  * Runs the Resolve phase for the crew action effects. Applies threshold changes, turns successes into
  * hits, adds Target System's extra hit, and finds the ships that are out.
  * @param {object} state
- * @param {Record<string, {threshold: number, hpValue: number}>} ships Each ship's derived threshold and remaining HP.
+ * @param {Record<string, {threshold: number, hpValue: number, upgrades?: Record<string, number>}>} ships Each ship's
+ *   derived threshold and remaining HP, and its installed upgrades (for Ablative Plating).
  * @param {number} round
  * @returns {{state: object, hits: Record<string, number>, hp: Record<string, number>, out: string[], ended: "pcWin"|"pcLoss"|null}}
  */
@@ -437,7 +439,7 @@ export function resolveNarrativeRound(state, ships, round) {
     for (const id of Object.keys(state.ships)) extra[id] = modifiersFor(state, id, "extraHitIfHit", round);
 
     const result = resolveRound(state, statsById, hpById, round);
-    const next = { ...result.state, ships: { ...result.state.ships } };
+    let next = { ...result.state, ships: { ...result.state.ships } };
     const hits = {};
     const hp = {};
     const out = [];
@@ -445,7 +447,11 @@ export function resolveNarrativeRound(state, ships, round) {
         const taken = result.hits[id] ?? 0;
         // Target System counts hits from tactics and crew actions earlier in the round too.
         const hitBefore = (state.ships[id].hitsThisRound ?? 0) > 0;
-        hits[id] = taken > 0 || hitBefore ? taken + extra[id] : 0;
+        const total = taken > 0 || hitBefore ? taken + extra[id] : 0;
+        // Ablative Plating ignores the first hit a PC ship takes in the combat.
+        const absorbed = next.ships[id].side === "pc" ? absorbHit(next, id, total, ships[id]?.upgrades) : { state: next, hits: total };
+        next = { ...absorbed.state, ships: next.ships };
+        hits[id] = absorbed.hits;
         hp[id] = Math.max(0, hpById[id] - hits[id]);
         const ship = next.ships[id];
         if (hp[id] === 0 && !ship.flags.includes("out")) {

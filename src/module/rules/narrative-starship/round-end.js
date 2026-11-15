@@ -14,16 +14,42 @@ const CREW_ACTIONS_PHASE = 2;
 const ROUND_FLAGS = ["takeCover", "fleeing"];
 
 /**
+ * The enemy ships that used Flee and have HP left, so they try to leave at the end of the round.
+ * @param {object} state
+ * @param {Record<string, number>} hp
+ * @returns {string[]}
+ */
+export function fleeingEnemies(state, hp) {
+    return Object.entries(state.ships)
+        .filter(([id, ship]) => ship.side === "enemy" && ship.flags.includes("fleeing") && (hp[id] ?? 0) > 0)
+        .map(([id]) => id);
+}
+
+/**
  * Removes the enemy ships that fled and clears the Take Cover and Flee flags.
  * @param {object} state The state after resolveNarrativeRound.
  * @param {Record<string, number>} hp Each ship's HP after this round's hits.
- * @returns {{state: object, fled: string[], ended: "pcWin"|"pcLoss"|"fled"|null}}
- *   ended is "fled" when no enemy is left in the fight and at least one fled this round.
+ * @param {object} [tractor] Tractor Beam. Every fleeing enemy needs a roll in tractorRolls when tractorDC is set.
+ * @param {Record<string, number>} [tractor.tractorRolls] Each fleeing enemy's check total.
+ * @param {number} [tractor.tractorDC] The highest Hard DC among PC ships with Tractor Beam. An enemy that rolls
+ *   below it stays in the fight.
+ * @returns {{state: object, fled: string[], held: string[], ended: "pcWin"|"pcLoss"|"fled"|null}}
+ *   held lists the enemies Tractor Beam kept. ended is "fled" when no enemy is left in the fight and at least
+ *   one fled this round.
  */
-export function endOfRound(state, hp) {
-    const fled = Object.entries(state.ships)
-        .filter(([id, ship]) => ship.side === "enemy" && ship.flags.includes("fleeing") && (hp[id] ?? 0) > 0)
-        .map(([id]) => id);
+export function endOfRound(state, hp, { tractorRolls, tractorDC } = {}) {
+    const trying = fleeingEnemies(state, hp);
+    const held = [];
+    const fled = [];
+    for (const id of trying) {
+        if (tractorDC === undefined || tractorDC === null) {
+            fled.push(id);
+            continue;
+        }
+        const roll = tractorRolls?.[id];
+        if (typeof roll !== "number") throw new Error(`Tractor Beam needs a roll for ${id}`);
+        (roll < tractorDC ? held : fled).push(id);
+    }
     const gone = new Set(fled);
 
     const ships = {};
@@ -40,7 +66,7 @@ export function endOfRound(state, hp) {
     const pcs = Object.keys(ships).filter(id => ships[id].side === "pc");
     if (pcs.length > 0 && fighting("pc").length === 0) ended = "pcLoss";
     else if (fighting("enemy").length === 0) ended = fled.length > 0 ? "fled" : "pcWin";
-    return { state: next, fled, ended };
+    return { state: next, fled, held, ended };
 }
 
 /**

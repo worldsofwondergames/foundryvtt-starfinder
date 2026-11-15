@@ -295,4 +295,27 @@ describe("resolveNarrativeRound", () => {
         expect(r.ended).toBe("pcWin");
         expect(resolveNarrativeRound(r.state, { pc1: ships.pc1, e1: { threshold: 3, hpValue: 0 } }, ROUND + 1).out).toEqual([]);
     });
+
+    describe("Ablative Plating", () => {
+        const plated = { ...ships, pc1: { ...ships.pc1, upgrades: { ablativePlating: 1 } } };
+        it("removes one hit the first round the PC ship is hit and not the next", () => {
+            const first = resolveNarrativeRound(addSuccesses(fresh(), "pc1", 4), plated, ROUND);
+            expect(first.hits.pc1).toBe(1);
+            expect(first.hp.pc1).toBe(3);
+            expect(first.state.usedOnce.pc1).toEqual(["ablativePlating"]);
+            const second = resolveNarrativeRound(addSuccesses(first.state, "pc1", 4), plated, ROUND + 1);
+            expect(second.hits.pc1).toBe(2);
+        });
+        it("does nothing for a ship without the upgrade or for an enemy", () => {
+            expect(resolveNarrativeRound(addSuccesses(fresh(), "pc1", 4), ships, ROUND).hits.pc1).toBe(2);
+            const enemyPlated = { ...ships, e1: { ...ships.e1, upgrades: { ablativePlating: 1 } } };
+            expect(resolveNarrativeRound(addSuccesses(fresh(), "e1", 3), enemyPlated, ROUND).hits.e1).toBe(1);
+        });
+        it("counts a ship the plating saves as still standing", () => {
+            const weak = { ...plated, pc1: { ...plated.pc1, hpValue: 1 } };
+            const r = resolveNarrativeRound(addSuccesses(fresh(), "pc1", 2), weak, ROUND);
+            expect(r.hp.pc1).toBe(1);
+            expect(r.out).toEqual([]);
+        });
+    });
 });

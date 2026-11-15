@@ -7,8 +7,9 @@ import { openNarrativeTacticsDialog, refreshNarrativeTacticsDialog } from "../ap
 import { RPC } from "../rpc.js";
 import { applyCrewAction, crewActionDCShip, resolveNarrativeRound } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, NARRATIVE_ROLES, dcFor } from "../rules/narrative-starship/crew-actions.js";
-import { endOfRound } from "../rules/narrative-starship/round-end.js";
+import { endOfRound, fleeingEnemies } from "../rules/narrative-starship/round-end.js";
 import { initialState } from "../rules/narrative-starship/state.js";
+import { absorbHit, hasUpgrade } from "../rules/narrative-starship/upgrades.js";
 import {
     NARRATIVE_TACTICS, applyTactic, chooseTactic, enemyCheckBonus, forceHardFor, presetNextTactic, revealPending, tacticDC,
     tacticRollCount
@@ -220,6 +221,19 @@ async function askForNextTactic(combat, enemyId) {
 }
 
 /**
+ * Ablative Plating for a hit on a PC ship: takes the plating's one ignored hit off the amount and saves that it
+ * is used up. Enemy ships and ships without the upgrade take the full amount.
+ * @returns {Promise<number>} The hits the ship takes.
+ */
+async function absorbPcHit(combat, shipId, ship, hits) {
+    const state = combat.getFlag("sfrpg", "narrative");
+    if (state?.ships?.[shipId]?.side !== "pc") return hits;
+    const absorbed = absorbHit(state, shipId, hits, ship.system.narrative?.upgrades);
+    if (absorbed.state !== state) await saveNarrativeState(combat, absorbed.state);
+    return absorbed.hits;
+}
+
+/**
  * Applies heal, hit, and Resolve effects to the documents.
  * @returns {Promise<string[]>} A line of text for each effect, for the result card.
  */
@@ -231,12 +245,14 @@ export async function applyEffects(combat, effects) {
             if (!ship) continue;
             const derived = ship.system.narrative?.derived ?? {};
             const current = derived.hpValue ?? 0;
+            let amount = effect.value;
+            if (effect.kind === "hit") amount = await absorbPcHit(combat, effect.target, ship, amount);
             const value = effect.kind === "heal"
-                ? Math.min(derived.hpMax ?? current, current + effect.value)
-                : Math.max(0, current - effect.value);
+                ? Math.min(derived.hpMax ?? current, current + amount)
+                : Math.max(0, current - amount);
             await ship.update({ "system.narrative.hp.value": value });
             const key = effect.kind === "heal" ? "Card.Healed" : "Card.Hit";
-            lines.push(game.i18n.format(LABEL + key, { ship: ship.name, value: effect.value }));
+            lines.push(game.i18n.format(LABEL + key, { ship: ship.name, value: amount }));
         } else if (effect.kind === "regainResolve" || effect.kind === "spendResolve") {
             const target = game.actors.get(effect.target);
             const rp = target?.system.attributes?.rp;
@@ -316,11 +332,12 @@ async function resolveRoundNow(combat, round) {
     const ships = {};
     for (const id of Object.keys(state.ships)) {
         const derived = shipActor(combat, id)?.system.narrative?.derived ?? {};
-        ships[id] = { threshold: derived.threshold, hpValue: derived.hpValue };
+        ships[id] = { threshold: derived.threshold, hpValue: derived.hpValue, upgrades: shipActor(combat, id)?.system.narrative?.upgrades };
     }
     // Successes become hits first, so Flee sees the HP the ship has left at the end of the round.
     const result = resolveNarrativeRound(state, ships, round);
-    const end = endOfRound(result.state, result.hp);
+    const tractor = await rollTractorBeam(combat, result, round);
+    const end = endOfRound(result.state, result.hp, tractor);
 
     for (const [id, hits] of Object.entries(result.hits)) {
         if (hits <= 0) continue;
@@ -340,9 +357,42 @@ async function resolveRoundNow(combat, round) {
             .map(([id, n]) => ({ name: name(id), hits: n, hp: result.hp[id] })),
         out: result.out.map(name),
         fled: end.fled.map(name),
+        held: end.held.map(name),
         ended: end.ended ? game.i18n.localize(`${LABEL}Resolve.${end.ended}`) : ""
     });
     await ChatMessage.create({ speaker: { alias: combat.getCombatName?.() ?? "" }, content });
+}
+
+/**
+ * Tractor Beam: each enemy ship that is about to flee rolls d20 + its skill bonus + its check modifiers against the
+ * highest Hard DC among the PC ships that still have HP and the upgrade. The rolls go to chat.
+ * @param {Combat} combat
+ * @param {{state: object, hp: Record<string, number>}} result The Resolve result.
+ * @param {number} round The round being resolved.
+ * @returns {Promise<{tractorRolls?: Record<string, number>, tractorDC?: number}>} Empty when no PC ship has the upgrade.
+ */
+async function rollTractorBeam(combat, { state, hp }, round) {
+    const dcs = Object.entries(state.ships)
+        .filter(([id, ship]) => ship.side === "pc" && (hp[id] ?? 0) > 0)
+        .map(([id]) => shipActor(combat, id))
+        .filter(ship => hasUpgrade(ship?.system.narrative?.upgrades, "tractorBeam"))
+        .map(ship => Number(ship.system.narrative?.derived?.hardDC));
+    const tractorDC = Math.max(...dcs);
+    if (!Number.isFinite(tractorDC)) return {};
+
+    const tractorRolls = {};
+    for (const id of fleeingEnemies(state, hp)) {
+        const enemy = shipActor(combat, id);
+        const skillBonus = Number(enemy?.system.narrative?.derived?.skillBonus ?? 0);
+        const bonus = enemyCheckBonus(state, id, round);
+        const roll = await new Roll("1d20 + @skillBonus + @bonus", { skillBonus, bonus }).evaluate();
+        tractorRolls[id] = roll.total;
+        await roll.toMessage({
+            speaker: { alias: enemy?.name ?? id },
+            flavor: game.i18n.format(LABEL + "Resolve.TractorCheck", { ship: enemy?.name ?? id, dc: tractorDC })
+        });
+    }
+    return { tractorRolls, tractorDC };
 }
 
 /**

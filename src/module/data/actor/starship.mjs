@@ -88,7 +88,8 @@ export default class SFRPGActorStarship extends SFRPGActorBase {
                 ),
                 specialAbilities: new fields.HTMLField(),
                 upgrades: new fields.TypedObjectField(
-                    new fields.NumberField({initial: 0, integer: true, min: 0, nullable: false})
+                    new fields.NumberField({initial: 0, integer: true, min: 0, nullable: false}),
+                    {validateKey: (key) => key in CONFIG.SFRPG.narrativeUpgrades}
                 )
             }),
             quadrants: new fields.SchemaField({

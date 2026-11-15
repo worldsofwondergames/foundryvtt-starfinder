@@ -2981,6 +2981,8 @@
                 "NoHits": "No ship takes a hit this round.",
                 "Out": "{ship} is out of the fight.",
                 "Title": "Round {round} resolved",
+                "TractorCheck": "Tractor Beam: {ship} tries to flee against DC {dc}.",
+                "TractorHeld": "{ship} fails to escape the tractor beam and stays in the fight.",
                 "fled": "No enemy ship is left in the fight. The combat is over.",
                 "pcLoss": "The player ships are out. The enemy wins.",
                 "pcWin": "Every enemy ship is out. The player ships win."
@@ -3108,6 +3110,48 @@
             },
             "Threshold": "Threshold",
             "TierHint": "Set the tier to the party's Average Party Level",
+            "Upgrades": {
+                "ablativePlating": {
+                    "Effect": "The ship ignores the first hit it takes in a narrative starship combat.",
+                    "Name": "Ablative Plating"
+                },
+                "displacementMantle": {
+                    "Effect": "Once per combat, when an enemy ship targets this ship with a tactic, any crew member can activate it. For the rest of the round, each tactic that targets the ship has a 20% chance to fail, whatever the check result.",
+                    "Name": "Displacement Mantle"
+                },
+                "driftEngineUpgrade": {
+                    "Effect": "The ship's Drift engine rating improves by 1. It can be installed up to four times.",
+                    "Name": "Drift Engine Upgrade"
+                },
+                "expansionBay": {
+                    "Effect": "The crew can install a standard expansion bay option. It can be installed more than once.",
+                    "Name": "Expansion Bay"
+                },
+                "mineLayer": {
+                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew lays mines. Next round, before it chooses a tactic, that ship must succeed at a skill check against this ship's Average DC or take 1 hit.",
+                    "Name": "Mine Layer"
+                },
+                "navScramModule": {
+                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew activates the module. That ship takes a 2 penalty to its skill checks for 1d4 rounds.",
+                    "Name": "Nav-Scram Module"
+                },
+                "quantumDefender": {
+                    "Effect": "Once per combat, when an enemy ship succeeds at a check that would cause a hit, the crew can activate it. The enemy ship must reroll the check and take the new result.",
+                    "Name": "Quantum Defender"
+                },
+                "trackingWeapons": {
+                    "Effect": "Once per combat, a gunner can reroll a failed skill check that targets an enemy ship.",
+                    "Name": "Tracking Weapons"
+                },
+                "tractorBeam": {
+                    "Effect": "An enemy ship that uses Flee must first succeed at a skill check against this ship's Hard DC, or it fails to escape at the end of the round.",
+                    "Name": "Tractor Beam"
+                },
+                "virtualIntelligence": {
+                    "Effect": "Each round it takes the Provide Aid crew action for a PC the crew chooses, with a bonus equal to the ship's tier + 3.",
+                    "Name": "Virtual Intelligence"
+                }
+            },
             "UseStandardSheet": "Use the standard sheet"
         },
         "Necrograft": "Necrograft",
