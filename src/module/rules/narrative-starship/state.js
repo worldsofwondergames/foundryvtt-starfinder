@@ -105,12 +105,15 @@ export function grantExtraAction(state, actorId) {
 
 /**
  * @param {object} state
- * @param {{target: string, kind: string, value: number, expiresAfterRound: number}} modifier
+ * @param {{target: string, kind: string, value: number, expiresAfterRound: number, fromRound?: number}} modifier
+ * fromRound, when given, is the first round the modifier counts in. Use it for effects that start next round.
  * @returns {object}
  */
-export function addModifier(state, { target, kind, value, expiresAfterRound }) {
+export function addModifier(state, { target, kind, value, expiresAfterRound, fromRound }) {
     const next = copyState(state);
-    next.modifiers.push({ target, kind, value, expiresAfterRound });
+    const modifier = { target, kind, value, expiresAfterRound };
+    if (fromRound !== undefined) modifier.fromRound = fromRound;
+    next.modifiers.push(modifier);
     return next;
 }
 
@@ -124,7 +127,7 @@ export function addModifier(state, { target, kind, value, expiresAfterRound }) {
  */
 export function modifiersFor(state, target, kind, round) {
     return state.modifiers
-        .filter(m => m.target === target && m.kind === kind && m.expiresAfterRound >= round)
+        .filter(m => m.target === target && m.kind === kind && m.expiresAfterRound >= round && (m.fromRound ?? 0) <= round)
         .reduce((sum, m) => sum + m.value, 0);
 }
 

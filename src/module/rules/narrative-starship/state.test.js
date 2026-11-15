@@ -59,6 +59,11 @@ describe("modifiers", () => {
         s = addModifier(s, { target: "e1", kind: "skill", value: 7, expiresAfterRound: 3 });
         expect(modifiersFor(s, "pc1", "skill", 2)).toBe(3);
     });
+    it("do not count before their first round", () => {
+        const s = addModifier(initialState(SHIPS), { target: "e1", kind: "enemySkill", value: -2, expiresAfterRound: 2, fromRound: 2 });
+        expect(modifiersFor(s, "e1", "enemySkill", 1)).toBe(0);
+        expect(modifiersFor(s, "e1", "enemySkill", 2)).toBe(-2);
+    });
 });
 
 describe("resolveRound", () => {
