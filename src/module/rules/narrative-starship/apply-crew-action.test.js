@@ -71,6 +71,18 @@ describe("applyCrewAction", () => {
         expect(modifiersFor(r.state, "e1", "enemySkill", ROUND + 1)).toBe(-2);
     });
 
+    it("Encourage Crew Member can't name the captain who uses it as the ally", () => {
+        const encourage = { actorId: "cap", role: "captain", actionKey: "encourageCrewMember", skillKey: "dip" };
+        expect(act(fresh(), { ...encourage, allyId: "pil" }).effects).toContainEqual({ kind: "regainResolve", target: "pil", value: 1 });
+        expect(act(fresh(), { ...encourage, allyId: "cap" }).effects).toEqual([{ kind: "rejected", reason: "badAlly" }]);
+    });
+
+    it("Encourage Crew Member's Resolve rider can't name the captain as the second ally", () => {
+        const encourage = { actorId: "cap", role: "captain", actionKey: "encourageCrewMember", skillKey: "dip", spentResolve: true, allyId: "pil" };
+        expect(act(fresh(), { ...encourage, secondAllyId: "eng" }).effects).toContainEqual({ kind: "regainResolve", target: "eng", value: 1 });
+        expect(act(fresh(), { ...encourage, secondAllyId: "cap" }).effects).toEqual([{ kind: "rejected", reason: "badAlly" }]);
+    });
+
     it("Patch Hull heals the crew member's ship by 1", () => {
         const r = act(fresh(), { actorId: "eng", role: "engineer", actionKey: "patchHull", skillKey: "eng" });
         expect(r.effects).toContainEqual({ kind: "heal", target: "pc1", value: 1 });

@@ -2,7 +2,7 @@ import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
 import { RPC } from "../rpc.js";
 import { actionNeeds, applyCrewAction, grantsSuccesses, rollBonuses, rolesOf } from "../rules/narrative-starship/apply-crew-action.js";
-import { NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles } from "../rules/narrative-starship/crew-actions.js";
+import { NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles, skillLockedFor } from "../rules/narrative-starship/crew-actions.js";
 import { modifiersFor } from "../rules/narrative-starship/state.js";
 import { canUseTrackingWeapons, hasUpgrade } from "../rules/narrative-starship/upgrades.js";
 import { crewActionDC, crewByShip, shipActor, usableSkills } from "../system/narrative-starship-combat.js";
@@ -24,7 +24,10 @@ function preferredText(action) {
         : game.i18n.localize(CONFIG.SFRPG.skills[key] ?? key))).join(", ");
 }
 
-/** Skills the crew member can roll. Trained-only skills they have no ranks in are left out. */
+/**
+ * Skills the crew member can roll. Trained-only skills they have no ranks in are left out. The skills used last
+ * round start disabled; updateRows enables or disables them for the chosen action.
+ */
 function skillOptions(actor, roles, usedLastRound) {
     const skills = usableSkills(actor)
         .map(key => ({ value: key, label: skillName(actor, key) }))
@@ -80,9 +83,15 @@ async function askTrackingWeapons(total, dc) {
     return answer === true;
 }
 
-/** Shows the rows the chosen action needs. */
-function updateRows(form) {
+/** Shows the rows the chosen action needs, and disables the skills the same-skill rule stops for it. */
+function updateRows(form, usedLastRound) {
     const option = form.elements.actionKey.selectedOptions[0];
+    const skillSelect = form.elements.skillKey;
+    for (const skill of skillSelect.options) skill.disabled = skillLockedFor(option?.value, skill.value, usedLastRound);
+    if (skillSelect.selectedOptions[0]?.disabled) {
+        const open = [...skillSelect.options].find(skill => !skill.disabled);
+        if (open) skillSelect.value = open.value;
+    }
     const needs = JSON.parse(option?.dataset.needs ?? "{}");
     const resolve = form.elements.spentResolve.checked;
     const show = {
@@ -181,8 +190,8 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
         }],
         render: (event, dialog) => {
             const form = dialog.element.querySelector("form");
-            form.addEventListener("change", () => updateRows(form));
-            updateRows(form);
+            form.addEventListener("change", () => updateRows(form, usedLastRound));
+            updateRows(form, usedLastRound);
         },
         rejectClose: false
     });

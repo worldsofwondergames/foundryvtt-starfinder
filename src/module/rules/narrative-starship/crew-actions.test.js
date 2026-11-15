@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-    NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles, dcFor, skillAllowed, successesFor
+    NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles, dcFor, skillAllowed, skillLockedFor, successesFor
 } from "./crew-actions.js";
 
 const DCS = { average: 20, hard: 25 };
@@ -103,6 +103,18 @@ describe("skillAllowed", () => {
     test("allows a different skill or a crew member with no history", () => {
         expect(skillAllowed("a1", "acr", { a1: ["eng", "pil"] })).toBe(true);
         expect(skillAllowed("a2", "pil", { a1: ["pil"] })).toBe(true);
+    });
+});
+
+describe("skillLockedFor", () => {
+    test("locks a skill used last round for an ordinary action and leaves the others open", () => {
+        expect(skillLockedFor("outmaneuver", "pil", ["pil"])).toBe(true);
+        expect(skillLockedFor("outmaneuver", "acr", ["pil"])).toBe(false);
+        expect(skillLockedFor("outmaneuver", "pil", undefined)).toBe(false);
+    });
+
+    test("keeps Piloting open for Negate Take Cover after a round of Piloting", () => {
+        expect(skillLockedFor("clearTakeCover", "pil", ["pil"])).toBe(false);
     });
 });
 

@@ -133,6 +133,18 @@ export function skillAllowed(actorId, skillKey, skillsLastRound) {
 }
 
 /**
+ * Whether the same-skill rule stops a crew member from picking a skill for an action. Negate Take Cover is a
+ * special Piloting check, so the rule leaves it out and Piloting stays open for it.
+ * @param {string} actionKey
+ * @param {string} skillKey
+ * @param {string[]} [usedLastRound] The skills the crew member used last round.
+ * @returns {boolean}
+ */
+export function skillLockedFor(actionKey, skillKey, usedLastRound) {
+    return actionKey !== "clearTakeCover" && (usedLastRound ?? []).includes(skillKey);
+}
+
+/**
  * Keys of the actions open to the given roles. Actions for any crew member are always included.
  * @param {string[]} roles
  * @returns {string[]}

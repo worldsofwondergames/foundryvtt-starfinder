@@ -97,8 +97,10 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         const layout = narrativeLayout(this.actor.system.crew?.useNPCCrew);
         this.element?.[0]?.setAttribute("data-narrative-layout", layout);
 
-        // Owners who can't edit the sheet still use the upgrade buttons.
+        // Owners who can't edit the sheet still use the upgrade buttons, and crew owners who can't edit the ship
+        // still use the Act buttons.
         html.find(".narrative-upgrade-use").click(this._onUseUpgrade.bind(this));
+        html.find(".narrative-act").click(this._onNarrativeAct.bind(this));
 
         if (!this.options.editable) return;
 
@@ -106,7 +108,6 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         html.find(".narrative-skill-add").click(this._onSkillModifierAdd.bind(this));
         html.find(".narrative-skill-remove").click(this._onSkillModifierRemove.bind(this));
         html.find(".narrative-standard-toggle").click(this._onStandardSheetToggle.bind(this));
-        html.find(".narrative-act").click(this._onNarrativeAct.bind(this));
         html.find(".narrative-tactics-open").click(this._onOpenTactics.bind(this));
     }
 

@@ -33,7 +33,7 @@
  * An enemy ship with the "takeCover" flag (Take Cover tactic) cannot be targeted. The only action allowed against
  * it is clearTakeCover, the pilot's special Piloting check, which removes the flag and gives no successes.
  */
-import { NARRATIVE_CREW_ACTIONS, skillAllowed, successesFor } from "./crew-actions.js";
+import { NARRATIVE_CREW_ACTIONS, skillLockedFor, successesFor } from "./crew-actions.js";
 import { addModifier, addSuccesses, canAct, grantExtraAction, modifiersFor, recordAction, resolveRound } from "./state.js";
 import { absorbHit } from "./upgrades.js";
 
@@ -48,7 +48,7 @@ const RESOLVE_SUCCESS_ACTIONS = new Set(["empowerCrew", "searchDatabase", "targe
 /** Who may be chosen as the ally, and whether they must or must not have acted this round. */
 const ALLY_RULES = {
     provideAid: { notSelf: true, acted: false },
-    encourageCrewMember: {},
+    encourageCrewMember: { notSelf: true },
     giveOrders: { acted: true },
     accessMaintenancePanels: { notSelf: true, acted: false, roles: ["engineer", "scienceOfficer"] },
     maximizeCrewEfficiency: { notSelf: true, acted: false },
@@ -200,7 +200,7 @@ function validate(state, input, round) {
         if (!check.ok) return check.reason;
     }
     // Negate Take Cover is a special Piloting check, so the same-skill rule leaves it out.
-    if (actionKey !== "clearTakeCover" && !skillAllowed(actorId, skillKey, state.skillsLastRound)) return "sameSkill";
+    if (skillLockedFor(actionKey, skillKey, state.skillsLastRound?.[actorId])) return "sameSkill";
     if (!skillKey) return "noSkill";
     if (skillKey === "rangedAttack" && role !== "gunner") return "notGunner";
     if (skillKey !== "rangedAttack" && !(Array.isArray(input.actorSkills) && input.actorSkills.includes(skillKey))) return "badSkill";
