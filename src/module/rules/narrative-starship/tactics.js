@@ -139,9 +139,10 @@ export function forceHardFor(state, { shipId, targetId, skillKey }, round) {
 export function availableTactics(state, enemyId, round) {
     const forced = state.ships[enemyId]?.forcedTactic;
     const forcedKey = forced?.round === round ? forced.tactic : null;
-    // Another enemy's choice, or the tactic another enemy is forced to and has not chosen yet, is taken.
+    // Another enemy's choice, or the tactic another enemy is forced to and has not chosen yet, is taken. A ship
+    // that is out of the fight takes nothing.
     const taken = new Set(Object.entries(state.ships)
-        .filter(([id, ship]) => id !== enemyId && ship.side === "enemy")
+        .filter(([id, ship]) => id !== enemyId && ship.side === "enemy" && !ship.flags?.includes("out"))
         .map(([, ship]) => ship.tactic ?? (ship.forcedTactic?.round === round ? ship.forcedTactic.tactic : null))
         .filter(Boolean));
     return Object.keys(NARRATIVE_TACTICS).map(key => {
@@ -162,6 +163,7 @@ function withShip(state, id, change) {
 function tacticProblem(state, enemyId, tactic, targetId, round) {
     if (!NARRATIVE_TACTICS[tactic]) return "unknownTactic";
     if (state.ships[enemyId]?.side !== "enemy") return "notEnemy";
+    if (state.ships[enemyId].flags?.includes("out")) return "shipOut";
     if (NARRATIVE_TACTICS[tactic].pcTarget && state.ships[targetId]?.side !== "pc") return "badTarget";
     const status = availableTactics(state, enemyId, round).find(t => t.key === tactic);
     if (status.disabled) return status.reason;

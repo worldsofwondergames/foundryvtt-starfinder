@@ -27,7 +27,7 @@ function copyState(state) {
  * @returns {object}
  */
 export function initialState(ships) {
-    const state = {
+    let state = {
         ships: {},
         modifiers: [],
         skillsThisRound: {},
@@ -37,19 +37,34 @@ export function initialState(ships) {
         usedOnce: {},
         allOutAttackLockedUntilRound: 0
     };
-    for (const { id, side } of ships) {
-        state.ships[id] = {
-            side,
-            successes: 0,
-            hitsThisRound: 0,
-            tactic: null,
-            tacticTarget: null,
-            forcedTactic: null,
-            flags: []
-        };
-        state.usedOnce[id] = [];
-    }
+    for (const ship of ships) state = addShipToState(state, ship);
     return state;
+}
+
+/**
+ * Adds a ship to the state, as initialState would have, for a starship that joins a combat after it started.
+ * @param {object} state
+ * @param {{id: string, side: "pc"|"enemy"}} ship
+ * @returns {object} The new state, or the same state when the ship is already in it.
+ */
+export function addShipToState(state, { id, side }) {
+    if (state.ships[id]) return state;
+    return {
+        ...state,
+        ships: {
+            ...state.ships,
+            [id]: {
+                side,
+                successes: 0,
+                hitsThisRound: 0,
+                tactic: null,
+                tacticTarget: null,
+                forcedTactic: null,
+                flags: []
+            }
+        },
+        usedOnce: { ...state.usedOnce, [id]: [] }
+    };
 }
 
 /**
@@ -61,6 +76,7 @@ export function initialState(ships) {
 export function canAct(state, { shipId, actorId, role }, crewByShip) {
     const ship = state.ships[shipId];
     if (!ship || ship.side !== "pc") return { ok: false, reason: "wrongSide" };
+    if (ship.flags?.includes("out")) return { ok: false, reason: "shipOut" };
     const crew = crewByShip?.[shipId]?.[role] ?? [];
     if (!crew.includes(actorId)) return { ok: false, reason: "notCrew" };
     const allowed = state.allowedActions[actorId] ?? 1;

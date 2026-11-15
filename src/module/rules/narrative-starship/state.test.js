@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addModifier, addSuccesses, canAct, grantExtraAction, initialState, modifiersFor, recordAction, resolveRound } from "./state.js";
+import { addModifier, addShipToState, addSuccesses, canAct, grantExtraAction, initialState, modifiersFor, recordAction, resolveRound } from "./state.js";
 
 const SHIPS = [
     { id: "pc1", side: "pc", crew: {} },
@@ -29,11 +29,35 @@ describe("canAct", () => {
     it("accepts assigned crew who have not acted", () => {
         expect(canAct(s, { shipId: "pc1", actorId: "a1", role: "pilot" }, CREW)).toEqual({ ok: true });
     });
+    it("refuses the crew of a player ship that is out of the fight", () => {
+        const who = { shipId: "pc1", actorId: "a1", role: "pilot" };
+        const out = initialState(SHIPS);
+        out.ships.pc1.flags = ["out"];
+        expect(canAct(out, who, CREW)).toEqual({ ok: false, reason: "shipOut" });
+    });
     it("refuses a second action unless Give Orders granted one", () => {
         const acted = recordAction(s, "a1", "piloting");
         const who = { shipId: "pc1", actorId: "a1", role: "pilot" };
         expect(canAct(acted, who, CREW).reason).toBe("alreadyActed");
         expect(canAct(grantExtraAction(acted, "a1"), who, CREW).ok).toBe(true);
+    });
+});
+
+describe("addShipToState", () => {
+    it("adds a ship that joins a started combat with a fresh entry and leaves the others alone", () => {
+        const before = deepFreeze(withSuccesses("e1", 2));
+        const next = addShipToState(before, { id: "e3", side: "enemy" });
+        expect(next.ships.e3).toEqual({
+            side: "enemy", successes: 0, hitsThisRound: 0, tactic: null, tacticTarget: null, forcedTactic: null, flags: []
+        });
+        expect(next.usedOnce.e3).toEqual([]);
+        expect(next.ships.e1).toBe(before.ships.e1);
+        expect(addShipToState(before, { id: "pc9", side: "pc" }).ships.pc9.side).toBe("pc");
+    });
+
+    it("changes nothing when the ship is already in the state", () => {
+        const before = deepFreeze(withSuccesses("e1", 2));
+        expect(addShipToState(before, { id: "e1", side: "pc" })).toBe(before);
     });
 });
 

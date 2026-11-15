@@ -89,9 +89,25 @@ describe("availableTactics", () => {
         expect(() => chooseTactic(state, "e2", "openFire", "pc1", ROUND)).toThrow("taken");
         expect(statusOf(state, "e2", "openFire", ROUND + 1).disabled).toBe(false);
     });
+
+    it("lets another enemy use Open Fire when the ship forced to it by Draw Fire is out", () => {
+        const state = fresh();
+        state.ships.e1.forcedTactic = { tactic: "openFire", targetShip: "pc1", round: ROUND };
+        expect(statusOf(state, "e2", "openFire").disabled).toBe(true);
+        state.ships.e1.flags = ["out"];
+        expect(statusOf(state, "e2", "openFire")).toEqual({ key: "openFire", disabled: false });
+        expect(chooseTactic(state, "e2", "openFire", "pc1", ROUND).ships.e2.tactic).toBe("openFire");
+    });
 });
 
 describe("chooseTactic", () => {
+    it("refuses a tactic for an enemy ship that is out of the fight", () => {
+        const state = fresh();
+        expect(chooseTactic(state, "e1", "ram", "pc1", ROUND).ships.e1.tactic).toBe("ram");
+        state.ships.e1.flags = ["out"];
+        expect(() => chooseTactic(state, "e1", "ram", "pc1", ROUND)).toThrow("shipOut");
+    });
+
     it("stores the tactic and target on the enemy ship", () => {
         const state = chooseTactic(fresh(), "e1", "ram", "pc1", ROUND);
         expect(state.ships.e1.tactic).toBe("ram");
