@@ -1,0 +1,146 @@
+@import "./variables.less";
+
+.sfrpg.sheet.actor.starship.narrative-starship {
+    min-width: 520px;
+
+    .sheet-header {
+        div.image-container {
+            flex: 0 0 100px;
+            height: 100px;
+
+            img.profile {
+                flex: 0 0 100px;
+                height: 100px;
+            }
+        }
+
+        .header-details {
+            gap: 4px;
+        }
+
+        .narrative-tier {
+            align-items: center;
+            gap: 6px;
+            flex: 0 0 auto;
+
+            label {
+                flex: 0 0 auto;
+                font-weight: bold;
+            }
+
+            input {
+                flex: 0 0 60px;
+            }
+
+            .narrative-tier-hint {
+                flex: 1;
+                font-size: var(--font-size-12);
+                color: @colorOlive;
+                font-style: italic;
+            }
+        }
+
+        .narrative-header-controls {
+            align-items: center;
+            flex: 0 0 auto;
+            font-size: var(--font-size-12);
+
+            .narrative-standard-toggle {
+                flex: 0 0 auto;
+                margin-left: auto;
+            }
+        }
+    }
+
+    .narrative-body {
+        padding: 4px 8px;
+        overflow-y: auto;
+    }
+
+    .form-header {
+        .exo2();
+        color: @colorOlive;
+        border-bottom: @borderGroove;
+    }
+
+    .narrative-stats,
+    .narrative-skill-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .narrative-stat,
+    .narrative-skill-row,
+    .narrative-skill-new {
+        align-items: center;
+        gap: 6px;
+        padding: 2px 0;
+        border-bottom: 1px solid @colorFaint;
+    }
+
+    .narrative-stat {
+        .narrative-stat-label {
+            flex: 0 0 110px;
+            font-weight: bold;
+        }
+
+        .narrative-stat-value {
+            flex: 0 0 50px;
+            font-size: var(--font-size-18);
+            text-align: center;
+        }
+
+        .narrative-guessed {
+            font-size: var(--font-size-12);
+            color: #c60;
+        }
+
+        .narrative-hp-pips {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .narrative-override {
+            flex: 0 0 80px;
+            margin-left: auto;
+        }
+    }
+
+    .narrative-hp-pip {
+        width: 14px;
+        height: 14px;
+        border: 2px solid @colorOlive;
+        border-radius: 50%;
+
+        &.filled {
+            background: @colorCrimson;
+        }
+    }
+
+    .narrative-skill-row,
+    .narrative-skill-new {
+        .narrative-skill-name,
+        .narrative-skill-select {
+            flex: 1;
+        }
+
+        input {
+            flex: 0 0 60px;
+        }
+
+        a {
+            flex: 0 0 20px;
+            text-align: center;
+        }
+    }
+
+    .narrative-special-abilities {
+        min-height: 120px;
+
+        .editor {
+            min-height: 120px;
+        }
+    }
+}

@@ -2768,6 +2768,18 @@
             }
         },
         "NarrativeStarship": {
+            "AddSkillModifier": "Add a skill modifier",
+            "AverageDC": "Average DC",
+            "HP": "HP",
+            "HPPipsHint": "Click a pip to set the ship's current HP",
+            "HardDC": "Hard DC",
+            "Override": "Override",
+            "OverrideHint": "Leave empty to use the derived value",
+            "RemoveSkillModifier": "Remove this skill modifier",
+            "SheetLabel": "Narrative Starship",
+            "SkillBonus": "Skill Bonus",
+            "SkillBonusGuessed": "This ship has no crew skills to read, so the skill bonus is a guess. Replace it with the stat block's value.",
+            "SkillModifiers": "Skill Modifiers",
             "Source": {
                 "ArmorMark": "From the ship's tier, adjusted for armor and defense marks",
                 "CrewSkills": "From the crew's skill modifiers",
@@ -2776,7 +2788,11 @@
                 "Shields": "From the shield category",
                 "Size": "From the ship's size",
                 "Tier": "From the ship's tier"
-            }
+            },
+            "SpecialAbilities": "Special Abilities",
+            "Threshold": "Threshold",
+            "TierHint": "Set the tier to the party's Average Party Level",
+            "UseStandardSheet": "Use the standard sheet"
         },
         "Necrograft": "Necrograft",
         "None": "None",

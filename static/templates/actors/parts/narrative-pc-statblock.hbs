@@ -1,0 +1,28 @@
+<div class="narrative-statblock narrative-pc">
+    {{> "systems/sfrpg/templates/actors/parts/narrative-stats.hbs"}}
+
+    <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.SkillModifiers"}}</h3>
+    <ol class="narrative-skill-list">
+        {{#each narrative.skillModifiers.rows as |row|}}
+        <li class="narrative-skill-row flexrow" data-skill="{{row.key}}">
+            <span class="narrative-skill-name">{{row.label}}</span>
+            <input type="number" step="1" name="system.narrative.skillModifiers.{{row.key}}" value="{{row.value}}" />
+            <a class="narrative-skill-remove" data-tooltip="{{localize "SFRPG.NarrativeStarship.RemoveSkillModifier"}}"><i class="fas fa-trash"></i></a>
+        </li>
+        {{/each}}
+        {{#if editable}}
+        <li class="narrative-skill-new flexrow">
+            <select class="narrative-skill-select">
+                {{#each narrative.skillModifiers.available as |skill|}}
+                <option value="{{skill.key}}">{{skill.label}}</option>
+                {{/each}}
+            </select>
+            <input class="narrative-skill-value" type="number" step="1" value="0" />
+            <a class="narrative-skill-add" data-tooltip="{{localize "SFRPG.NarrativeStarship.AddSkillModifier"}}"><i class="fas fa-plus"></i></a>
+        </li>
+        {{/if}}
+    </ol>
+
+    <h3 class="form-header">{{localize "SFRPG.StarshipSheet.Crew.Header"}}</h3>
+    {{> "systems/sfrpg/templates/actors/parts/starship-crew-roster.hbs" crew=crew}}
+</div>

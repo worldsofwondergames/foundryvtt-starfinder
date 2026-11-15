@@ -1,0 +1,40 @@
+<form class="{{cssClass}} flexcol" autocomplete="off" data-narrative-layout="{{narrative.layout}}">
+    <header class="sheet-header flexrow">
+        <div class="image-container">
+            <img class="profile" src="{{actor.img}}" title="{{actor.name}}" data-edit="img" height="100" width="100" />
+        </div>
+
+        <div class="header-details flexcol">
+            <h1 class="charname">
+                <input name="name" type="text" value="{{actor.name}}" placeholder="{{localize "SFRPG.ShipNameLabel"}}" />
+            </h1>
+
+            <div class="narrative-tier flexrow">
+                <label>{{localize "SFRPG.ShipTierLabel"}}</label>
+                <input name="system.details.tier" type="text" value="{{labels.tier}}" placeholder="1" />
+                {{#unless narrative.isNPC}}
+                <span class="narrative-tier-hint">{{localize "SFRPG.NarrativeStarship.TierHint"}}</span>
+                {{/unless}}
+            </div>
+
+            <div class="narrative-header-controls flexrow">
+                {{#if isGM}}
+                <label class="checkbox">
+                    <input type="checkbox" name="system.crew.useNPCCrew" {{checked system.crew.useNPCCrew}}/>{{localize "SFRPG.StarshipSheet.Crew.IsNPCCrew"}}
+                </label>
+                {{/if}}
+                {{#if narrative.showStandardToggle}}
+                <a class="narrative-standard-toggle"><i class="fas fa-right-left"></i> {{localize "SFRPG.NarrativeStarship.UseStandardSheet"}}</a>
+                {{/if}}
+            </div>
+        </div>
+    </header>
+
+    <section class="sheet-body narrative-body">
+        {{#if narrative.isNPC}}
+        {{> "systems/sfrpg/templates/actors/parts/narrative-npc-statblock.hbs"}}
+        {{else}}
+        {{> "systems/sfrpg/templates/actors/parts/narrative-pc-statblock.hbs"}}
+        {{/if}}
+    </section>
+</form>

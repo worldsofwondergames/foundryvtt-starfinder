@@ -19,6 +19,7 @@ import { ActorSheetSFRPGDrone } from "./module/actor/sheet/drone.js";
 import { ActorSheetSFRPGHazard } from "./module/actor/sheet/hazard.js";
 import { ActorSheetSFRPGNPC } from "./module/actor/sheet/npc.js";
 import { ActorSheetSFRPGStarship } from "./module/actor/sheet/starship.js";
+import { ActorSheetSFRPGStarshipNarrative } from "./module/actor/sheet/starship-narrative.js";
 import { ActorSheetSFRPGVehicle } from "./module/actor/sheet/vehicle.js";
 import { ActorSheetSFRPGMech } from "./module/actor/sheet/mech.js";
 import { ActorSheetFlags } from './module/apps/actor-flags.js';
@@ -54,6 +55,7 @@ import { RPC } from "./module/rpc.js";
 import { mechShieldRefills } from "./module/rules/mech-shield-reset.js";
 import registerSystemRules from "./module/rules.js";
 import { registerSystemSettings } from "./module/system/settings.js";
+import { narrativeSheetIsDefault } from "./module/rules/narrative-starship/mode.js";
 import TooltipManagerSFRPG from "./module/tooltip.js";
 import { generateUUID, rerenderApps } from "./module/utils/utilities.js";
 import { clearSystemFlag } from "./module/utils/flags.js";
@@ -420,7 +422,13 @@ Hooks.once('init', async function() {
     Actors.registerSheet("sfrpg", ActorSheetSFRPGDrone,     { types: ["drone"],         makeDefault: true });
     Actors.registerSheet("sfrpg", ActorSheetSFRPGHazard,    { types: ["hazard"],        makeDefault: true });
     Actors.registerSheet("sfrpg", ActorSheetSFRPGNPC,       { types: ["npc", "npc2"],   makeDefault: true });
-    Actors.registerSheet("sfrpg", ActorSheetSFRPGStarship,  { types: ["starship"],      makeDefault: true });
+    const starshipCombatMode = game.settings.get("sfrpg", "starshipCombatMode");
+    Actors.registerSheet("sfrpg", ActorSheetSFRPGStarship,  { types: ["starship"],      makeDefault: !narrativeSheetIsDefault(starshipCombatMode) });
+    Actors.registerSheet("sfrpg", ActorSheetSFRPGStarshipNarrative, {
+        types: ["starship"],
+        makeDefault: narrativeSheetIsDefault(starshipCombatMode),
+        label: "SFRPG.NarrativeStarship.SheetLabel"
+    });
     Actors.registerSheet("sfrpg", ActorSheetSFRPGVehicle,   { types: ["vehicle"],       makeDefault: true });
     Actors.registerSheet("sfrpg", ActorSheetSFRPGMech,      { types: ["mech"],          makeDefault: true });
 

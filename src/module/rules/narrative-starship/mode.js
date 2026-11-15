@@ -23,3 +23,12 @@ export function combatTypesForMode(mode) {
 export function narrativeSheetIsDefault(mode) {
     return mode === "narrative";
 }
+
+/**
+ * Whether the narrative sheet offers a button to switch to the standard sheet.
+ * @param {"standard"|"narrative"|"both"} mode
+ * @returns {boolean}
+ */
+export function showStandardSheetToggle(mode) {
+    return mode === "both";
+}

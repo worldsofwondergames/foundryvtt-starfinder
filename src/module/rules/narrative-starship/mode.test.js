@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combatTypesForMode, narrativeSheetIsDefault } from "./mode.js";
+import { combatTypesForMode, narrativeSheetIsDefault, showStandardSheetToggle } from "./mode.js";
 
 describe("combatTypesForMode", () => {
     it("lists standard starship combat for standard mode", () => {
@@ -24,5 +24,13 @@ describe("narrativeSheetIsDefault", () => {
         expect(narrativeSheetIsDefault("narrative")).toBe(true);
         expect(narrativeSheetIsDefault("both")).toBe(false);
         expect(narrativeSheetIsDefault("standard")).toBe(false);
+    });
+});
+
+describe("showStandardSheetToggle", () => {
+    it("is shown only in both mode", () => {
+        expect(showStandardSheetToggle("both")).toBe(true);
+        expect(showStandardSheetToggle("narrative")).toBe(false);
+        expect(showStandardSheetToggle("standard")).toBe(false);
     });
 });

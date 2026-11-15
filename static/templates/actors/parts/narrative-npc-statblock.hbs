@@ -1,0 +1,14 @@
+<div class="narrative-statblock narrative-npc">
+    {{> "systems/sfrpg/templates/actors/parts/narrative-stats.hbs"}}
+
+    <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.SpecialAbilities"}}</h3>
+    <div class="narrative-special-abilities">
+        {{editor
+            enrichedSpecialAbilities
+            target="system.narrative.specialAbilities"
+            button=true
+            editable=editable
+            engine="prosemirror"
+        }}
+    </div>
+</div>
