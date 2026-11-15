@@ -3143,6 +3143,21 @@
                 "Hint": "When enabled, enables Lock Artwork Rotation on character scale actors by default (Characters/NPC/Drones/Hazards). This can be overridden by the actor's prototype token settings.",
                 "Name": "Lock Artwork Rotation by Default"
             },
+            "NarrativeStarship": {
+                "AlternateDCs": {
+                    "Hint": "Uses the skill DC table from Starfinder Enhanced pg. 184 for narrative starship DCs.",
+                    "Name": "Narrative Starship Alternate DCs"
+                },
+                "CombatMode": {
+                    "Hint": "Standard: only standard starship combat is available. Narrative: the narrative sheet is the default for starships, and the combat tracker offers narrative combat instead of standard. Both: both combat types are available and the standard sheet stays the default.",
+                    "Name": "Starship Combat Mode",
+                    "Values": {
+                        "Both": "Both",
+                        "Narrative": "Narrative",
+                        "Standard": "Standard"
+                    }
+                }
+            },
             "NotificationSchema": {
                 "Hint": "DON'T CHANGE THIS UNLESS YOU KNOW WHAT YOU ARE DOING.\nControls whether & which system update message(s) should be shown.",
                 "Name": "Update Notification Schema"

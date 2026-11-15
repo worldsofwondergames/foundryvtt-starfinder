@@ -182,6 +182,30 @@ export const registerSystemSettings = function() {
         }
     });
 
+    game.settings.register("sfrpg", "starshipCombatMode", {
+        name: "SFRPG.Settings.NarrativeStarship.CombatMode.Name",
+        hint: "SFRPG.Settings.NarrativeStarship.CombatMode.Hint",
+        scope: "world",
+        config: true,
+        default: "standard",
+        type: String,
+        requiresReload: true,
+        choices: {
+            "standard": "SFRPG.Settings.NarrativeStarship.CombatMode.Values.Standard",
+            "narrative": "SFRPG.Settings.NarrativeStarship.CombatMode.Values.Narrative",
+            "both": "SFRPG.Settings.NarrativeStarship.CombatMode.Values.Both"
+        }
+    });
+
+    game.settings.register("sfrpg", "narrativeAlternateDCs", {
+        name: "SFRPG.Settings.NarrativeStarship.AlternateDCs.Name",
+        hint: "SFRPG.Settings.NarrativeStarship.AlternateDCs.Hint",
+        scope: "world",
+        config: true,
+        default: false,
+        type: Boolean
+    });
+
     game.settings.register("sfrpg", "enableGalacticTrade", {
         name: "SFRPG.Settings.GalacticTrade.Name",
         hint: "SFRPG.Settings.GalacticTrade.Hint",
