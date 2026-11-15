@@ -203,7 +203,15 @@ export const registerSystemSettings = function() {
         scope: "world",
         config: true,
         default: false,
-        type: Boolean
+        type: Boolean,
+        // The DCs are worked out when a starship is prepared, so prepare the starships again and redraw their sheets.
+        onChange: () => {
+            for (const actor of game.actors) {
+                if (actor.type !== "starship") continue;
+                actor.prepareData();
+                if (actor.sheet?.rendered) actor.sheet.render(false);
+            }
+        }
     });
 
     game.settings.register("sfrpg", "enableGalacticTrade", {

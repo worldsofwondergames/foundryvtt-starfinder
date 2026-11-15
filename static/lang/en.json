@@ -2978,6 +2978,7 @@
                 "notTakingCover": "That ship is not taking cover.",
                 "pilotingOnly": "Negate Take Cover is a Piloting check.",
                 "sameSkill": "Pick a different skill than the one used last round.",
+                "shipOut": "This ship is out of the fight, so its crew can't act.",
                 "takeCover": "That ship is taking cover. Only the pilot's Negate Take Cover check can target it this round.",
                 "unknownAction": "That action isn't known.",
                 "upgradeElsewhere": "This upgrade is used from the crew action dialog or the enemy's tactic roll, not from the sheet.",
@@ -2988,6 +2989,7 @@
             },
             "RemoveSkillModifier": "Remove this skill modifier",
             "Resolve": {
+                "EndCombat": "End Combat",
                 "Fled": "{ship} flees the battle.",
                 "Hits": "{ship}: hits taken {hits}, HP left {hp}.",
                 "NoHits": "No ship takes a hit this round.",
@@ -3020,6 +3022,7 @@
                 "skill": "Empower Crew",
                 "skillVsTarget": "Search Database"
             },
+            "SharedActorWhisper": "{ship} has more than one token in this combat. Narrative starship combat keeps ships by actor, so these tokens count as one ship.",
             "SheetLabel": "Narrative Starship",
             "SkillBonus": "Skill Bonus",
             "SkillBonusGuessed": "This ship has no crew skills to read, so the skill bonus is a guess. Replace it with the stat block's value.",
@@ -3048,6 +3051,7 @@
                 "noMines": "No mines are waiting for this ship this round.",
                 "noReveal": "Prognosticate did not succeed against this ship this round.",
                 "notEnemy": "Only enemy ships use tactics.",
+                "shipOut": "This ship is out of the fight and can't use a tactic.",
                 "taken": "Another enemy ship already has this tactic.",
                 "unknownTactic": "Unknown tactic.",
                 "wrongPhase": "Enemy tactics are rolled in the Enemy Tactics phase."

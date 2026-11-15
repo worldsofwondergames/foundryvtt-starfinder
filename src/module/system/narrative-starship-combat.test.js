@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { crewByShip, isNarrativeCombat, queueForCombat } from "./narrative-starship-combat.js";
+import { crewByShip, isNarrativeCombat, queueForCombat, sharedShipActors } from "./narrative-starship-combat.js";
 
 function fakeCombat({ started = true, type = "narrativeStarship", ships = [] } = {}) {
     return {
@@ -27,6 +27,22 @@ describe("crewByShip", () => {
         expect(crew.pc1.gunner).toEqual(pc.system.crew.gunner.actorIds);
         expect(crew.pc1.pilot).toEqual(pc.system.crew.pilot.actorIds);
         expect(crew.pc1.captain).toEqual([]);
+    });
+});
+
+describe("sharedShipActors", () => {
+    it("names each starship actor with more than one combatant", () => {
+        const starship = { type: "starship" };
+        const combatants = [
+            { actorId: "s1", actor: starship },
+            { actorId: "s1", actor: starship },
+            { actorId: "s2", actor: starship },
+            { actorId: "c1", actor: { type: "character" } },
+            { actorId: "c1", actor: { type: "character" } },
+            { actorId: "gone", actor: null }
+        ];
+        expect(sharedShipActors(combatants)).toEqual(["s1"]);
+        expect(sharedShipActors(combatants.slice(1))).toEqual([]);
     });
 });
 

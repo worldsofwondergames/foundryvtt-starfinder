@@ -10,7 +10,7 @@ import {
 } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, NARRATIVE_ROLES, dcFor } from "../rules/narrative-starship/crew-actions.js";
 import { endOfRound, fleeingEnemies } from "../rules/narrative-starship/round-end.js";
-import { initialState } from "../rules/narrative-starship/state.js";
+import { addShipToState, initialState } from "../rules/narrative-starship/state.js";
 import {
     absorbHit, activateMantle, applyActionUpgrades, hasUpgrade, pendingMines, quantumDefenderShip, resolveMines, useOnce,
     virtualIntelligenceBonus
@@ -104,8 +104,29 @@ export async function saveNarrativeState(combat, state) {
     await combat.update({ "flags.sfrpg.narrative": foundry.data.operators.ForcedReplacement.create(state) });
 }
 
+/** The side a starship fights on: NPC crew makes it an enemy. */
+function shipSide(actor) {
+    return actor.system.crew?.useNPCCrew ? "enemy" : "pc";
+}
+
 /**
- * A combat start step. Builds the round state from the starships in a narrative combat.
+ * The starship actors that have more than one combatant in a combat, such as unlinked tokens of one actor.
+ * Ships are kept by actor id, so each of these counts as one ship.
+ * @param {Iterable<{actorId: string, actor: {type: string}|null}>} combatants
+ * @returns {string[]} The actor ids.
+ */
+export function sharedShipActors(combatants) {
+    const counts = new Map();
+    for (const combatant of combatants) {
+        if (combatant.actor?.type !== "starship") continue;
+        counts.set(combatant.actorId, (counts.get(combatant.actorId) ?? 0) + 1);
+    }
+    return [...counts].filter(([, count]) => count > 1).map(([id]) => id);
+}
+
+/**
+ * A combat start step. Builds the round state from the starships in a narrative combat, and tells the GM about
+ * starship actors with more than one combatant, which count as one ship.
  * @param {Combat} combat
  */
 export async function initializeNarrativeState(combat) {
@@ -114,10 +135,35 @@ export async function initializeNarrativeState(combat) {
     for (const combatant of combat.combatants) {
         const actor = combatant.actor;
         if (actor?.type !== "starship" || ships.some(s => s.id === combatant.actorId)) continue;
-        ships.push({ id: combatant.actorId, side: actor.system.crew?.useNPCCrew ? "enemy" : "pc" });
+        ships.push({ id: combatant.actorId, side: shipSide(actor) });
     }
     await saveNarrativeState(combat, initialState(ships));
     await combat.unsetFlag("sfrpg", "narrativeResolvedRound");
+    for (const id of sharedShipActors(combat.combatants)) {
+        const name = foundry.utils.escapeHTML(shipActor(combat, id)?.name ?? id);
+        await ChatMessage.create({
+            content: `<p>${game.i18n.format(LABEL + "SharedActorWhisper", { ship: name })}</p>`,
+            whisper: ChatMessage.getWhisperRecipients("GM").map(u => u.id),
+            speaker: { alias: combat.getCombatName?.() ?? "" }
+        });
+    }
+}
+
+/**
+ * Adds a starship that joins a started narrative combat to the round state. Only the active GM runs it.
+ * @param {Combatant} combatant
+ */
+function onCreateCombatant(combatant) {
+    if (!game.users.activeGM?.isSelf) return;
+    const combat = combatant.parent;
+    const actor = combatant.actor;
+    if (!isNarrativeCombat(combat) || actor?.type !== "starship") return;
+    queueForCombat(combat.id, async () => {
+        const state = combat.getFlag("sfrpg", "narrative");
+        if (!state) return;
+        const next = addShipToState(state, { id: combatant.actorId, side: shipSide(actor) });
+        if (next !== state) await saveNarrativeState(combat, next);
+    });
 }
 
 /**
@@ -398,8 +444,8 @@ async function resolveRoundNow(combat, round) {
     }
     await saveNarrativeState(combat, end.state);
     await combat.setFlag("sfrpg", "narrativeResolvedRound", round);
-    // A ship that fled is out of the fight, so the tracker marks it defeated.
-    for (const id of end.fled) {
+    // A ship that fled or was knocked out is out of the fight, so the tracker marks it defeated.
+    for (const id of new Set([...result.out, ...end.fled])) {
         await combat.combatants.find(c => c.actorId === id)?.update({ defeated: true });
     }
 
@@ -411,7 +457,8 @@ async function resolveRoundNow(combat, round) {
         out: result.out.map(name),
         fled: end.fled.map(name),
         held: end.held.map(name),
-        ended: end.ended ? game.i18n.localize(`${LABEL}Resolve.${end.ended}`) : ""
+        ended: end.ended ? game.i18n.localize(`${LABEL}Resolve.${end.ended}`) : "",
+        combatId: combat.id
     });
     await ChatMessage.create({ speaker: { alias: combat.getCombatName?.() ?? "" }, content });
 }
@@ -751,17 +798,23 @@ export async function postVirtualIntelligenceCards(combat) {
     }
 }
 
-/** Connects the Virtual Intelligence button on a chat card. Only the GM sees it. */
+/** Connects the GM-only buttons on chat cards: Virtual Intelligence and End Combat. Others don't see them. */
 function onRenderChatMessage(message, html) {
-    const button = html.querySelector?.(".narrative-vi-aid");
-    if (!button) return;
+    const aid = html.querySelector?.(".narrative-vi-aid");
+    const end = html.querySelector?.(".narrative-end-combat");
     if (!game.user.isGM) {
-        button.remove();
+        aid?.remove();
+        end?.remove();
         return;
     }
-    button.addEventListener("click", event => {
+    aid?.addEventListener("click", event => {
         event.preventDefault();
-        onVirtualIntelligenceClick(button.dataset);
+        onVirtualIntelligenceClick(aid.dataset);
+    });
+    // Foundry's endCombat asks the GM to confirm.
+    end?.addEventListener("click", event => {
+        event.preventDefault();
+        game.combats.get(end.dataset.combatId)?.endCombat();
     });
 }
 
@@ -844,5 +897,6 @@ export function initializeNarrativeStarshipCombat() {
     RPC.registerCallback("narrativeCrewActionRejected", "local", onNarrativeCrewActionRejected);
     RPC.registerCallback("narrativeUseUpgrade", "gm", onNarrativeUseUpgradeRequest);
     Hooks.on("updateCombat", onUpdateCombat);
+    Hooks.on("createCombatant", onCreateCombatant);
     Hooks.on("renderChatMessageHTML", onRenderChatMessage);
 }
