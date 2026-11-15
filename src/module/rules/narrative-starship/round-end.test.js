@@ -99,11 +99,23 @@ describe("missedResolveRound", () => {
         expect(missedResolveRound({ ...base, oldPhaseIndex: 2, resolvedRound: 2 })).toBeNull();
     });
 
-    it("is null from Change Roles or Resolve, going back, without a new round, or in other combats", () => {
+    it("is null when the round moved on from Change Roles", () => {
         expect(missedResolveRound({ ...base, oldPhaseIndex: 0 })).toBeNull();
+    });
+
+    it("is null when the round moved on from Resolve", () => {
         expect(missedResolveRound({ ...base, oldPhaseIndex: 3 })).toBeNull();
+    });
+
+    it("is null when going back", () => {
         expect(missedResolveRound({ ...base, oldPhaseIndex: 2, direction: -1 })).toBeNull();
+    });
+
+    it("is null without a new round", () => {
         expect(missedResolveRound({ ...base, oldPhaseIndex: 2, isNewRound: false })).toBeNull();
+    });
+
+    it("is null in other combat types", () => {
         expect(missedResolveRound({ ...base, oldPhaseIndex: 2, combatType: "starship" })).toBeNull();
     });
 });

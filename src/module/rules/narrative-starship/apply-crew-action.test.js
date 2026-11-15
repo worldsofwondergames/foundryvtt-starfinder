@@ -219,6 +219,24 @@ describe("Take Cover", () => {
         expect(r.state.actedThisRound.pil).toBe(1);
     });
 
+    it("a pilot who used Piloting last round can still negate Take Cover", () => {
+        const used = act(fresh(), { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e2", skillKey: "pil" });
+        const state = { ...nextRound(used.state) };
+        state.ships = { ...state.ships, e1: { ...state.ships.e1, flags: ["takeCover"] } };
+        expect(state.skillsLastRound.pil).toEqual(["pil"]);
+        const r = act(state, { actorId: "pil", role: "pilot", actionKey: "clearTakeCover", targetId: "e1", skillKey: "pil" });
+        expect(r.success).toBe(true);
+        expect(r.state.ships.e1.flags).not.toContain("takeCover");
+    });
+
+    it("negating Take Cover uses the action but leaves Piloting open next round", () => {
+        const r = act(covered(), { actorId: "pil", role: "pilot", actionKey: "clearTakeCover", targetId: "e1", skillKey: "pil" });
+        expect(r.state.actedThisRound.pil).toBe(1);
+        const after = act(nextRound(r.state), { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1", skillKey: "pil" });
+        expect(after.effects).not.toContainEqual({ kind: "rejected", reason: "sameSkill" });
+        expect(after.successes).toBe(1);
+    });
+
     it("the pilot's check needs Piloting and a ship that is taking cover", () => {
         expect(act(covered(), { actorId: "pil", role: "pilot", actionKey: "clearTakeCover", targetId: "e1", skillKey: "acr" }).effects)
             .toEqual([{ kind: "rejected", reason: "pilotingOnly" }]);

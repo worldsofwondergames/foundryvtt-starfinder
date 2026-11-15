@@ -328,6 +328,10 @@ async function resolveRoundNow(combat, round) {
     }
     await saveNarrativeState(combat, end.state);
     await combat.setFlag("sfrpg", "narrativeResolvedRound", round);
+    // A ship that fled is out of the fight, so the tracker marks it defeated.
+    for (const id of end.fled) {
+        await combat.combatants.find(c => c.actorId === id)?.update({ defeated: true });
+    }
 
     const name = id => shipActor(combat, id)?.name ?? id;
     const content = await foundry.applications.handlebars.renderTemplate("systems/sfrpg/templates/chat/narrative-resolve.hbs", {

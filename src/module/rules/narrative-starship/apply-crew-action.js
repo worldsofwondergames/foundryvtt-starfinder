@@ -197,7 +197,8 @@ function validate(state, input, round) {
         const check = canAct(state, input, input.crew);
         if (!check.ok) return check.reason;
     }
-    if (!skillAllowed(actorId, skillKey, state.skillsLastRound)) return "sameSkill";
+    // Negate Take Cover is a special Piloting check, so the same-skill rule leaves it out.
+    if (actionKey !== "clearTakeCover" && !skillAllowed(actorId, skillKey, state.skillsLastRound)) return "sameSkill";
     if (!skillKey) return "noSkill";
     if (skillKey === "rangedAttack" && role !== "gunner") return "notGunner";
     if (skillKey !== "rangedAttack" && !(Array.isArray(input.actorSkills) && input.actorSkills.includes(skillKey))) return "badSkill";
@@ -289,6 +290,9 @@ export function applyCrewAction(state, input, round) {
             ...next,
             skillsThisRound: { ...next.skillsThisRound, [actorId]: [...(next.skillsThisRound[actorId] ?? []), skillKey] }
         };
+    } else if (actionKey === "clearTakeCover") {
+        // It uses the pilot's action, but the Piloting use does not count against next round.
+        next = { ...next, actedThisRound: { ...next.actedThisRound, [actorId]: (next.actedThisRound[actorId] ?? 0) + 1 } };
     } else {
         next = recordAction(next, actorId, skillKey);
     }
