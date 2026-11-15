@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combatTypesForMode, nextCombatType, narrativeSheetIsDefault, showStandardSheetToggle } from "./mode.js";
+import { combatTypesForMode, nextCombatType, starshipCombatTypeForMode, narrativeSheetIsDefault, showStandardSheetToggle } from "./mode.js";
 
 describe("combatTypesForMode", () => {
     it("lists standard starship combat for standard mode", () => {
@@ -53,5 +53,17 @@ describe("nextCombatType", () => {
         expect(nextCombatType("starship", 1, "narrative")).toBe("normal");
         expect(nextCombatType("starship", -1, "narrative")).toBe("normal");
         expect(nextCombatType("bogus", 1, "standard")).toBe("normal");
+    });
+});
+
+describe("starshipCombatTypeForMode", () => {
+    it("uses narrative starship combat in narrative mode", () => {
+        expect(starshipCombatTypeForMode("narrative")).toBe("narrativeStarship");
+    });
+
+    it("uses standard starship combat in the other modes", () => {
+        expect(starshipCombatTypeForMode("standard")).toBe("starship");
+        expect(starshipCombatTypeForMode("both")).toBe("starship");
+        expect(starshipCombatTypeForMode("bogus")).toBe("starship");
     });
 });

@@ -5,7 +5,7 @@ import RollContext from "../rolls/rollcontext.js";
 import { postRoundEndCheckCards } from "../system/condition-end-check.js";
 import { postTurnStartFailures } from "../system/mech-failure-link.js";
 import { postsPhaseCard } from "../rules/combat-cards.js";
-import { nextCombatType } from "../rules/narrative-starship/mode.js";
+import { nextCombatType, starshipCombatTypeForMode } from "../rules/narrative-starship/mode.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 import { runTurnEvent } from "./turn-event.js";
@@ -1003,7 +1003,7 @@ export class CombatSFRPG extends foundry.documents.Combat {
         if (game.user.isGM && combatant.actor && !this.started) {
             switch (combatant.actor.type) {
                 case "starship":
-                    this.update({"flags.sfrpg.combatType": "starship"});
+                    this.update({"flags.sfrpg.combatType": starshipCombatTypeForMode(game.settings.get("sfrpg", "starshipCombatMode"))});
                     break;
                 case "vehicle":
                     this.update({"flags.sfrpg.combatType": "vehicleChase"});

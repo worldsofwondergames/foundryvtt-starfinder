@@ -32,6 +32,15 @@ export function nextCombatType(current, direction, mode) {
 }
 
 /**
+ * The combat type a starship actor starts when it joins a combat.
+ * @param {"standard"|"narrative"|"both"} mode
+ * @returns {string}
+ */
+export function starshipCombatTypeForMode(mode) {
+    return mode === "narrative" ? "narrativeStarship" : "starship";
+}
+
+/**
  * Whether the narrative starship sheet is the default sheet for starships.
  * @param {"standard"|"narrative"|"both"} mode
  * @returns {boolean}
