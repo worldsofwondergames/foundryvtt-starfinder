@@ -3011,6 +3011,56 @@
                 "Tier": "From the ship's tier"
             },
             "SpecialAbilities": "Special Abilities",
+            "Tactics": {
+                "allOutAttack": {
+                    "Effect": "Two checks against the PC ship's Hard DC. If both succeed, the PC ship takes 2 hits. No enemy can choose this tactic again until after the next round.",
+                    "Name": "All-Out Attack"
+                },
+                "cruelTaunt": {
+                    "Effect": "A check against the PC ship's Average or Hard DC. On a success, the crew of that ship take -1 to all skill checks this round, or -2 if the check met the Hard DC.",
+                    "Name": "Cruel Taunt"
+                },
+                "evasiveManeuvers": {
+                    "Effect": "Ranged attacks and Piloting checks against this enemy ship use its Hard DC this round.",
+                    "Name": "Evasive Maneuvers"
+                },
+                "flee": {
+                    "Effect": "If this enemy ship has more than 0 HP at the end of the round, it flees the battle.",
+                    "Name": "Flee"
+                },
+                "flybyStunt": {
+                    "Effect": "Acrobatics and Athletics checks by the crew of the chosen PC ship use the Hard DC this round.",
+                    "Name": "Flyby Stunt"
+                },
+                "makeRepairs": {
+                    "Effect": "This enemy ship regains 1 HP, but its threshold is 1 lower (minimum 1) this round.",
+                    "Name": "Make Repairs"
+                },
+                "openFire": {
+                    "Effect": "A check against the PC ship's Average DC. On a success, the PC ship takes 1 hit.",
+                    "Name": "Open Fire"
+                },
+                "raiseShields": {
+                    "Effect": "This enemy ship's threshold is 1 higher this round.",
+                    "Name": "Raise Shields"
+                },
+                "ram": {
+                    "Effect": "A check against the PC ship's Average DC. On a success, both ships take 1 hit and the crew of the PC ship take -1 to all skill checks this round.",
+                    "Name": "Ram"
+                },
+                "signalJam": {
+                    "Effect": "Computers and Mysticism checks by the crew of the chosen PC ship use the Hard DC this round.",
+                    "Name": "Signal Jam"
+                },
+                "takeCover": {
+                    "Effect": "PC skill checks can't target this enemy ship this round. The pilot can try a Piloting check against its Hard DC to end this, which doesn't count as a success toward its threshold.",
+                    "Name": "Take Cover"
+                },
+                "useSpecialAbility": {
+                    "Effect": "The enemy uses one of the special abilities in its stat block. The GM applies it by hand.",
+                    "Name": "Use a Special Ability"
+                }
+            },
             "Threshold": "Threshold",
             "TierHint": "Set the tier to the party's Average Party Level",
             "UseStandardSheet": "Use the standard sheet"

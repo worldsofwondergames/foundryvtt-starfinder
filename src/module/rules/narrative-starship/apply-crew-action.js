@@ -343,7 +343,10 @@ export function applyCrewAction(state, input, round) {
             if (spent) mod(input.secondTargetId, "enemySkill", -2, nextRound);
             break;
         case "extraHitOnMargin":
-            if (margin >= 10) effects.push({ kind: "hit", target: targetId, value: 1 });
+            if (margin >= 10) {
+                effects.push({ kind: "hit", target: targetId, value: 1 });
+                next = { ...next, ships: { ...next.ships, [targetId]: { ...next.ships[targetId], hitsThisRound: (next.ships[targetId].hitsThisRound ?? 0) + 1 } } };
+            }
             break;
         case "reduceThresholdOnMargin":
             if (margin >= 5) mod(targetId, "thresholdDelta", -1, nextRound);
@@ -416,7 +419,9 @@ export function resolveNarrativeRound(state, ships, round) {
     const out = [];
     for (const id of Object.keys(next.ships)) {
         const taken = result.hits[id] ?? 0;
-        hits[id] = taken > 0 ? taken + extra[id] : 0;
+        // Target System counts hits from tactics and crew actions earlier in the round too.
+        const hitBefore = (state.ships[id].hitsThisRound ?? 0) > 0;
+        hits[id] = taken > 0 || hitBefore ? taken + extra[id] : 0;
         hp[id] = Math.max(0, hpById[id] - hits[id]);
         const ship = next.ships[id];
         if (hp[id] === 0 && !ship.flags.includes("out")) {

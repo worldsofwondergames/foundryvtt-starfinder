@@ -135,7 +135,8 @@ export function modifiersFor(state, target, kind, round) {
 }
 
 /**
- * Turns successes into hits, checks for ships going out, and clears per-round data.
+ * Turns successes into hits, checks for ships going out, and clears per-round data, including
+ * each enemy's chosen tactic.
  * Hits from other sources are applied by callers.
  * @param {object} state
  * @param {Record<string, {threshold: number, hp: number}>} statsById
@@ -170,7 +171,11 @@ export function resolveRound(state, statsById, hpById, round) {
     if (sideOut("pc")) ended = "pcLoss";
     else if (sideOut("enemy")) ended = "pcWin";
 
-    for (const ship of Object.values(next.ships)) ship.hitsThisRound = 0;
+    for (const ship of Object.values(next.ships)) {
+        ship.hitsThisRound = 0;
+        ship.tactic = null;
+        ship.tacticTarget = null;
+    }
     // Only the skills used this round count against next round. A crew member who skipped this round has none.
     next.skillsLastRound = next.skillsThisRound;
     next.skillsThisRound = {};

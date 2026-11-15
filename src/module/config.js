@@ -4,6 +4,7 @@ import IconEnricher from "./system/enrichers/icon.js";
 import PPAbilityEnricher from "./system/enrichers/pp-ability.js";
 import TemplateEnricher from "./system/enrichers/template.js";
 import { NARRATIVE_CREW_ACTIONS } from "./rules/narrative-starship/crew-actions.js";
+import { NARRATIVE_TACTICS } from "./rules/narrative-starship/tactics.js";
 import { tokenSizes } from "./token/token-sizes.js";
 
 /** @import { ItemSFRPG } from "./item/item.js" */
@@ -2716,6 +2717,7 @@ SFRPG.storageWeightProperties = {
 };
 
 SFRPG.narrativeCrewActions = NARRATIVE_CREW_ACTIONS;
+SFRPG.narrativeTactics = NARRATIVE_TACTICS;
 
 SFRPG.combatTypes = [
     "normal",

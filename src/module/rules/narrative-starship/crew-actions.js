@@ -95,10 +95,11 @@ function isPreferred(preferred, skillKey) {
  * @param {object} action An entry of NARRATIVE_CREW_ACTIONS.
  * @param {string} skillKey The skill the player chose.
  * @param {{average: number, hard: number}} dcs The DCs of the ship the action's DC comes from.
+ * @param {boolean} [forceHard] An enemy tactic makes this check use the Hard DC (see forceHardFor in tactics.js).
  * @returns {number}
  */
-export function dcFor(action, skillKey, dcs) {
-    if (action.hardAlways) return dcs.hard;
+export function dcFor(action, skillKey, dcs, forceHard = false) {
+    if (forceHard || action.hardAlways) return dcs.hard;
     return isPreferred(action.preferred, skillKey) ? dcs.average : dcs.hard;
 }
 

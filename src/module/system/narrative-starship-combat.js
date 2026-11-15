@@ -7,6 +7,7 @@ import { RPC } from "../rpc.js";
 import { applyCrewAction, crewActionDCShip, resolveNarrativeRound } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, NARRATIVE_ROLES, dcFor } from "../rules/narrative-starship/crew-actions.js";
 import { initialState } from "../rules/narrative-starship/state.js";
+import { forceHardFor } from "../rules/narrative-starship/tactics.js";
 
 export const NARRATIVE_COMBAT_TYPE = "narrativeStarship";
 /** Phase indexes of the narrative combat type. */
@@ -174,7 +175,12 @@ async function handleCrewAction(message) {
     const dcShip = state.ships[dcShipId] ? shipActor(combat, dcShipId) : null;
     if (!dcShip) return reply(message.sender, "badTarget");
     const derived = dcShip.system.narrative?.derived ?? {};
-    const dc = dcFor(action, input.skillKey, { average: derived.averageDC, hard: derived.hardDC });
+    const forceHard = forceHardFor(state, {
+        shipId: input.shipId,
+        targetId: action.dcOf === "target" ? input.targetId : undefined,
+        skillKey: input.skillKey
+    }, combat.round);
+    const dc = dcFor(action, input.skillKey, { average: derived.averageDC, hard: derived.hardDC }, forceHard);
 
     const result = applyCrewAction(state, {
         ...input,

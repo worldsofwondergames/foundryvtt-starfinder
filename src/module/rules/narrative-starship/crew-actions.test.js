@@ -44,6 +44,11 @@ describe("dcFor", () => {
         expect(dcFor(NARRATIVE_CREW_ACTIONS.provideAid, "dip", DCS)).toBe(20);
     });
 
+    test("forceHard makes a preferred skill use the Hard DC", () => {
+        expect(dcFor(NARRATIVE_CREW_ACTIONS.outmaneuver, "pil", DCS, true)).toBe(25);
+        expect(dcFor(NARRATIVE_CREW_ACTIONS.outmaneuver, "pil", DCS, false)).toBe(20);
+    });
+
     test("any Profession skill key matches Profession (captain)", () => {
         expect(dcFor(NARRATIVE_CREW_ACTIONS.enactCunningStratagem, "pro1", DCS)).toBe(20);
         expect(dcFor(NARRATIVE_CREW_ACTIONS.tauntEnemy, "pro1", DCS)).toBe(25);

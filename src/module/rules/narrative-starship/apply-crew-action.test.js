@@ -57,6 +57,14 @@ describe("applyCrewAction", () => {
         expect(short.effects.some(e => e.kind === "hit")).toBe(false);
     });
 
+    it("Target Weak Spot's extra hit counts as a hit for Target System at Resolve", () => {
+        const r = act(fresh(), { actorId: "g1", role: "gunner", actionKey: "targetWeakSpot", targetId: "e1", skillKey: "rangedAttack", total: 25 });
+        expect(r.state.ships.e1.hitsThisRound).toBe(1);
+        const state = addModifier(r.state, { target: "e1", kind: "extraHitIfHit", value: 1, expiresAfterRound: ROUND });
+        // The 1 success is under threshold 2, so the only hit at Resolve is Target System's.
+        expect(resolveNarrativeRound(state, { e1: { threshold: 2, hpValue: 4 } }, ROUND).hits.e1).toBe(1);
+    });
+
     it("Harry Enemy gives the target -2 to skill checks next round", () => {
         const r = act(fresh(), { actorId: "g1", role: "gunner", actionKey: "harryEnemy", targetId: "e1", skillKey: "blu" });
         expect(r.state.modifiers).toContainEqual({ target: "e1", kind: "enemySkill", value: -2, expiresAfterRound: ROUND + 1, fromRound: ROUND + 1 });
