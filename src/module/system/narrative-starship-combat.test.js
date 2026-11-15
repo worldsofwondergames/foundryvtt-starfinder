@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { crewByShip, isNarrativeCombat } from "./narrative-starship-combat.js";
+import { describe, expect, it, vi } from "vitest";
+import { crewByShip, isNarrativeCombat, queueForCombat } from "./narrative-starship-combat.js";
 
 function fakeCombat({ started = true, type = "narrativeStarship", ships = [] } = {}) {
     return {
@@ -27,5 +27,33 @@ describe("crewByShip", () => {
         expect(crew.pc1.gunner).toEqual(pc.system.crew.gunner.actorIds);
         expect(crew.pc1.pilot).toEqual(pc.system.crew.pilot.actorIds);
         expect(crew.pc1.captain).toEqual([]);
+    });
+});
+
+describe("queueForCombat", () => {
+    it("runs a combat's jobs one after another", async () => {
+        const order = [];
+        let release;
+        const first = queueForCombat("c1", () => new Promise(resolve => {
+            release = resolve;
+        }).then(() => order.push("first")));
+        const second = queueForCombat("c1", async () => order.push("second"));
+        await Promise.resolve();
+        expect(order).toEqual([]);
+        release();
+        await Promise.all([first, second]);
+        expect(order).toEqual(["first", "second"]);
+    });
+
+    it("still runs the next job after one throws", async () => {
+        const error = vi.spyOn(console, "error").mockImplementation(() => {});
+        const failing = queueForCombat("c2", async () => {
+            throw new Error("boom");
+        });
+        const next = queueForCombat("c2", async () => "ran");
+        await failing;
+        expect(error).toHaveBeenCalledTimes(1);
+        expect(await next).toBe("ran");
+        error.mockRestore();
     });
 });

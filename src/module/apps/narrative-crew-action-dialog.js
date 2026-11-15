@@ -4,7 +4,7 @@ import { RPC } from "../rpc.js";
 import { actionNeeds, applyCrewAction, grantsSuccesses, rollBonuses, rolesOf } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles } from "../rules/narrative-starship/crew-actions.js";
 import { modifiersFor } from "../rules/narrative-starship/state.js";
-import { crewByShip, shipActor } from "../system/narrative-starship-combat.js";
+import { crewByShip, shipActor, usableSkills } from "../system/narrative-starship-combat.js";
 
 const LABEL = "SFRPG.NarrativeStarship.";
 const FREE_PATCH = "patchHull:free";
@@ -24,13 +24,12 @@ function preferredText(action) {
 }
 
 /** Skills the crew member can roll. Trained-only skills they have no ranks in are left out. */
-function skillOptions(actor, roles, lastSkill) {
-    const skills = Object.entries(actor.system.skills ?? {})
-        .filter(([, skill]) => skill.enabled !== false && !(skill.isTrainedOnly && !(skill.ranks > 0)))
-        .map(([key]) => ({ value: key, label: skillName(actor, key) }))
+function skillOptions(actor, roles, usedLastRound) {
+    const skills = usableSkills(actor)
+        .map(key => ({ value: key, label: skillName(actor, key) }))
         .sort((a, b) => a.label.localeCompare(b.label));
     if (roles.includes("gunner")) skills.unshift({ value: "rangedAttack", label: skillName(actor, "rangedAttack") });
-    for (const skill of skills) skill.disabled = skill.value === lastSkill;
+    for (const skill of skills) skill.disabled = usedLastRound.includes(skill.value);
     return skills;
 }
 
@@ -133,7 +132,7 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
     });
     const successActions = Object.keys(NARRATIVE_CREW_ACTIONS).filter(grantsSuccesses)
         .map(key => ({ value: key, label: game.i18n.localize(`${LABEL}CrewActions.${key}.Name`) }));
-    const lastSkill = state.lastSkill[actor.id];
+    const usedLastRound = state.skillsLastRound?.[actor.id] ?? [];
     const resolveValue = actor.system.attributes?.rp?.value ?? 0;
 
     const content = await foundry.applications.handlebars.renderTemplate("systems/sfrpg/templates/apps/narrative-crew-action.hbs", {
@@ -141,8 +140,8 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
         enemies,
         allies,
         successActions,
-        skills: skillOptions(actor, roles, lastSkill),
-        lastSkillLabel: lastSkill ? skillName(actor, lastSkill) : "",
+        skills: skillOptions(actor, roles, usedLastRound),
+        lastSkillLabel: usedLastRound.map(key => skillName(actor, key)).join(", "),
         hasResolve: resolveValue > 0,
         resolveValue
     });
@@ -188,7 +187,7 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
     };
 
     // Catch a refused action before the roll. The GM checks again with the real roll.
-    const check = applyCrewAction(state, { ...payload, total: 0, dc: 1, actorResolve: resolveValue, crew }, round);
+    const check = applyCrewAction(state, { ...payload, total: 0, dc: 1, actorResolve: resolveValue, actorSkills: usableSkills(actor), crew }, round);
     const rejected = check.effects.find(e => e.kind === "rejected");
     if (rejected) {
         ui.notifications.warn(game.i18n.localize(`${LABEL}Rejected.${rejected.reason}`));

@@ -189,10 +189,11 @@ function validate(state, input, round) {
     } else {
         const check = canAct(state, input, input.crew);
         if (!check.ok) return check.reason;
-        if (!skillAllowed(actorId, skillKey, state.lastSkill)) return "sameSkill";
     }
+    if (!skillAllowed(actorId, skillKey, state.skillsLastRound)) return "sameSkill";
     if (!skillKey) return "noSkill";
     if (skillKey === "rangedAttack" && role !== "gunner") return "notGunner";
+    if (skillKey !== "rangedAttack" && !(Array.isArray(input.actorSkills) && input.actorSkills.includes(skillKey))) return "badSkill";
 
     if (ENEMY_TARGET_ACTIONS.has(actionKey) && !isEnemy(state, targetId)) return "badTarget";
     if (spentResolve && RESOLVE_SUCCESS_ACTIONS.has(actionKey) && !isEnemy(state, targetId)) return "badTarget";
@@ -237,6 +238,7 @@ function validate(state, input, round) {
  * @param {string} [input.secondAllyId] Second allied crew member for Resolve riders.
  * @param {string} [input.targetAction] Action key chosen for Engage Experimental Prototype.
  * @param {string} input.skillKey
+ * @param {string[]} input.actorSkills The skill keys the crew member can use. "rangedAttack" is checked by role.
  * @param {number} input.total The roll total.
  * @param {number} input.dc The DC, worked out by the GM.
  * @param {boolean} input.spentResolve
@@ -266,7 +268,12 @@ export function applyCrewAction(state, input, round) {
     // The roll is made, so count the action and use up the bonuses it got.
     let next = state;
     if (input.free) {
+        // Not an action, but the skill was still used this round.
         next = consume(next, actorId, "freePatchHull", round, 1);
+        next = {
+            ...next,
+            skillsThisRound: { ...next.skillsThisRound, [actorId]: [...(next.skillsThisRound[actorId] ?? []), skillKey] }
+        };
     } else {
         next = recordAction(next, actorId, skillKey);
     }

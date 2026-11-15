@@ -84,12 +84,12 @@ describe("successesFor", () => {
 
 describe("skillAllowed", () => {
     test("refuses the skill used last round", () => {
-        expect(skillAllowed("a1", "pil", { a1: "pil" })).toBe(false);
+        expect(skillAllowed("a1", "pil", { a1: ["eng", "pil"] })).toBe(false);
     });
 
     test("allows a different skill or a crew member with no history", () => {
-        expect(skillAllowed("a1", "eng", { a1: "pil" })).toBe(true);
-        expect(skillAllowed("a2", "pil", { a1: "pil" })).toBe(true);
+        expect(skillAllowed("a1", "acr", { a1: ["eng", "pil"] })).toBe(true);
+        expect(skillAllowed("a2", "pil", { a1: ["pil"] })).toBe(true);
     });
 });
 

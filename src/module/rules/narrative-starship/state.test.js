@@ -38,11 +38,11 @@ describe("canAct", () => {
 });
 
 describe("recordAction", () => {
-    it("counts actions and remembers the skill", () => {
+    it("counts actions and keeps every skill used this round", () => {
         let s = recordAction(initialState(SHIPS), "a1", "piloting");
         s = recordAction(s, "a1", "computers");
         expect(s.actedThisRound.a1).toBe(2);
-        expect(s.lastSkill.a1).toBe("computers");
+        expect(s.skillsThisRound.a1).toEqual(["piloting", "computers"]);
     });
 });
 
@@ -101,7 +101,7 @@ describe("resolveRound", () => {
         const two = resolveRound(both, stats, { e1: 5, e2: 0, pc1: 4 }, 1);
         expect(two.ended).toBe("pcLoss");
     });
-    it("clears per-round data but keeps lastSkill", () => {
+    it("clears per-round data and moves this round's skills to last round", () => {
         let s = withSuccesses("e1", 3);
         s = recordAction(s, "a1", "piloting");
         s = grantExtraAction(s, "a1");
@@ -112,7 +112,8 @@ describe("resolveRound", () => {
         expect(r.state.ships.e1.hitsThisRound).toBe(0);
         expect(r.state.actedThisRound).toEqual({});
         expect(r.state.allowedActions).toEqual({});
-        expect(r.state.lastSkill.a1).toBe("piloting");
+        expect(r.state.skillsLastRound).toEqual({ a1: ["piloting"] });
+        expect(r.state.skillsThisRound).toEqual({});
         expect(r.state.modifiers.map(m => m.kind)).toEqual(["dc"]);
     });
 });

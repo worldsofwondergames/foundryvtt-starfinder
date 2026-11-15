@@ -16,6 +16,28 @@ export const RESOLVE_PHASE = 3;
 const CREW_ROLES = NARRATIVE_ROLES.filter(role => role !== "any");
 const LABEL = "SFRPG.NarrativeStarship.";
 
+/** The last queued job for each combat id. */
+const combatQueues = new Map();
+
+/**
+ * Runs jobs for one combat one at a time, in the order they were queued, so each reads the
+ * state the previous one saved. If a job throws, the error is logged and the next job still runs.
+ * @param {string} combatId
+ * @param {function(): Promise<any>} job
+ * @returns {Promise<any>} The job's result, or undefined if it threw.
+ */
+export function queueForCombat(combatId, job) {
+    const previous = combatQueues.get(combatId) ?? Promise.resolve();
+    const run = previous.then(job).catch(error => {
+        console.error(`Starfinder | Narrative starship combat ${combatId}:`, error);
+    });
+    combatQueues.set(combatId, run);
+    run.then(() => {
+        if (combatQueues.get(combatId) === run) combatQueues.delete(combatId);
+    });
+    return run;
+}
+
 /**
  * Whether a combat is a started narrative starship combat.
  * @param {Combat} combat
@@ -85,6 +107,17 @@ export async function initializeNarrativeState(combat) {
     await combat.unsetFlag("sfrpg", "narrativeResolvedRound");
 }
 
+/**
+ * The skill keys a crew member can roll. Leaves out disabled skills and trained-only skills without ranks.
+ * @param {Actor} actor
+ * @returns {string[]}
+ */
+export function usableSkills(actor) {
+    return Object.entries(actor.system.skills ?? {})
+        .filter(([, skill]) => skill.enabled !== false && !(skill.isTrainedOnly && !(skill.ranks > 0)))
+        .map(([key]) => key);
+}
+
 function reply(sender, reason) {
     RPC.sendMessageTo(sender, "narrativeCrewActionRejected", { reason });
 }
@@ -117,6 +150,11 @@ function readPayload(payload) {
  */
 export async function onNarrativeCrewActionRequest(message) {
     if (!game.users.activeGM?.isSelf) return;
+    const combatId = typeof message.payload?.combatId === "string" ? message.payload.combatId : "";
+    return queueForCombat(combatId, () => handleCrewAction(message));
+}
+
+async function handleCrewAction(message) {
     const input = readPayload(message.payload);
     const user = game.users.get(message.sender);
     const combat = game.combats.get(input.combatId);
@@ -142,6 +180,7 @@ export async function onNarrativeCrewActionRequest(message) {
         ...input,
         dc,
         actorResolve: actor.system.attributes?.rp?.value ?? 0,
+        actorSkills: usableSkills(actor),
         crew: crewByShip(combat, state)
     }, combat.round);
 
@@ -238,6 +277,10 @@ export function onNarrativeCrewActionRejected(message) {
  * @param {Combat} combat
  */
 export async function resolveNarrativePhase(combat) {
+    return queueForCombat(combat.id, () => resolveRoundNow(combat));
+}
+
+async function resolveRoundNow(combat) {
     const state = combat.getFlag("sfrpg", "narrative");
     if (!state || combat.getFlag("sfrpg", "narrativeResolvedRound") === combat.round) return;
 

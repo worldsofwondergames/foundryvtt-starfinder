@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyCrewAction, crewActionDCShip, resolveNarrativeRound, rollBonuses } from "./apply-crew-action.js";
-import { addSuccesses, canAct, initialState, modifiersFor, recordAction } from "./state.js";
+import { addModifier, addSuccesses, canAct, initialState, modifiersFor, recordAction, resolveRound } from "./state.js";
 
 const SHIPS = [
     { id: "pc1", side: "pc" },
@@ -29,11 +29,14 @@ function act(state, input) {
         dc: 15,
         spentResolve: false,
         actorResolve: 1,
+        actorSkills: ["acr", "ath", "blu", "com", "cul", "dip", "eng", "int", "lsc", "mys", "per", "phs", "pil", "pro", "sen", "ste"],
         ...input
     }, ROUND);
 }
 
 const fresh = () => initialState(SHIPS);
+/** Ends the round with no hits, so this round's skills become last round's. */
+const nextRound = s => resolveRound(s, {}, {}, 0).state;
 
 describe("applyCrewAction", () => {
     it("Outmaneuver beating the DC by 5 adds 2 successes to the target", () => {
@@ -96,10 +99,39 @@ describe("applyCrewAction", () => {
     });
 
     it("rejects the skill the crew member used last round", () => {
-        const s = recordAction(fresh(), "pil", "pil");
-        const r = act({ ...s, actedThisRound: {} }, { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1", skillKey: "pil" });
+        const s = nextRound(recordAction(fresh(), "pil", "pil"));
+        const r = act(s, { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1", skillKey: "pil" });
         expect(r.state.ships.e1.successes).toBe(0);
         expect(r.effects).toEqual([{ kind: "rejected", reason: "sameSkill" }]);
+    });
+
+    it("lets a second action this round reuse this round's skill but not last round's", () => {
+        let s = nextRound(recordAction(fresh(), "pil", "acr"));
+        s = act(s, { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1", skillKey: "pil" }).state;
+        s = act(s, { actorId: "cap", role: "captain", actionKey: "giveOrders", allyId: "pil", skillKey: "dip" }).state;
+        const pilot = { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1" };
+        expect(act(s, { ...pilot, skillKey: "acr" }).effects).toEqual([{ kind: "rejected", reason: "sameSkill" }]);
+        expect(act(s, { ...pilot, skillKey: "pil" }).success).toBe(true);
+    });
+
+    it("checks next round against every skill used this round", () => {
+        let s = recordAction(fresh(), "pil", "acr");
+        s = nextRound(recordAction(s, "pil", "pil"));
+        const pilot = { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1" };
+        expect(act(s, { ...pilot, skillKey: "acr" }).effects).toEqual([{ kind: "rejected", reason: "sameSkill" }]);
+    });
+
+    it("forgets the skills of a crew member who skipped a round", () => {
+        const s = nextRound(nextRound(recordAction(fresh(), "pil", "pil")));
+        const r = act(s, { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1", skillKey: "pil" });
+        expect(r.success).toBe(true);
+    });
+
+    it("applies the same-skill rule to the free Patch Hull", () => {
+        let s = nextRound(recordAction(fresh(), "eng", "eng"));
+        s = addModifier(s, { target: "eng", kind: "freePatchHull", value: 1, expiresAfterRound: ROUND });
+        const free = { actorId: "eng", role: "engineer", actionKey: "patchHull", free: true };
+        expect(act(s, { ...free, skillKey: "eng" }).effects).toEqual([{ kind: "rejected", reason: "sameSkill" }]);
     });
 
     it("refuses Resolve at 0 RP", () => {
@@ -118,6 +150,11 @@ describe("applyCrewAction", () => {
         expect(r.state.ships.e1.successes).toBe(1);
         expect(modifiersFor(r.state, "e1", "thresholdDelta", ROUND)).toBe(0);
         expect(modifiersFor(r.state, "e1", "thresholdDelta", ROUND + 1)).toBe(-1);
+    });
+
+    it("rejects a skill the crew member doesn't have", () => {
+        const r = act(fresh(), { actorId: "pil", role: "pilot", actionKey: "outmaneuver", targetId: "e1", skillKey: "pil", actorSkills: ["acr"] });
+        expect(r.effects).toEqual([{ kind: "rejected", reason: "badSkill" }]);
     });
 
     it("lets only gunners use a ranged attack", () => {

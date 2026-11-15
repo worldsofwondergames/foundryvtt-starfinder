@@ -119,14 +119,14 @@ export function successesFor(actionKey, total, dc) {
 }
 
 /**
- * A crew member must pick a different skill than the one they used the previous round.
+ * A crew member must pick a different skill than the ones they used the previous round.
  * @param {string} actorId
  * @param {string} skillKey
- * @param {Object<string, string>} lastSkill
+ * @param {Object<string, string[]>} skillsLastRound
  * @returns {boolean}
  */
-export function skillAllowed(actorId, skillKey, lastSkill) {
-    return lastSkill[actorId] !== skillKey;
+export function skillAllowed(actorId, skillKey, skillsLastRound) {
+    return !(skillsLastRound?.[actorId] ?? []).includes(skillKey);
 }
 
 /**

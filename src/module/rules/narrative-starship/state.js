@@ -8,10 +8,12 @@ function copyState(state) {
     for (const [id, ship] of Object.entries(state.ships)) ships[id] = { ...ship, flags: [...ship.flags] };
     const usedOnce = {};
     for (const [id, list] of Object.entries(state.usedOnce)) usedOnce[id] = [...list];
+    const copyLists = lists => Object.fromEntries(Object.entries(lists ?? {}).map(([id, list]) => [id, [...list]]));
     return {
         ships,
         modifiers: state.modifiers.map(modifier => ({ ...modifier })),
-        lastSkill: { ...state.lastSkill },
+        skillsThisRound: copyLists(state.skillsThisRound),
+        skillsLastRound: copyLists(state.skillsLastRound),
         actedThisRound: { ...state.actedThisRound },
         allowedActions: { ...state.allowedActions },
         usedOnce,
@@ -28,7 +30,8 @@ export function initialState(ships) {
     const state = {
         ships: {},
         modifiers: [],
-        lastSkill: {},
+        skillsThisRound: {},
+        skillsLastRound: {},
         actedThisRound: {},
         allowedActions: {},
         usedOnce: {},
@@ -78,7 +81,7 @@ export function addSuccesses(state, targetId, n) {
 }
 
 /**
- * Counts one action for the actor and remembers the skill used.
+ * Counts one action for the actor and adds the skill to the ones used this round.
  * @param {object} state
  * @param {string} actorId
  * @param {string} skillKey
@@ -87,7 +90,7 @@ export function addSuccesses(state, targetId, n) {
 export function recordAction(state, actorId, skillKey) {
     const next = copyState(state);
     next.actedThisRound[actorId] = (next.actedThisRound[actorId] ?? 0) + 1;
-    next.lastSkill[actorId] = skillKey;
+    next.skillsThisRound[actorId] = [...(next.skillsThisRound[actorId] ?? []), skillKey];
     return next;
 }
 
@@ -168,6 +171,9 @@ export function resolveRound(state, statsById, hpById, round) {
     else if (sideOut("enemy")) ended = "pcWin";
 
     for (const ship of Object.values(next.ships)) ship.hitsThisRound = 0;
+    // Only the skills used this round count against next round. A crew member who skipped this round has none.
+    next.skillsLastRound = next.skillsThisRound;
+    next.skillsThisRound = {};
     next.actedThisRound = {};
     next.allowedActions = {};
     next.modifiers = next.modifiers.filter(m => m.expiresAfterRound > round);
