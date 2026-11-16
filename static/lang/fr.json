@@ -3152,7 +3152,6 @@
                 "Target": "Target"
             },
             "Threshold": "Threshold",
-            "TierHint": "Set the tier to the party's Average Party Level",
             "UnlinkedShipWhisper": "{ship}'s token in this combat is not linked to its actor, so the ship's HP and upgrades are tracked on the token, not on the ship's sheet. To track them on the sheet, link the token: turn on Link Actor Data in the token's settings, and in the ship's Prototype Token for new tokens.",
             "UpgradeButtons": {
                 "Header": "Once-per-Combat Upgrades",
