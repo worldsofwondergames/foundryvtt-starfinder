@@ -4,6 +4,7 @@ import {
     crewActionGroups,
     crewActionDCGroups,
     dcNumbers,
+    dcPlaceholders,
     tacticDCGroups,
     hpFromPipClick,
     hpPips,
@@ -302,5 +303,24 @@ describe("tacticDCGroups", () => {
 
     it("gives nothing for a tactic with no check", () => {
         expect(tacticDCGroups({ dc: null }, pcShips)).toEqual([]);
+    });
+});
+
+describe("dcPlaceholders", () => {
+    const labels = { dc: dc => `DC ${dc}`, dcFor: (dc, name) => `DC ${dc} for ${name}` };
+    const kestra = { name: "Kestra", average: 20, hard: 25 };
+
+    it("gives this ship's and the other side's DCs in parentheses", () => {
+        const values = dcPlaceholders([kestra], [{ name: "Bow", average: 19, hard: 24 }], labels);
+        expect(values).toEqual({ ownAverage: " (DC 20)", ownHard: " (DC 25)", targetAverage: " (DC 19)", targetHard: " (DC 24)" });
+    });
+
+    it("names each ship when the other side's DCs differ", () => {
+        const targets = [{ name: "Bow", average: 19, hard: 24 }, { name: "Stern", average: 21, hard: 26 }];
+        expect(dcPlaceholders([kestra], targets, labels).targetHard).toBe(" (DC 24 for Bow, DC 26 for Stern)");
+    });
+
+    it("leaves a placeholder empty when the DC is not known", () => {
+        expect(dcPlaceholders([kestra], [], labels).targetHard).toBe("");
     });
 });

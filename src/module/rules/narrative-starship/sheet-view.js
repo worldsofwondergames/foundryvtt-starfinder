@@ -166,6 +166,30 @@ export function tacticDCGroups(tactic, pcShips) {
     return [];
 }
 
+/**
+ * Values for the DC placeholders in effect text: {ownAverage}, {ownHard}, {targetAverage}, and {targetHard}.
+ * Each is " (DC 24)" when the ships share the DC, " (DC 24 for Bow, DC 26 for Stern)" when they differ, or empty
+ * when no DC is known, so the text reads the same without a number.
+ * @param {Array<{name: string, average: number|undefined, hard: number|undefined}>} own The ship the text calls
+ *     "this ship" or "its".
+ * @param {Array<{name: string, average: number|undefined, hard: number|undefined}>} targets The ships on the other side.
+ * @param {{dc: function(number): string, dcFor: function(number, string): string}} labels
+ * @returns {{ownAverage: string, ownHard: string, targetAverage: string, targetHard: string}}
+ */
+export function dcPlaceholders(own, targets, labels) {
+    const phrase = (category, ships) => {
+        const dcs = dcNumbers(category, ships);
+        if (dcs.length === 0) return "";
+        return ` (${dcs.map(entry => (entry.name ? labels.dcFor(entry.dc, entry.name) : labels.dc(entry.dc))).join(", ")})`;
+    };
+    return {
+        ownAverage: phrase("average", own),
+        ownHard: phrase("hard", own),
+        targetAverage: phrase("average", targets),
+        targetHard: phrase("hard", targets)
+    };
+}
+
 function blank(value) {
     return value === null || value === undefined || value === "" || Number.isNaN(value);
 }

@@ -10,7 +10,7 @@ import {
 } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, dcFor } from "../rules/narrative-starship/crew-actions.js";
 import { endOfRound, fleeingEnemies } from "../rules/narrative-starship/round-end.js";
-import { rollableCrew, tacticButtonStates } from "../rules/narrative-starship/sheet-view.js";
+import { dcPlaceholders, rollableCrew, tacticButtonStates } from "../rules/narrative-starship/sheet-view.js";
 import { addShipToState, initialState, isShipOut, knockOutAtZero } from "../rules/narrative-starship/state.js";
 import {
     absorbHit, activateMantle, applyActionUpgrades, hasUpgrade, pendingMines, quantumDefenderShip, resolveMines, useOnce,
@@ -28,6 +28,32 @@ export const CREW_ACTIONS_PHASE = 1;
 export const RESOLVE_PHASE = 2;
 
 const LABEL = "SFRPG.NarrativeStarship.";
+
+/**
+ * A ship's name and narrative DCs.
+ * @param {Actor} actor
+ * @returns {{name: string, average: number|undefined, hard: number|undefined}}
+ */
+export function shipDCs(actor) {
+    const derived = actor.system.narrative?.derived ?? {};
+    return { name: actor.name, average: derived.averageDC, hard: derived.hardDC };
+}
+
+/**
+ * An effect text with the DCs it names filled in, such as "use its Hard DC (DC 24) this round".
+ * @param {string} key The localization key of the effect text.
+ * @param {Actor[]} own The ship the text calls "this ship" or "its".
+ * @param {Actor[]} targets The ships on the other side.
+ * @returns {string}
+ */
+export function effectWithDCs(key, own, targets) {
+    const labels = {
+        dc: dc => game.i18n.format(`${LABEL}Tabs.DC`, { dc }),
+        dcFor: (dc, ship) => game.i18n.format(`${LABEL}Tabs.DCFor`, { dc, ship })
+    };
+    const ships = actors => actors.filter(Boolean).map(shipDCs);
+    return game.i18n.format(key, dcPlaceholders(ships(own), ships(targets), labels));
+}
 
 /** The last queued job for each combat id. */
 const combatQueues = new Map();
@@ -445,7 +471,9 @@ async function postCrewActionCard({ combat, actor, input, dc, result, lines }) {
         dc,
         success: result.success,
         successes: result.successes,
-        effectText: result.success ? game.i18n.localize(`${LABEL}CrewActions.${input.actionKey}.Effect`) : "",
+        effectText: result.success
+            ? effectWithDCs(`${LABEL}CrewActions.${input.actionKey}.Effect`, [shipActor(combat, input.shipId)], [target])
+            : "",
         lines,
         rollHTML: roll ? await roll.render() : "",
         free: input.free
@@ -669,7 +697,7 @@ async function postTacticCard({ combat, enemy, targetShip, tactic, rolls, reroll
         hasCheck: final.length > 0,
         dc,
         success: final.length > 0 && worst >= dc && !blocked,
-        effectText: game.i18n.localize(`${LABEL}Tactics.${tactic}.Effect`),
+        effectText: effectWithDCs(`${LABEL}Tactics.${tactic}.Effect`, [enemy], [targetShip]),
         lines,
         manual,
         abilities
