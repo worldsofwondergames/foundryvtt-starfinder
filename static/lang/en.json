@@ -2803,7 +2803,7 @@
                 "Success": "Success: {total} against DC {dc}.",
                 "Successes": "Successes gained: {count}",
                 "Target": "Target: {ship}",
-                "Who": "{name} ({role}) rolls {skill}."
+                "Who": "{name} rolls {skill}."
             },
             "CrewActions": {
                 "accessMaintenancePanels": {
@@ -2859,7 +2859,7 @@
                     "Name": "Harry Enemy"
                 },
                 "holdSteady": {
-                    "Effect": "The gunner gets +3 on actions that give successes against the target this round.",
+                    "Effect": "The ally gets +3 on actions that give successes against the target this round.",
                     "Name": "Hold Steady"
                 },
                 "improveCountermeasures": {
@@ -2927,6 +2927,8 @@
                     "Name": "Vent Thruster Waste"
                 }
             },
+            "CrewDropHint": "Drag a character, drone, or NPC onto this sheet to add it to the crew. Any crew member can take any crew action.",
+            "CrewDropInvalid": "Only a character, drone, or NPC from the Actors sidebar can join the crew.",
             "Dialog": {
                 "Action": "Action",
                 "Ally": "Ally",
@@ -2951,6 +2953,8 @@
             "HP": "HP",
             "HPPipsHint": "Click a pip to set the ship's current HP",
             "HardDC": "Hard DC",
+            "MissingCrew": "Missing actor ({id})",
+            "NoCrew": "No crew yet.",
             "NoUpgrades": "No upgrades installed.",
             "Override": "Override",
             "OverrideHint": "Leave empty to use the derived value",
@@ -2972,23 +2976,25 @@
                 "noResolve": "You have no Resolve Points to spend.",
                 "noResolveRider": "This action can't spend Resolve.",
                 "noSkill": "Choose a skill.",
-                "noTrackingWeapons": "Tracking Weapons only rerolls a gunner's check that targets an enemy ship.",
+                "noTrackingWeapons": "Tracking Weapons only rerolls the check of a gunner action that targets an enemy ship.",
                 "noUpgrade": "This ship doesn't have that upgrade.",
-                "notCrew": "That crew member doesn't hold this role on the ship.",
-                "notGunner": "Only gunners can use a ranged attack.",
+                "notCrew": "That actor isn't on this ship's crew list.",
+                "notGunner": "A ranged attack can only be used for a gunner action.",
                 "notOwner": "You don't own that crew member.",
                 "notTakingCover": "That ship is not taking cover.",
                 "pilotingOnly": "Negate Take Cover is a Piloting check.",
                 "sameSkill": "Pick a different skill than the one used last round.",
                 "shipOut": "This ship is out of the fight, so its crew can't act.",
-                "takeCover": "That ship is taking cover. Only the pilot's Negate Take Cover check can target it this round.",
+                "takeCover": "That ship is taking cover. Only a Negate Take Cover check can target it this round.",
                 "unknownAction": "That action isn't known.",
                 "upgradeElsewhere": "This upgrade is used from the crew action dialog or the enemy's tactic roll, not from the sheet.",
                 "upgradeUsed": "This ship has already used that upgrade in this combat.",
                 "wrongPhase": "Crew actions can only be taken during the Crew Actions phase.",
-                "wrongRole": "That crew member doesn't hold the role this action needs.",
                 "wrongSide": "Only crew on a player ship can take crew actions."
             },
+            "PickCrew": "Crew member",
+            "PickCrewTitle": "Who rolls?",
+            "RemoveCrew": "Remove from the crew",
             "RemoveSkillModifier": "Remove this skill modifier",
             "RemoveUpgrade": "Remove this upgrade",
             "Resolve": {
@@ -3110,7 +3116,7 @@
                     "Name": "Signal Jam"
                 },
                 "takeCover": {
-                    "Effect": "PC skill checks can't target this enemy ship this round. The pilot can try a Piloting check against its Hard DC to end this, which doesn't count as a success toward its threshold.",
+                    "Effect": "PC skill checks can't target this enemy ship this round. A crew member can try a Piloting check against its Hard DC to end this, which doesn't count as a success toward its threshold.",
                     "Name": "Take Cover"
                 },
                 "useSpecialAbility": {
@@ -3151,7 +3157,7 @@
                 "mineLayer": "Use it from the crew action dialog with an action that targets an enemy ship.",
                 "navScramModule": "Use it from the crew action dialog with an action that targets an enemy ship.",
                 "quantumDefender": "The GM is asked whether to use it when an enemy tactic would hit this ship.",
-                "trackingWeapons": "A gunner is asked whether to use it after failing a check against an enemy ship."
+                "trackingWeapons": "A crew member who fails the check of a gunner action against an enemy ship is asked whether to use it."
             },
             "UnlinkedShipWhisper": "{ship}'s token in this combat is not linked to its actor, so the ship's HP and upgrades are tracked on the token, not on the ship's sheet. To track them on the sheet, link the token: turn on Link Actor Data in the token's settings, and in the ship's Prototype Token for new tokens.",
             "UpgradeCard": {
@@ -3170,7 +3176,7 @@
                 "NavScramOne": "Nav-Scram Module: {ship} takes a -2 penalty to its skill checks for this round only.",
                 "QuantumAsk": "{enemy}'s check would hit {ship}. Use {ship}'s Quantum Defender to make {enemy} reroll the check and take the new result?",
                 "QuantumUsed": "Quantum Defender: {ship} makes the enemy reroll the check.",
-                "TrackingWeapons": "Tracking Weapons: the gunner rerolled a failed check."
+                "TrackingWeapons": "Tracking Weapons: the failed check was rerolled."
             },
             "Upgrades": {
                 "ablativePlating": {
@@ -3202,7 +3208,7 @@
                     "Name": "Quantum Defender"
                 },
                 "trackingWeapons": {
-                    "Effect": "Once per combat, a gunner can reroll a failed skill check that targets an enemy ship.",
+                    "Effect": "Once per combat, a crew member can reroll a failed check of a gunner action that targets an enemy ship.",
                     "Name": "Tracking Weapons"
                 },
                 "tractorBeam": {

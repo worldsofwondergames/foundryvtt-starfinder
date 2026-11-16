@@ -6,17 +6,18 @@
 import { openNarrativeTacticsDialog, refreshNarrativeTacticsDialog } from "../apps/narrative-tactics-dialog.js";
 import { RPC } from "../rpc.js";
 import {
-    applyCrewAction, applyVirtualIntelligenceAid, crewActionDCShip, resolveNarrativeRound, rolesOf
+    applyCrewAction, applyVirtualIntelligenceAid, crewActionDCShip, resolveNarrativeRound
 } from "../rules/narrative-starship/apply-crew-action.js";
-import { NARRATIVE_CREW_ACTIONS, NARRATIVE_ROLES, dcFor } from "../rules/narrative-starship/crew-actions.js";
+import { NARRATIVE_CREW_ACTIONS, dcFor } from "../rules/narrative-starship/crew-actions.js";
 import { endOfRound, fleeingEnemies } from "../rules/narrative-starship/round-end.js";
+import { rollableCrew, tacticButtonStates } from "../rules/narrative-starship/sheet-view.js";
 import { addShipToState, initialState, isShipOut, knockOutAtZero } from "../rules/narrative-starship/state.js";
 import {
     absorbHit, activateMantle, applyActionUpgrades, hasUpgrade, pendingMines, quantumDefenderShip, resolveMines, useOnce,
     virtualIntelligenceBonus
 } from "../rules/narrative-starship/upgrades.js";
 import {
-    NARRATIVE_TACTICS, applyTactic, chooseTactic, enemyCheckBonus, forceHardFor, mantleCheckNeeded, presetNextTactic,
+    NARRATIVE_TACTICS, applyTactic, availableTactics, chooseTactic, enemyCheckBonus, forceHardFor, mantleCheckNeeded, presetNextTactic,
     revealPending, tacticDC, tacticRollCount
 } from "../rules/narrative-starship/tactics.js";
 
@@ -26,7 +27,6 @@ export const TACTICS_PHASE = 1;
 export const CREW_ACTIONS_PHASE = 2;
 export const RESOLVE_PHASE = 3;
 
-const CREW_ROLES = NARRATIVE_ROLES.filter(role => role !== "any");
 const LABEL = "SFRPG.NarrativeStarship.";
 
 /** The last queued job for each combat id. */
@@ -80,17 +80,18 @@ export function shipActor(combat, shipId) {
 }
 
 /**
- * Crew by ship and role for every PC ship in the state, read from the ship actors.
+ * The crew list (system.narrative.crew) of every PC ship in the state, read from the ship actors. Narrative ships
+ * have no crew roles, so the standard crew roles are not read.
  * @param {Combat} combat
  * @param {object} state
- * @returns {Record<string, Record<string, string[]>>}
+ * @returns {Record<string, string[]>} Actor ids by ship id.
  */
 export function crewByShip(combat, state) {
     const crew = {};
     for (const [id, ship] of Object.entries(state.ships)) {
         if (ship.side !== "pc") continue;
         const actor = shipActor(combat, id);
-        crew[id] = Object.fromEntries(CREW_ROLES.map(role => [role, [...(actor?.system.crew?.[role]?.actorIds ?? [])]]));
+        crew[id] = [...(actor?.system.narrative?.crew ?? [])];
     }
     return crew;
 }
@@ -213,7 +214,6 @@ function readPayload(payload) {
         combatId: id(payload?.combatId),
         shipId: id(payload?.shipId),
         actorId: id(payload?.actorId),
-        role: id(payload?.role),
         actionKey: id(payload?.actionKey),
         targetId: id(payload?.targetId),
         secondTargetId: id(payload?.secondTargetId),
@@ -313,7 +313,7 @@ async function handleCrewAction(message) {
             flavor: game.i18n.localize(LABEL + "Upgrades.navScramModule.Name")
         });
     }
-    await postCrewActionCard({ combat, actor, input, action, dc, result, lines });
+    await postCrewActionCard({ combat, actor, input, dc, result, lines });
     if (action.effect === "forceTacticReveal" && result.success) await askForNextTactic(combat, input.targetId);
 }
 
@@ -428,7 +428,7 @@ function skillLabel(actor, skillKey) {
     return subname ? `${base} (${subname})` : base;
 }
 
-async function postCrewActionCard({ combat, actor, input, action, dc, result, lines }) {
+async function postCrewActionCard({ combat, actor, input, dc, result, lines }) {
     let roll = null;
     try {
         if (input.roll) roll = Roll.fromData(input.roll);
@@ -448,8 +448,7 @@ async function postCrewActionCard({ combat, actor, input, action, dc, result, li
         effectText: result.success ? game.i18n.localize(`${LABEL}CrewActions.${input.actionKey}.Effect`) : "",
         lines,
         rollHTML: roll ? await roll.render() : "",
-        free: input.free,
-        role: game.i18n.localize(`${LABEL}Roles.${action.role === "any" ? input.role : action.role}`)
+        free: input.free
     });
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),
@@ -751,24 +750,41 @@ export function tacticsCombatFor(ship) {
 }
 
 /**
- * The roles and crew each user can act for on a ship during the Crew Actions phase.
+ * The crew members of a PC ship this user can roll crew actions for: during the Crew Actions phase, while the ship
+ * is in the fight, the ones the user owns. The GM owns them all.
  * @param {Actor} ship
- * @returns {{combat: Combat, actable: Record<string, Record<string, boolean>>}|null}
+ * @returns {{combat: Combat, rollable: string[]}|null} null when no one can roll.
  */
 export function actableCrew(ship) {
     const combat = narrativeCombatFor(ship.id);
-    if (!combat || combat.flags.sfrpg?.phase !== CREW_ACTIONS_PHASE) return null;
-    const state = combat.getFlag("sfrpg", "narrative");
-    // The crew of a ship that is out of the fight can't act, so no Act button shows.
-    if (state.ships[ship.id]?.side !== "pc" || isShipOut(state, ship.id)) return null;
-    const actable = {};
-    for (const role of CREW_ROLES) {
-        actable[role] = {};
-        for (const id of ship.system.crew?.[role]?.actorIds ?? []) {
-            if (game.actors.get(id)?.isOwner) actable[role][id] = true;
-        }
-    }
-    return { combat, actable };
+    const state = combat?.getFlag("sfrpg", "narrative");
+    if (!state) return null;
+    const rollable = rollableCrew({
+        crewPhase: combat.flags.sfrpg?.phase === CREW_ACTIONS_PHASE,
+        side: state.ships[ship.id]?.side,
+        out: isShipOut(state, ship.id)
+    }, ship.system.narrative?.crew, id => Boolean(game.actors.get(id)?.isOwner));
+    return rollable.length > 0 ? { combat, rollable } : null;
+}
+
+/**
+ * The GM's Roll buttons for an enemy ship's tactics on its sheet: during the Enemy Tactics phase, while the ship is
+ * in the fight. Each tactic is enabled or disabled with the reason.
+ * @param {Actor} ship
+ * @returns {{combat: Combat, buttons: Record<string, {disabled: boolean, reason: string|null}>}|null}
+ */
+export function enemyTacticButtons(ship) {
+    if (!game.user.isGM) return null;
+    const combat = narrativeCombatFor(ship.id);
+    const state = combat?.getFlag("sfrpg", "narrative");
+    const data = state?.ships[ship.id];
+    if (data?.side !== "enemy" || isShipOut(state, ship.id) || combat.flags.sfrpg?.phase !== TACTICS_PHASE) return null;
+    const round = combat.round;
+    const buttons = tacticButtonStates(availableTactics(state, ship.id, round), {
+        chosen: Boolean(data.tactic),
+        minesPending: Boolean(pendingMines(state, ship.id, round))
+    });
+    return { combat, buttons };
 }
 
 /**
@@ -882,14 +898,12 @@ async function onVirtualIntelligenceClick({ combatId, shipId, round }) {
     if (!isNarrativeCombat(combat)) return warn("noCombat");
     if (combat.flags.sfrpg?.phase !== CREW_ACTIONS_PHASE || String(combat.round) !== round) return warn("wrongPhase");
     const state = combat.getFlag("sfrpg", "narrative");
-    const shipCrew = crewByShip(combat, state)[shipId] ?? {};
-    const options = [...new Set(Object.values(shipCrew).flat())]
+    const shipCrew = crewByShip(combat, state)[shipId] ?? [];
+    const options = [...new Set(shipCrew)]
         .filter(id => !(state.actedThisRound[id] > 0))
         .map(id => {
-            const roles = rolesOf(shipCrew, id).map(r => game.i18n.localize(`${LABEL}Roles.${r}`))
-                .join(", ");
             const name = foundry.utils.escapeHTML(game.actors.get(id)?.name ?? id);
-            return `<option value="${id}">${name} (${roles})</option>`;
+            return `<option value="${id}">${name}</option>`;
         });
     if (options.length === 0) return warn("badAlly");
     const allyId = await foundry.applications.api.DialogV2.prompt({
@@ -932,16 +946,26 @@ async function runVirtualIntelligenceAid(combat, shipId, allyId) {
     });
 }
 
+/** Redraws the open sheets of the starships in a combat, so their Act and Roll buttons follow the combat. */
+function renderShipSheets(combat) {
+    for (const combatant of combat.combatants) {
+        const sheet = combatant.actor?.sheet;
+        if (combatant.actor?.type === "starship" && sheet?.rendered) sheet.render(false);
+    }
+}
+
 /** Redraws open sheets of the ships in a narrative combat when its phase, round, or state changes. */
 function onUpdateCombat(combat, changed) {
     if (combat.getCombatType?.() !== NARRATIVE_COMBAT_TYPE) return;
     const flags = changed.flags?.sfrpg ?? {};
     if (!("round" in changed) && !("phase" in flags) && !("narrative" in flags)) return;
     refreshNarrativeTacticsDialog(combat);
-    for (const combatant of combat.combatants) {
-        const sheet = combatant.actor?.sheet;
-        if (combatant.actor?.type === "starship" && sheet?.rendered) sheet.render(false);
-    }
+    renderShipSheets(combat);
+}
+
+/** Redraws open sheets of the ships in a narrative combat that ended, so its buttons go away. */
+function onDeleteCombat(combat) {
+    if (combat.getCombatType?.() === NARRATIVE_COMBAT_TYPE) renderShipSheets(combat);
 }
 
 /** Registers the RPC callbacks and hooks. Called once during setup. */
@@ -950,6 +974,7 @@ export function initializeNarrativeStarshipCombat() {
     RPC.registerCallback("narrativeCrewActionRejected", "local", onNarrativeCrewActionRejected);
     RPC.registerCallback("narrativeUseUpgrade", "gm", onNarrativeUseUpgradeRequest);
     Hooks.on("updateCombat", onUpdateCombat);
+    Hooks.on("deleteCombat", onDeleteCombat);
     Hooks.on("createCombatant", onCreateCombatant);
     Hooks.on("renderChatMessageHTML", onRenderChatMessage);
 }

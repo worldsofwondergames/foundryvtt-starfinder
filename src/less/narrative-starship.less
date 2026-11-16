@@ -82,6 +82,23 @@
         padding: 4px 0;
         border-bottom: 1px solid @colorFaint;
 
+        .narrative-action-head {
+            align-items: center;
+            gap: 6px;
+
+            .narrative-action-name {
+                flex: 1;
+            }
+
+            button {
+                flex: 0 0 auto;
+                width: auto;
+                line-height: 20px;
+                padding: 0 6px;
+                font-size: var(--font-size-12);
+            }
+        }
+
         .narrative-action-name {
             font-weight: bold;
         }
@@ -98,6 +115,36 @@
 
     .narrative-empty {
         font-style: italic;
+    }
+
+    .narrative-crew-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .narrative-crew-member {
+        align-items: center;
+        gap: 6px;
+        padding: 2px 0;
+        border-bottom: 1px solid @colorFaint;
+
+        .narrative-crew-image {
+            flex: 0 0 32px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            object-fit: cover;
+        }
+
+        .narrative-crew-name {
+            flex: 1;
+        }
+
+        .narrative-act,
+        .narrative-crew-remove {
+            flex: 0 0 auto;
+        }
     }
 
     .form-header {

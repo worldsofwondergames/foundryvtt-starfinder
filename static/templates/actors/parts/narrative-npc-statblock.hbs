@@ -17,7 +17,14 @@
     <ol class="narrative-action-list">
         {{#each narrative.tactics as |tactic|}}
         <li class="narrative-action" data-tactic="{{tactic.key}}">
-            <div class="narrative-action-name">{{tactic.label}}</div>
+            <div class="narrative-action-head flexrow">
+                <div class="narrative-action-name">{{tactic.label}}</div>
+                {{#if tactic.roll}}
+                <span class="narrative-tactic-roll-wrap" {{#if tactic.roll.hint}}data-tooltip="{{tactic.roll.hint}}"{{/if}}>
+                    <button type="button" class="narrative-tactic-roll" data-tactic="{{tactic.key}}" {{#if tactic.roll.disabled}}disabled{{/if}}><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Dialog.Roll"}}</button>
+                </span>
+                {{/if}}
+            </div>
             <div class="narrative-action-effect">{{tactic.effect}}</div>
         </li>
         {{/each}}

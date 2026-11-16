@@ -3,9 +3,13 @@
  * Pure data and functions. The dialog and roll handler build on this.
  */
 
-/** Bonus a gunner gets on a ranged attack made as a crew action. */
+/** Bonus on a ranged attack made for a gunner action. */
 export const RANGED_ATTACK_BONUS = 3;
 
+/**
+ * The groups the book sorts the crew actions into. Narrative ships have no crew roles: any crew member can take any
+ * action. The groups are the Crew Actions tab's headings, and "gunner" marks the actions that allow a ranged attack.
+ */
 export const NARRATIVE_ROLES = ["any", "captain", "chiefMate", "engineer", "gunner", "magicOfficer", "pilot", "scienceOfficer"];
 
 function entry(role, preferred, hardAlways, dcOf, effect, resolve = null) {
@@ -145,13 +149,13 @@ export function skillLockedFor(actionKey, skillKey, usedLastRound) {
 }
 
 /**
- * Keys of the actions open to the given roles. Actions for any crew member are always included.
- * @param {string[]} roles
+ * Keys of every crew action, in data order. Any crew member can take any of them. With `first`, that action comes
+ * first so a list built from the keys selects it.
+ * @param {string} [first]
  * @returns {string[]}
  */
-export function actionsForRoles(roles) {
-    return Object.keys(NARRATIVE_CREW_ACTIONS).filter(key => {
-        const role = NARRATIVE_CREW_ACTIONS[key].role;
-        return role === "any" || roles.includes(role);
-    });
+export function crewActionKeys(first) {
+    const keys = Object.keys(NARRATIVE_CREW_ACTIONS);
+    if (!keys.includes(first)) return keys;
+    return [first, ...keys.filter(key => key !== first)];
 }

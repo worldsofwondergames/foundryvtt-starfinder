@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+    addCrewMember,
     crewActionGroups,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
     narrativeStatRows,
     normalizeNarrativeFormData,
-    skillModifierView
+    rollableCrew,
+    skillModifierView,
+    tacticButtonStates,
+    tacticPrompt
 } from "./sheet-view.js";
 
 const derived = {
@@ -160,5 +164,78 @@ describe("crewActionGroups", () => {
         expect(captain.actions[0]).toMatchObject({ anySkill: true, skills: "", hardAlways: true });
         expect(captain.actions[1]).toMatchObject({ anySkill: false, skills: "Intimidate", hardAlways: false });
         expect(gunner.actions[0].skills).toBe("Piloting, Ranged attack");
+    });
+});
+
+describe("addCrewMember", () => {
+    it("adds a new crew member at the end", () => {
+        expect(addCrewMember(["a1"], "a2")).toEqual(["a1", "a2"]);
+        expect(addCrewMember(undefined, "a1")).toEqual(["a1"]);
+    });
+
+    it("refuses a duplicate or a missing id", () => {
+        expect(addCrewMember(["a1", "a2"], "a2")).toBeNull();
+        expect(addCrewMember(["a1"], "")).toBeNull();
+    });
+});
+
+describe("rollableCrew", () => {
+    const ship = { crewPhase: true, side: "pc", out: false };
+    const owns = id => id !== "other";
+
+    it("lists the crew members the user owns during the Crew Actions phase", () => {
+        expect(rollableCrew(ship, ["a1", "other", "a2", "a1"], owns)).toEqual(["a1", "a2"]);
+    });
+
+    it("lists no one outside the phase, on an enemy ship, or on a ship that is out", () => {
+        expect(rollableCrew({ ...ship, crewPhase: false }, ["a1"], owns)).toEqual([]);
+        expect(rollableCrew({ ...ship, side: "enemy" }, ["a1"], owns)).toEqual([]);
+        expect(rollableCrew({ ...ship, out: true }, ["a1"], owns)).toEqual([]);
+    });
+});
+
+describe("tacticButtonStates", () => {
+    const statuses = [
+        { key: "openFire", disabled: false },
+        { key: "allOutAttack", disabled: true, reason: "locked" }
+    ];
+
+    it("uses the reason availableTactics gives for each tactic", () => {
+        expect(tacticButtonStates(statuses, { chosen: false, minesPending: false })).toEqual({
+            openFire: { disabled: false, reason: null },
+            allOutAttack: { disabled: true, reason: "locked" }
+        });
+    });
+
+    it("disables every tactic once the ship chose, or while its mines check is pending", () => {
+        const chosen = tacticButtonStates(statuses, { chosen: true, minesPending: true });
+        expect(chosen.openFire).toEqual({ disabled: true, reason: "alreadyChosen" });
+        expect(chosen.allOutAttack.reason).toBe("alreadyChosen");
+        const mines = tacticButtonStates(statuses, { chosen: false, minesPending: true });
+        expect(mines.openFire).toEqual({ disabled: true, reason: "minesFirst" });
+    });
+});
+
+describe("tacticPrompt", () => {
+    const base = { pcTarget: true, pcShips: ["pc1", "pc2"], forced: null, round: 2 };
+
+    it("asks for the target when there is more than one PC ship", () => {
+        expect(tacticPrompt("openFire", base)).toEqual({ targetId: null, askTarget: true, askChoice: false });
+    });
+
+    it("uses the only PC ship without asking", () => {
+        expect(tacticPrompt("openFire", { ...base, pcShips: ["pc2"] })).toEqual({ targetId: "pc2", askTarget: false, askChoice: false });
+    });
+
+    it("uses this round's forced target for the forced tactic, while that ship is in the fight", () => {
+        const forced = { tactic: "openFire", targetShip: "pc2", round: 2 };
+        expect(tacticPrompt("openFire", { ...base, forced })).toEqual({ targetId: "pc2", askTarget: false, askChoice: false });
+        expect(tacticPrompt("openFire", { ...base, forced: { ...forced, round: 1 } }).askTarget).toBe(true);
+        expect(tacticPrompt("openFire", { ...base, pcShips: ["pc1", "pc3"], forced }).askTarget).toBe(true);
+    });
+
+    it("asks nothing for a tactic without a PC target, and always asks Cruel Taunt's DC", () => {
+        expect(tacticPrompt("takeCover", { ...base, pcTarget: false })).toEqual({ targetId: null, askTarget: false, askChoice: false });
+        expect(tacticPrompt("cruelTaunt", { ...base, pcShips: ["pc1"] })).toEqual({ targetId: "pc1", askTarget: false, askChoice: true });
     });
 });

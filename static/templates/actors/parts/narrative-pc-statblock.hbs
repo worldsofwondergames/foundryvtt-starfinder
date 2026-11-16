@@ -77,7 +77,12 @@
     <ol class="narrative-action-list">
         {{#each group.actions as |action|}}
         <li class="narrative-action" data-action="{{action.key}}">
-            <div class="narrative-action-name">{{action.label}}</div>
+            <div class="narrative-action-head flexrow">
+                <div class="narrative-action-name">{{action.label}}</div>
+                {{#if @root.narrative.canRollActions}}
+                <button type="button" class="narrative-action-roll" data-action-key="{{action.key}}"><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Dialog.Roll"}}</button>
+                {{/if}}
+            </div>
             <div class="narrative-action-skills">{{action.skillText}}</div>
             <div class="narrative-action-effect">{{action.effect}}</div>
         </li>
@@ -87,5 +92,25 @@
 </div>
 
 <div class="tab narrative-crew" data-group="primary" data-tab="crew">
-    {{> "systems/sfrpg/templates/actors/parts/starship-crew-roster.hbs" crew=crew}}
+    {{#if narrative.crew.length}}
+    <ol class="narrative-crew-list">
+        {{#each narrative.crew as |member|}}
+        <li class="narrative-crew-member flexrow" data-actor-id="{{member.id}}">
+            <img class="narrative-crew-image" src="{{member.img}}" alt="" />
+            <a class="narrative-crew-name">{{member.name}}</a>
+            {{#if member.canAct}}
+            <a class="narrative-act"><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Act"}}</a>
+            {{/if}}
+            {{#if @root.editable}}
+            <a class="narrative-crew-remove" data-tooltip="{{localize "SFRPG.NarrativeStarship.RemoveCrew"}}"><i class="fas fa-trash"></i></a>
+            {{/if}}
+        </li>
+        {{/each}}
+    </ol>
+    {{else}}
+    <p class="narrative-empty">{{localize "SFRPG.NarrativeStarship.NoCrew"}}</p>
+    {{/if}}
+    {{#if editable}}
+    <p class="hint">{{localize "SFRPG.NarrativeStarship.CrewDropHint"}}</p>
+    {{/if}}
 </div>

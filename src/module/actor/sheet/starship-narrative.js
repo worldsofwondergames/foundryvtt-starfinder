@@ -1,26 +1,34 @@
 import { openNarrativeCrewActionDialog } from "../../apps/narrative-crew-action-dialog.js";
 import { openNarrativeTacticsDialog } from "../../apps/narrative-tactics-dialog.js";
 import { showStandardSheetToggle } from "../../rules/narrative-starship/mode.js";
+import { NARRATIVE_TACTICS } from "../../rules/narrative-starship/tactics.js";
 import {
+    addCrewMember,
     crewActionGroups,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
     narrativeStatRows,
     normalizeNarrativeFormData,
-    skillModifierView
+    skillModifierView,
+    tacticPrompt
 } from "../../rules/narrative-starship/sheet-view.js";
 import { clampUpgradeCount, onceButtons, upgradeRows } from "../../rules/narrative-starship/upgrades.js";
 import { NARRATIVE_ROLES } from "../../rules/narrative-starship/crew-actions.js";
 import {
-    actableCrew, requestUpgradeUse, tacticsCombatFor, upgradeButtonsCombatFor
+    actableCrew, enemyTacticButtons, requestUpgradeUse, runEnemyTactic, shipActor, tacticsCombatFor, upgradeButtonsCombatFor
 } from "../../system/narrative-starship-combat.js";
 import { ActorSheetSFRPGStarship } from "./starship.js";
+
+/** Actor types that can be dropped on a PC ship's narrative crew list. */
+const CREW_ACTOR_TYPES = ["character", "drone", "npc", "npc2"];
+const LABEL = "SFRPG.NarrativeStarship.";
 
 /**
  * The narrative starship sheet (Starfinder Enhanced pp. 176-184).
  * Shows the EN stat block for NPC ships and a crew view for PC ships.
- * Crew handling, item drops, and the tier input come from the standard starship sheet.
+ * A PC ship has one crew list (system.narrative.crew) with no roles. Item drops and the tier input come from the
+ * standard starship sheet.
  */
 export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
     static get defaultOptions() {
@@ -41,6 +49,8 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         const narrative = this.actor.system.narrative ?? {};
         const derived = narrative.derived ?? {};
         const layout = narrativeLayout(this.actor.system.crew?.useNPCCrew);
+        // The crew members this user can roll crew actions for, during the Crew Actions phase.
+        const rollable = layout === "pc" ? actableCrew(this.actor)?.rollable ?? [] : [];
 
         const skills = Object.fromEntries(
             Object.entries(CONFIG.SFRPG.starshipSkills).map(([key, label]) => [key, game.i18n.localize(label)])
@@ -55,14 +65,15 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             hpMax: derived.hpMax,
             skillModifiers: skillModifierView(narrative.skillModifiers, skills),
             showStandardToggle: showStandardSheetToggle(game.settings.get("sfrpg", "starshipCombatMode")),
-            // Act buttons during the Crew Actions phase, keyed by role and crew actor id.
-            actable: layout === "pc" ? actableCrew(this.actor)?.actable ?? null : null,
+            crew: layout === "pc" ? this._crewRows(narrative.crew, rollable) : [],
+            // Roll buttons on the Crew Actions tab.
+            canRollActions: rollable.length > 0,
             // The GM's Enemy Tactics button on an enemy ship.
             showTactics: layout === "npc" && Boolean(tacticsCombatFor(this.actor)),
             upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : { installed: [], available: [] },
             onceButtons: layout === "pc" ? this._onceButtonRows(narrative.upgrades) : [],
             crewActions: layout === "pc" ? this._crewActionRows(skills) : [],
-            tactics: layout === "npc" ? this._tacticRows() : []
+            tactics: layout === "npc" ? this._tacticRows(enemyTacticButtons(this.actor)?.buttons) : []
         };
 
         data.enrichedSpecialAbilities = await foundry.applications.ux.TextEditor.enrichHTML(narrative.specialAbilities ?? "", {
@@ -112,13 +123,40 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         }));
     }
 
-    /** The Enemy Actions tab: every enemy tactic with its effect. */
-    _tacticRows() {
-        return Object.keys(CONFIG.SFRPG.narrativeTactics).map(key => ({
-            key,
-            label: game.i18n.localize(`SFRPG.NarrativeStarship.Tactics.${key}.Name`),
-            effect: game.i18n.localize(`SFRPG.NarrativeStarship.Tactics.${key}.Effect`)
-        }));
+    /**
+     * The Crew tab: each crew member with an Act button for the ones this user can roll for.
+     * @param {string[]|undefined} crew
+     * @param {string[]} rollable
+     */
+    _crewRows(crew, rollable) {
+        return (crew ?? []).map(id => {
+            const actor = game.actors.get(id);
+            return {
+                id,
+                name: actor?.name ?? game.i18n.format(LABEL + "MissingCrew", { id }),
+                img: actor?.img ?? CONFIG.Actor.documentClass.DEFAULT_ICON,
+                canAct: rollable.includes(id)
+            };
+        });
+    }
+
+    /**
+     * The Enemy Actions tab: every enemy tactic with its effect, and the GM's Roll button during the Enemy Tactics
+     * phase.
+     * @param {Record<string, {disabled: boolean, reason: string|null}>|undefined} buttons
+     */
+    _tacticRows(buttons) {
+        return Object.keys(CONFIG.SFRPG.narrativeTactics).map(key => {
+            const button = buttons?.[key];
+            return {
+                key,
+                label: game.i18n.localize(`${LABEL}Tactics.${key}.Name`),
+                effect: game.i18n.localize(`${LABEL}Tactics.${key}.Effect`),
+                roll: button
+                    ? { disabled: button.disabled, hint: button.reason ? game.i18n.localize(`${LABEL}TacticRejected.${button.reason}`) : "" }
+                    : null
+            };
+        });
     }
 
     /** The once-per-combat upgrade buttons, during a narrative combat with this ship, for the GM and owners. */
@@ -140,9 +178,12 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         this.element?.[0]?.setAttribute("data-narrative-layout", layout);
 
         // Owners who can't edit the sheet still use the upgrade buttons, and crew owners who can't edit the ship
-        // still use the Act buttons.
+        // still use the Act and Roll buttons.
         html.find(".narrative-upgrade-use").click(this._onUseUpgrade.bind(this));
         html.find(".narrative-act").click(this._onNarrativeAct.bind(this));
+        html.find(".narrative-action-roll").click(this._onCrewActionRoll.bind(this));
+        html.find(".narrative-tactic-roll").click(this._onTacticRoll.bind(this));
+        html.find(".narrative-crew-name").click(this._onCrewView.bind(this));
 
         if (!this.options.editable) return;
 
@@ -153,6 +194,154 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         html.find(".narrative-upgrade-remove").click(this._onUpgradeRemove.bind(this));
         html.find(".narrative-standard-toggle").click(this._onStandardSheetToggle.bind(this));
         html.find(".narrative-tactics-open").click(this._onOpenTactics.bind(this));
+        html.find(".narrative-crew-remove").click(this._onCrewRemove.bind(this));
+    }
+
+    /**
+     * An actor dropped on the sheet joins the PC ship's crew list. Narrative ships have no crew roles, so where it
+     * is dropped doesn't matter. Enemy ships have no crew list.
+     * @param {Event} event The drop event
+     * @param {string} actorId
+     * @returns {Promise<boolean>}
+     */
+    async _onCrewDrop(event, actorId) {
+        if (narrativeLayout(this.actor.system.crew?.useNPCCrew) !== "pc") return false;
+        const actor = game.actors.get(actorId);
+        if (!CREW_ACTOR_TYPES.includes(actor?.type)) {
+            ui.notifications.warn(game.i18n.localize(LABEL + "CrewDropInvalid"));
+            return false;
+        }
+        const crew = addCrewMember(this.actor.system.narrative?.crew, actorId);
+        if (!crew) return false;
+        await this.actor.update({ "system.narrative.crew": crew });
+        return true;
+    }
+
+    /**
+     * Removes a crew member from the crew list.
+     * @param {Event} event The click event
+     */
+    async _onCrewRemove(event) {
+        event.preventDefault();
+        const id = event.currentTarget.closest(".narrative-crew-member").dataset.actorId;
+        const crew = (this.actor.system.narrative?.crew ?? []).filter(member => member !== id);
+        await this.actor.update({ "system.narrative.crew": crew });
+    }
+
+    /**
+     * Opens a crew member's sheet.
+     * @param {Event} event The click event
+     */
+    _onCrewView(event) {
+        event.preventDefault();
+        const actor = game.actors.get(event.currentTarget.closest(".narrative-crew-member").dataset.actorId);
+        if (actor?.testUserPermission(game.user, "LIMITED")) actor.sheet.render(true);
+    }
+
+    /**
+     * Opens the crew action dialog for a Roll button on the Crew Actions tab, with that action selected. When the
+     * user can roll for more than one crew member, asks which one first.
+     * @param {Event} event The click event
+     */
+    async _onCrewActionRoll(event) {
+        event.preventDefault();
+        const actionKey = event.currentTarget.dataset.actionKey;
+        const found = actableCrew(this.actor);
+        if (!found) return;
+        const actorId = found.rollable.length === 1 ? found.rollable[0] : await this._askCrewMember(found.rollable);
+        const actor = game.actors.get(actorId);
+        if (!actor) return;
+        await openNarrativeCrewActionDialog({ combat: found.combat, ship: this.actor, actor, actionKey });
+    }
+
+    /**
+     * Asks which crew member rolls.
+     * @param {string[]} ids
+     * @returns {Promise<string|null>}
+     */
+    async _askCrewMember(ids) {
+        const options = ids.map(id => {
+            const name = foundry.utils.escapeHTML(game.actors.get(id)?.name ?? id);
+            return `<option value="${id}">${name}</option>`;
+        });
+        return foundry.applications.api.DialogV2.prompt({
+            window: { title: game.i18n.localize(LABEL + "PickCrewTitle") },
+            content: `<div class="form-group"><label>${game.i18n.localize(LABEL + "PickCrew")}</label>`
+                + `<div class="form-fields"><select name="actorId">${options.join("")}</select></div></div>`,
+            ok: {
+                label: game.i18n.localize(LABEL + "Dialog.Roll"),
+                icon: "fas fa-dice-d20",
+                callback: (event, button) => button.form.elements.actorId.value
+            },
+            rejectClose: false
+        });
+    }
+
+    /**
+     * Rolls an enemy tactic from a Roll button on the Enemy Actions tab. Asks for the PC ship target when there is
+     * more than one and none is forced, and for Cruel Taunt's DC.
+     * @param {Event} event The click event
+     */
+    async _onTacticRoll(event) {
+        event.preventDefault();
+        const button = event.currentTarget;
+        const tactic = button.dataset.tactic;
+        const found = enemyTacticButtons(this.actor);
+        if (!found || found.buttons[tactic]?.disabled !== false) return;
+        const { combat } = found;
+        const state = combat.getFlag("sfrpg", "narrative");
+        const pcShips = Object.entries(state.ships)
+            .filter(([, ship]) => ship.side === "pc" && !ship.flags?.includes("out"))
+            .map(([id]) => id);
+        const prompt = tacticPrompt(tactic, {
+            pcTarget: Boolean(NARRATIVE_TACTICS[tactic]?.pcTarget),
+            pcShips,
+            forced: state.ships[this.actor.id]?.forcedTactic,
+            round: combat.round
+        });
+        let targetId = prompt.targetId;
+        let choice;
+        if (prompt.askTarget || prompt.askChoice) {
+            const answer = await this._askTacticOptions(combat, tactic, prompt, pcShips);
+            if (!answer) return;
+            targetId = answer.targetId ?? targetId;
+            choice = answer.choice;
+        }
+        button.disabled = true;
+        await runEnemyTactic(combat, { enemyId: this.actor.id, tactic, targetId: targetId ?? undefined, choice });
+    }
+
+    /**
+     * Asks the GM for a tactic's PC ship target, its Cruel Taunt DC, or both.
+     * @returns {Promise<{targetId?: string, choice?: string}|null>}
+     */
+    async _askTacticOptions(combat, tactic, prompt, pcShips) {
+        const group = (label, select) => `<div class="form-group"><label>${game.i18n.localize(label)}</label>`
+            + `<div class="form-fields">${select}</div></div>`;
+        const parts = [];
+        if (prompt.askTarget) {
+            const options = pcShips.map(id => {
+                const name = foundry.utils.escapeHTML(shipActor(combat, id)?.name ?? id);
+                return `<option value="${id}">${name}</option>`;
+            });
+            parts.push(group(LABEL + "TacticsDialog.Target", `<select name="targetId">${options.join("")}</select>`));
+        }
+        if (prompt.askChoice) {
+            parts.push(group(LABEL + "TacticsDialog.DC", `<select name="choice">`
+                + `<option value="average">${game.i18n.localize(LABEL + "AverageDC")}</option>`
+                + `<option value="hard">${game.i18n.localize(LABEL + "HardDC")}</option></select>`));
+        }
+        const answer = await foundry.applications.api.DialogV2.prompt({
+            window: { title: game.i18n.localize(`${LABEL}Tactics.${tactic}.Name`) },
+            content: parts.join(""),
+            ok: {
+                label: game.i18n.localize(LABEL + "Dialog.Roll"),
+                icon: "fas fa-dice-d20",
+                callback: (event, dialogButton) => new foundry.applications.ux.FormDataExtended(dialogButton.form).object
+            },
+            rejectClose: false
+        });
+        return answer && typeof answer === "object" ? answer : null;
     }
 
     /**
@@ -212,16 +401,16 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
     }
 
     /**
-     * Opens the crew action dialog for the crew member and role of the clicked Act button.
+     * Opens the crew action dialog for the crew member of the clicked Act button, with no action chosen yet.
      * @param {Event} event The click event
      */
     async _onNarrativeAct(event) {
         event.preventDefault();
-        const button = event.currentTarget;
-        const actor = game.actors.get(button.closest(".crew").dataset.actorId);
+        const id = event.currentTarget.closest(".narrative-crew-member").dataset.actorId;
+        const actor = game.actors.get(id);
         const found = actableCrew(this.actor);
-        if (!actor || !found) return;
-        await openNarrativeCrewActionDialog({ combat: found.combat, ship: this.actor, actor, role: button.dataset.role });
+        if (!actor || !found?.rollable.includes(id)) return;
+        await openNarrativeCrewActionDialog({ combat: found.combat, ship: this.actor, actor });
     }
 
     /**

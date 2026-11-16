@@ -10,13 +10,13 @@
  *                        rollBonuses; nothing in this file writes it. For enemy tactics such as Cruel Taunt.
  *   skillVsTarget        +N to checks made against the target ship's DC this round (Search Database).
  *   firstVsTarget        +N to the first action that targets the ship; one entry per action (Prognosticate).
- *   allyVsTarget         +N to one gunner's success-granting actions against one ship; target is
+ *   allyVsTarget         +N to one crew member's success-granting actions against one ship; target is
  *                        "<actorId>|<shipId>" (Hold Steady).
  *   rollTwice            Roll the next check twice and keep the better. Target is an actor id (Access
  *                        Maintenance Panels) or "action:<actionKey>" (Engage Experimental Prototype rider).
  *   successMultiplier    Doubles the successes of the next success-granting action. Target is an actor id
  *                        (Maximize Crew Efficiency) or "action:<actionKey>" (Engage Experimental Prototype).
- *   freePatchHull        The engineer may Patch Hull once at -2 without spending an action (Improve
+ *   freePatchHull        The crew member may Patch Hull once at -2 without spending an action (Improve
  *                        Countermeasures rider).
  *   enemySkill           Penalty to an enemy ship's tactic checks (Harry Enemy, Engage Full Thrusters).
  *   enemyHardDC          The enemy ship uses the PC ship's Hard DC for its tactics (Engage Full Thrusters).
@@ -31,7 +31,10 @@
  * Draw Fire also sets ships[target].forcedTactic = {tactic: "openFire", targetShip, round}.
  *
  * An enemy ship with the "takeCover" flag (Take Cover tactic) cannot be targeted. The only action allowed against
- * it is clearTakeCover, the pilot's special Piloting check, which removes the flag and gives no successes.
+ * it is clearTakeCover, the special Piloting check, which removes the flag and gives no successes.
+ *
+ * Narrative ships have no crew roles. Any member of a PC ship's crew list (system.narrative.crew) can take any
+ * action, and a ranged attack is allowed for the gunner actions.
  */
 import { NARRATIVE_CREW_ACTIONS, skillLockedFor, successesFor } from "./crew-actions.js";
 import { addModifier, addSuccesses, canAct, grantExtraAction, isShipOut, modifiersFor, recordAction, resolveRound } from "./state.js";
@@ -45,15 +48,18 @@ const ENEMY_TARGET_ACTIONS = new Set(
 /** Own-DC actions whose Resolve rider counts as a success against a chosen enemy. */
 const RESOLVE_SUCCESS_ACTIONS = new Set(["empowerCrew", "searchDatabase", "targetSystem"]);
 
-/** Who may be chosen as the ally, and whether they must or must not have acted this round. */
+/**
+ * Whether the ally may be the acting crew member, and whether they must or must not have acted this round. The
+ * ally is always a crew member of the same ship.
+ */
 const ALLY_RULES = {
     provideAid: { notSelf: true, acted: false },
     encourageCrewMember: { notSelf: true },
     giveOrders: { acted: true },
-    accessMaintenancePanels: { notSelf: true, acted: false, roles: ["engineer", "scienceOfficer"] },
+    accessMaintenancePanels: { notSelf: true, acted: false },
     maximizeCrewEfficiency: { notSelf: true, acted: false },
-    holdSteady: { notSelf: true, acted: false, roles: ["gunner"] },
-    improveCountermeasures: { resolveOnly: true, roles: ["engineer"] }
+    holdSteady: { notSelf: true, acted: false },
+    improveCountermeasures: { resolveOnly: true }
 };
 
 /** Resolve riders that need a second ally or a second enemy. */
@@ -95,17 +101,6 @@ export function grantsSuccesses(actionKey) {
  */
 export function crewActionDCShip(actionKey, { shipId, targetId }) {
     return NARRATIVE_CREW_ACTIONS[actionKey]?.dcOf === "target" ? targetId : shipId;
-}
-
-/**
- * The roles each crew member holds on a ship.
- * @param {Record<string, string[]>} shipCrew role -> actor ids
- * @param {string} actorId
- * @returns {string[]}
- */
-export function rolesOf(shipCrew, actorId) {
-    return Object.entries(shipCrew ?? {}).filter(([, ids]) => ids.includes(actorId))
-        .map(([role]) => role);
 }
 
 function active(m, round) {
@@ -172,11 +167,9 @@ function takingCover(state, id) {
 }
 
 function allyProblem(state, input, allyId, rules) {
-    const shipCrew = input.crew?.[input.shipId] ?? {};
-    const roles = rolesOf(shipCrew, allyId);
-    if (!allyId || roles.length === 0) return "badAlly";
+    const shipCrew = input.crew?.[input.shipId] ?? [];
+    if (!allyId || !shipCrew.includes(allyId)) return "badAlly";
     if (rules.notSelf && allyId === input.actorId) return "badAlly";
-    if (rules.roles && !roles.some(role => rules.roles.includes(role))) return "badAlly";
     const acted = (state.actedThisRound[allyId] ?? 0) > 0;
     if (rules.acted === true && !acted) return "badAlly";
     if (rules.acted === false && acted) return "badAlly";
@@ -185,10 +178,9 @@ function allyProblem(state, input, allyId, rules) {
 
 /** Checks the input before anything changes. Returns a rejection reason or null. */
 function validate(state, input, round) {
-    const { actionKey, actorId, role, skillKey, targetId, spentResolve } = input;
+    const { actionKey, actorId, skillKey, targetId, spentResolve } = input;
     const action = NARRATIVE_CREW_ACTIONS[actionKey];
     if (!action) return "unknownAction";
-    if (action.role !== "any" && action.role !== role) return "wrongRole";
 
     if (input.free) {
         if (actionKey !== "patchHull" || modifiersFor(state, actorId, "freePatchHull", round) <= 0) return "noFreeAction";
@@ -202,7 +194,7 @@ function validate(state, input, round) {
     // Negate Take Cover is a special Piloting check, so the same-skill rule leaves it out.
     if (skillLockedFor(actionKey, skillKey, state.skillsLastRound?.[actorId])) return "sameSkill";
     if (!skillKey) return "noSkill";
-    if (skillKey === "rangedAttack" && role !== "gunner") return "notGunner";
+    if (skillKey === "rangedAttack" && action.role !== "gunner") return "notGunner";
     if (skillKey !== "rangedAttack" && !(Array.isArray(input.actorSkills) && input.actorSkills.includes(skillKey))) return "badSkill";
 
     if (ENEMY_TARGET_ACTIONS.has(actionKey) && !isEnemy(state, targetId)) return "badTarget";
@@ -228,12 +220,6 @@ function validate(state, input, round) {
         if (input.secondAllyId === input.allyId) return "badAlly";
         const problem = allyProblem(state, input, input.secondAllyId, allyRules);
         if (problem) return problem;
-        if (actionKey === "accessMaintenancePanels") {
-            const shipCrew = input.crew[input.shipId];
-            const first = rolesOf(shipCrew, input.allyId).filter(r => allyRules.roles.includes(r));
-            const second = rolesOf(shipCrew, input.secondAllyId).filter(r => allyRules.roles.includes(r));
-            if (second.every(r => first.includes(r))) return "badAlly";
-        }
     }
     if (spentResolve && SECOND_ENEMY_ACTIONS.has(actionKey)) {
         if (!isEnemy(state, input.secondTargetId) || input.secondTargetId === targetId) return "badTarget";
@@ -265,7 +251,7 @@ export function addAidBonus(state, allyId, margin, round) {
  * @param {string} input.allyId
  * @param {number} input.total
  * @param {number} input.dc
- * @param {Record<string, Record<string, string[]>>} input.crew Crew by ship and role.
+ * @param {Record<string, string[]>} input.crew The crew actor ids of each PC ship.
  * @param {number} round
  * @returns {{state: object, ok: boolean, success?: boolean, reason?: string}}
  *   The ship's aid this round is recorded as a virtualIntelligenceUsed modifier, success or not.
@@ -287,7 +273,6 @@ export function applyVirtualIntelligenceAid(state, { shipId, allyId, total, dc, 
  * @param {object} input
  * @param {string} input.shipId The crew member's ship.
  * @param {string} input.actorId
- * @param {string} input.role The role the crew member acts in.
  * @param {string} input.actionKey A key of NARRATIVE_CREW_ACTIONS.
  * @param {string} [input.targetId] Enemy ship.
  * @param {string} [input.secondTargetId] Second enemy ship (Harry Enemy with Resolve).
@@ -295,13 +280,14 @@ export function applyVirtualIntelligenceAid(state, { shipId, allyId, total, dc, 
  * @param {string} [input.secondAllyId] Second allied crew member for Resolve riders.
  * @param {string} [input.targetAction] Action key chosen for Engage Experimental Prototype.
  * @param {string} input.skillKey
- * @param {string[]} input.actorSkills The skill keys the crew member can use. "rangedAttack" is checked by role.
+ * @param {string[]} input.actorSkills The skill keys the crew member can use. "rangedAttack" is allowed for gunner
+ *   actions instead.
  * @param {number} input.total The roll total.
  * @param {number} input.dc The DC, worked out by the GM.
  * @param {boolean} input.spentResolve
  * @param {number} input.actorResolve The crew member's current Resolve Points.
  * @param {boolean} [input.free] The free Patch Hull from Improve Countermeasures.
- * @param {Record<string, Record<string, string[]>>} input.crew Crew by ship and role.
+ * @param {Record<string, string[]>} input.crew The crew actor ids of each PC ship.
  * @param {number} round
  * @returns {{state: object, effects: Array<object>, success: boolean, successes: number}}
  *   The caller applies the effects heal, hit, regainResolve, spendResolve (target and value), or rejected (reason).
@@ -412,7 +398,7 @@ export function applyCrewAction(state, input, round) {
             if (margin >= 5) mod(targetId, "thresholdDelta", -1, nextRound);
             break;
         case "crewBonus": {
-            const crew = Object.values(input.crew?.[shipId] ?? {}).flat();
+            const crew = input.crew?.[shipId] ?? [];
             const waiting = [...new Set(crew)].filter(id => id !== actorId && !(next.actedThisRound[id] > 0));
             for (const id of waiting) mod(id, "skill", 1, thisRound);
             break;

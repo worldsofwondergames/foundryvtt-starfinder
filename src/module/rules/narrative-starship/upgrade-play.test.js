@@ -121,7 +121,7 @@ describe("Nav-Scram Module expiry", () => {
 });
 
 describe("applyActionUpgrades", () => {
-    const base = { shipId: "pc1", targetId: "e1", upgrades: ALL_ONCE, averageDC: 14, role: "gunner", actionKey: "fireAtWill" };
+    const base = { shipId: "pc1", targetId: "e1", upgrades: ALL_ONCE, averageDC: 14, actionKey: "fireAtWill" };
     it("does nothing when no upgrade is asked for", () => {
         const state = fresh();
         expect(applyActionUpgrades(state, base, ROUND)).toEqual({ state, ok: true });
@@ -147,7 +147,7 @@ describe("applyActionUpgrades", () => {
     it("Tracking Weapons: records the use for a gunner's targeted action", () => {
         const r = applyActionUpgrades(fresh(), { ...base, trackingWeapons: true }, ROUND);
         expect(r.state.usedOnce.pc1).toEqual(["trackingWeapons"]);
-        expect(applyActionUpgrades(fresh(), { ...base, role: "pilot", trackingWeapons: true }, ROUND)).toMatchObject({ ok: false, reason: "noTrackingWeapons" });
+        expect(applyActionUpgrades(fresh(), { ...base, actionKey: "outmaneuver", trackingWeapons: true }, ROUND)).toMatchObject({ ok: false, reason: "noTrackingWeapons" });
     });
     it("refuses a second use, a missing upgrade, and a target that is not an enemy", () => {
         const used = useOnce(fresh(), "pc1", "mineLayer").state;
@@ -164,7 +164,7 @@ describe("applyActionUpgrades", () => {
     it("refuses Mine Layer and Nav-Scram with Negate Take Cover", () => {
         const covered = { ...fresh(), ships: { ...fresh().ships, e1: { ...fresh().ships.e1, flags: ["takeCover"] } } };
         for (const extra of [{ mineLayer: true }, { navScram: true, navScramRoll: 1 }]) {
-            expect(applyActionUpgrades(covered, { ...base, role: "pilot", actionKey: "clearTakeCover", ...extra }, ROUND))
+            expect(applyActionUpgrades(covered, { ...base, actionKey: "clearTakeCover", ...extra }, ROUND))
                 .toMatchObject({ ok: false, reason: "noEnemyAction" });
         }
     });
@@ -209,14 +209,14 @@ describe("Mine Layer check", () => {
 });
 
 describe("canUseTrackingWeapons", () => {
-    const input = { shipId: "pc1", role: "gunner", actionKey: "fireAtWill", targetId: "e1", success: false };
+    const input = { shipId: "pc1", actionKey: "fireAtWill", targetId: "e1", success: false };
     const upgrades = { trackingWeapons: 1 };
     it("allows a gunner's failed check that targets an enemy", () => {
         expect(canUseTrackingWeapons(fresh(), input, upgrades)).toBe(true);
     });
-    it("refuses a success, another role, an action with no target, a missing or used upgrade", () => {
+    it("refuses a success, an action that is not a gunner action, an action with no target, a missing or used upgrade", () => {
         expect(canUseTrackingWeapons(fresh(), { ...input, success: true }, upgrades)).toBe(false);
-        expect(canUseTrackingWeapons(fresh(), { ...input, role: "pilot" }, upgrades)).toBe(false);
+        expect(canUseTrackingWeapons(fresh(), { ...input, actionKey: "outmaneuver" }, upgrades)).toBe(false);
         expect(canUseTrackingWeapons(fresh(), { ...input, actionKey: "provideAid", targetId: undefined }, upgrades)).toBe(false);
         expect(canUseTrackingWeapons(fresh(), input, {})).toBe(false);
         expect(canUseTrackingWeapons(useOnce(fresh(), "pc1", "trackingWeapons").state, input, upgrades)).toBe(false);
@@ -245,7 +245,7 @@ describe("quantumDefenderShip", () => {
 });
 
 describe("applyVirtualIntelligenceAid", () => {
-    const crew = { pc1: { captain: ["cap"], gunner: ["g1"], pilot: ["pil"] } };
+    const crew = { pc1: ["cap", "g1", "pil"] };
     const aid = (state, input) => applyVirtualIntelligenceAid(state, { shipId: "pc1", allyId: "g1", dc: 15, crew, ...input }, ROUND);
     it("gives the ally +2 on a success and +3 when it beats the DC by 5", () => {
         const two = aid(fresh(), { total: 15 });

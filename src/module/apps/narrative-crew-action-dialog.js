@@ -1,8 +1,8 @@
 import { DiceSFRPG } from "../dice.js";
 import RollContext from "../rolls/rollcontext.js";
 import { RPC } from "../rpc.js";
-import { actionNeeds, applyCrewAction, grantsSuccesses, rollBonuses, rolesOf } from "../rules/narrative-starship/apply-crew-action.js";
-import { NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles, skillLockedFor } from "../rules/narrative-starship/crew-actions.js";
+import { actionNeeds, applyCrewAction, grantsSuccesses, rollBonuses } from "../rules/narrative-starship/apply-crew-action.js";
+import { NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, crewActionKeys, skillLockedFor } from "../rules/narrative-starship/crew-actions.js";
 import { isShipOut, modifiersFor } from "../rules/narrative-starship/state.js";
 import { canUseTrackingWeapons, hasUpgrade } from "../rules/narrative-starship/upgrades.js";
 import { crewActionDC, crewByShip, shipActor, usableSkills } from "../system/narrative-starship-combat.js";
@@ -25,14 +25,15 @@ function preferredText(action) {
 }
 
 /**
- * Skills the crew member can roll. Trained-only skills they have no ranks in are left out. The skills used last
- * round start disabled; updateRows enables or disables them for the chosen action.
+ * Skills the crew member can roll. Trained-only skills they have no ranks in are left out. The ranged attack is
+ * always listed; updateRows disables it unless the action is a gunner action. The skills used last round start
+ * disabled; updateRows enables or disables them for the chosen action.
  */
-function skillOptions(actor, roles, usedLastRound) {
+function skillOptions(actor, usedLastRound) {
     const skills = usableSkills(actor)
         .map(key => ({ value: key, label: skillName(actor, key) }))
         .sort((a, b) => a.label.localeCompare(b.label));
-    if (roles.includes("gunner")) skills.unshift({ value: "rangedAttack", label: skillName(actor, "rangedAttack") });
+    skills.unshift({ value: "rangedAttack", label: skillName(actor, "rangedAttack") });
     for (const skill of skills) skill.disabled = usedLastRound.includes(skill.value);
     return skills;
 }
@@ -83,11 +84,17 @@ async function askTrackingWeapons(total, dc) {
     return answer === true;
 }
 
-/** Shows the rows the chosen action needs, and disables the skills the same-skill rule stops for it. */
+/**
+ * Shows the rows the chosen action needs, and disables the skills the same-skill rule stops for it and the ranged
+ * attack for an action that is not a gunner action.
+ */
 function updateRows(form, usedLastRound) {
     const option = form.elements.actionKey.selectedOptions[0];
     const skillSelect = form.elements.skillKey;
-    for (const skill of skillSelect.options) skill.disabled = skillLockedFor(option?.value, skill.value, usedLastRound);
+    const gunner = option?.dataset.gunner === "true";
+    for (const skill of skillSelect.options) {
+        skill.disabled = skillLockedFor(option?.value, skill.value, usedLastRound) || (skill.value === "rangedAttack" && !gunner);
+    }
     if (skillSelect.selectedOptions[0]?.disabled) {
         const open = [...skillSelect.options].find(skill => !skill.disabled);
         if (open) skillSelect.value = open.value;
@@ -117,9 +124,9 @@ function updateRows(form, usedLastRound) {
  * @param {Combat} options.combat The narrative combat.
  * @param {Actor} options.ship The crew member's ship.
  * @param {Actor} options.actor The crew member.
- * @param {string} options.role The role the Act button was clicked for.
+ * @param {string} [options.actionKey] The action to select first, from a Roll button on the Crew Actions tab.
  */
-export async function openNarrativeCrewActionDialog({ combat, ship, actor, role }) {
+export async function openNarrativeCrewActionDialog({ combat, ship, actor, actionKey: firstAction }) {
     const state = combat.getFlag("sfrpg", "narrative");
     if (!state) return;
     if (isShipOut(state, ship.id)) {
@@ -128,38 +135,36 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
     }
     const round = combat.round;
     const crew = crewByShip(combat, state);
-    const shipCrew = crew[ship.id] ?? {};
-    const roles = rolesOf(shipCrew, actor.id);
-    if (roles.length === 0) return;
+    const shipCrew = crew[ship.id] ?? [];
+    if (!shipCrew.includes(actor.id)) {
+        ui.notifications.warn(game.i18n.localize(LABEL + "Rejected.notCrew"));
+        return;
+    }
 
-    const actions = actionsForRoles(roles).map(key => ({
+    // Every crew member can take every action. The one from the clicked Roll button comes first, so it is selected.
+    const actions = crewActionKeys(firstAction).map(key => ({
         value: key,
         label: game.i18n.localize(`${LABEL}CrewActions.${key}.Name`),
         needs: JSON.stringify(actionNeeds(key)),
         resolve: Boolean(NARRATIVE_CREW_ACTIONS[key].resolve),
+        gunner: NARRATIVE_CREW_ACTIONS[key].role === "gunner",
         preferred: preferredText(NARRATIVE_CREW_ACTIONS[key])
     }));
-    if (roles.includes("engineer") && modifiersFor(state, actor.id, "freePatchHull", round) > 0) {
+    if (modifiersFor(state, actor.id, "freePatchHull", round) > 0) {
         actions.push({
             value: FREE_PATCH,
             label: game.i18n.localize(LABEL + "Dialog.FreePatchHull"),
             needs: JSON.stringify(actionNeeds("patchHull")),
             resolve: false,
+            gunner: false,
             preferred: preferredText(NARRATIVE_CREW_ACTIONS.patchHull)
         });
     }
-    // Actions for the clicked role first.
-    actions.sort((a, b) => Number(NARRATIVE_CREW_ACTIONS[b.value]?.role === role) - Number(NARRATIVE_CREW_ACTIONS[a.value]?.role === role));
 
     const enemies = Object.entries(state.ships)
         .filter(([, s]) => s.side === "enemy" && !s.flags.includes("out"))
         .map(([id]) => ({ id, name: shipActor(combat, id)?.name ?? id }));
-    const allies = [...new Set(Object.values(shipCrew).flat())].map(id => {
-        const ally = game.actors.get(id);
-        const allyRoles = rolesOf(shipCrew, id).map(r => game.i18n.localize(`${LABEL}Roles.${r}`))
-            .join(", ");
-        return { id, label: `${ally?.name ?? id} (${allyRoles})` };
-    });
+    const allies = [...new Set(shipCrew)].map(id => ({ id, label: game.actors.get(id)?.name ?? id }));
     const successActions = Object.keys(NARRATIVE_CREW_ACTIONS).filter(grantsSuccesses)
         .map(key => ({ value: key, label: game.i18n.localize(`${LABEL}CrewActions.${key}.Name`) }));
     const usedLastRound = state.skillsLastRound?.[actor.id] ?? [];
@@ -174,7 +179,7 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
         enemies,
         allies,
         successActions,
-        skills: skillOptions(actor, roles, usedLastRound),
+        skills: skillOptions(actor, usedLastRound),
         lastSkillLabel: usedLastRound.map(key => skillName(actor, key)).join(", "),
         hasResolve: resolveValue > 0,
         resolveValue,
@@ -203,14 +208,12 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
 
     const free = data.actionKey === FREE_PATCH;
     const actionKey = free ? "patchHull" : data.actionKey;
-    const action = NARRATIVE_CREW_ACTIONS[actionKey];
     const needs = actionNeeds(actionKey);
     const spentResolve = Boolean(data.spentResolve);
     const payload = {
         combatId: combat.id,
         shipId: ship.id,
         actorId: actor.id,
-        role: action.role === "any" ? role : action.role,
         actionKey,
         targetId: needs.enemy || (needs.resolveEnemy && spentResolve) ? data.targetId : undefined,
         secondTargetId: needs.secondEnemy && spentResolve ? data.secondTargetId : undefined,
@@ -247,7 +250,7 @@ export async function openNarrativeCrewActionDialog({ combat, ship, actor, role 
     let roll = await rollOnce();
     if (!roll) return;
 
-    // Tracking Weapons: a gunner may reroll a failed check against an enemy ship once per combat.
+    // Tracking Weapons: a gunner action may reroll a failed check against an enemy ship once per combat.
     const dc = crewActionDC(combat, state, payload);
     const failed = dc !== null && roll.total < dc;
     if (failed && canUseTrackingWeapons(state, { ...payload, success: false }, upgrades) && await askTrackingWeapons(roll.total, dc)) {

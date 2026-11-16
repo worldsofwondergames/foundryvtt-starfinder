@@ -18,15 +18,13 @@ describe("isNarrativeCombat", () => {
 });
 
 describe("crewByShip", () => {
-    it("reads each player ship's crew from its actor and skips enemy ships", () => {
-        const pc = { id: "pc1", system: { crew: { pilot: { actorIds: ["a1"] }, gunner: { actorIds: ["a2", "a3"] } } } };
-        const enemy = { id: "e1", system: { crew: { pilot: { actorIds: ["x"] } } } };
-        const state = { ships: { pc1: { side: "pc" }, e1: { side: "enemy" } } };
-        const crew = crewByShip(fakeCombat({ ships: [pc, enemy] }), state);
-        expect(Object.keys(crew)).toEqual(["pc1"]);
-        expect(crew.pc1.gunner).toEqual(pc.system.crew.gunner.actorIds);
-        expect(crew.pc1.pilot).toEqual(pc.system.crew.pilot.actorIds);
-        expect(crew.pc1.captain).toEqual([]);
+    it("reads each player ship's narrative crew list, not its crew roles, and skips enemy ships", () => {
+        const pc = { id: "pc1", system: { narrative: { crew: ["a2", "a1"] }, crew: { pilot: { actorIds: ["x"] } } } };
+        const bare = { id: "pc2", system: {} };
+        const enemy = { id: "e1", system: { narrative: { crew: ["y"] } } };
+        const state = { ships: { pc1: { side: "pc" }, pc2: { side: "pc" }, e1: { side: "enemy" } } };
+        const crew = crewByShip(fakeCombat({ ships: [pc, bare, enemy] }), state);
+        expect(crew).toEqual({ pc1: pc.system.narrative.crew, pc2: [] });
     });
 });
 

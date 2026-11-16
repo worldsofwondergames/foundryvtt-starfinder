@@ -75,6 +75,8 @@ export default class SFRPGActorStarship extends SFRPGActorBase {
             }),
             narrative: new fields.SchemaField({
                 averageDC: SFRPGActorStarship._narrativeOverride(),
+                // The crew list of a PC ship in narrative combat. Narrative ships have no crew roles.
+                crew: new fields.ArrayField(new fields.StringField({blank: false}), {initial: []}),
                 hardDC: SFRPGActorStarship._narrativeOverride(),
                 hp: new fields.SchemaField({
                     value: new fields.NumberField({initial: null, nullable: true, integer: true, min: 0}),

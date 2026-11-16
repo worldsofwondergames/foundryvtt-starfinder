@@ -95,15 +95,15 @@ export function knockOutAtZero(state, shipId, hpLeft) {
 
 /**
  * @param {object} state
- * @param {{shipId: string, actorId: string, role: string}} who
- * @param {Record<string, Record<string, string[]>>} crewByShip
+ * @param {{shipId: string, actorId: string}} who
+ * @param {Record<string, string[]>} crewByShip The crew actor ids of each PC ship.
  * @returns {{ok: boolean, reason?: string}}
  */
-export function canAct(state, { shipId, actorId, role }, crewByShip) {
+export function canAct(state, { shipId, actorId }, crewByShip) {
     const ship = state.ships[shipId];
     if (!ship || ship.side !== "pc") return { ok: false, reason: "wrongSide" };
     if (ship.flags?.includes("out")) return { ok: false, reason: "shipOut" };
-    const crew = crewByShip?.[shipId]?.[role] ?? [];
+    const crew = crewByShip?.[shipId] ?? [];
     if (!crew.includes(actorId)) return { ok: false, reason: "notCrew" };
     const allowed = state.allowedActions[actorId] ?? 1;
     if ((state.actedThisRound[actorId] ?? 0) >= allowed) return { ok: false, reason: "alreadyActed" };

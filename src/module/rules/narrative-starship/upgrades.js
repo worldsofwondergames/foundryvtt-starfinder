@@ -173,18 +173,19 @@ export function navScramExpiry(round, roll) {
     return round + roll - 1;
 }
 
-function trackingProblem(state, { shipId, role, actionKey, targetId }, upgrades) {
-    if (role !== "gunner" || NARRATIVE_CREW_ACTIONS[actionKey]?.dcOf !== "target" || !isSide(state, targetId, "enemy")) {
+function trackingProblem(state, { shipId, actionKey, targetId }, upgrades) {
+    const action = NARRATIVE_CREW_ACTIONS[actionKey];
+    if (action?.role !== "gunner" || action.dcOf !== "target" || !isSide(state, targetId, "enemy")) {
         return "noTrackingWeapons";
     }
     return upgradeProblem(state, shipId, "trackingWeapons", upgrades);
 }
 
 /**
- * Whether a gunner may reroll a check with Tracking Weapons: a failed check by a gunner, for an action that
- * targets an enemy ship, on a ship that has the upgrade and has not used it this combat.
+ * Whether a crew member may reroll a check with Tracking Weapons: a failed check for a gunner action that targets
+ * an enemy ship, on a ship that has the upgrade and has not used it this combat.
  * @param {object} state
- * @param {{shipId: string, role: string, actionKey: string, targetId?: string, success: boolean}} input
+ * @param {{shipId: string, actionKey: string, targetId?: string, success: boolean}} input
  * @param {Record<string, number>|undefined} upgrades
  * @returns {boolean}
  */
@@ -195,7 +196,7 @@ export function canUseTrackingWeapons(state, input, upgrades) {
 
 /**
  * The upgrades a crew member uses with an action: Mine Layer and Nav-Scram Module with an action that targets an
- * enemy ship, and Tracking Weapons for a gunner's reroll. Each is used up for the combat. When any is refused,
+ * enemy ship, and Tracking Weapons for a gunner action's reroll. Each is used up for the combat. When any is refused,
  * the state is returned unchanged.
  * @param {object} state
  * @param {object} input
@@ -203,7 +204,6 @@ export function canUseTrackingWeapons(state, input, upgrades) {
  * @param {string} [input.targetId] The enemy ship the action targets.
  * @param {Record<string, number>|undefined} input.upgrades The ship's installed upgrades.
  * @param {number} [input.averageDC] The ship's Average DC, for Mine Layer.
- * @param {string} [input.role] The role the crew member acts in, for Tracking Weapons.
  * @param {string} [input.actionKey] For Tracking Weapons.
  * @param {boolean} [input.mineLayer]
  * @param {boolean} [input.navScram]

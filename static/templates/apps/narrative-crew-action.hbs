@@ -4,7 +4,7 @@
         <div class="form-fields">
             <select name="actionKey">
                 {{#each actions as |action|}}
-                <option value="{{action.value}}" data-needs="{{action.needs}}" data-resolve="{{action.resolve}}" data-preferred="{{action.preferred}}">{{action.label}}</option>
+                <option value="{{action.value}}" data-needs="{{action.needs}}" data-resolve="{{action.resolve}}" data-gunner="{{action.gunner}}" data-preferred="{{action.preferred}}">{{action.label}}</option>
                 {{/each}}
             </select>
         </div>

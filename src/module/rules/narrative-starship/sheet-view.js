@@ -143,3 +143,66 @@ export function normalizeNarrativeFormData(formData) {
     }
     return formData;
 }
+
+/**
+ * Adds an actor to a narrative ship's crew list.
+ * @param {string[]|undefined} crew The ship's system.narrative.crew.
+ * @param {string} actorId
+ * @returns {string[]|null} The new list, or null when there is no id or the actor is already on the list.
+ */
+export function addCrewMember(crew, actorId) {
+    const list = crew ?? [];
+    if (!actorId || list.includes(actorId)) return null;
+    return [...list, actorId];
+}
+
+/**
+ * The crew members a user can roll crew actions for: during the Crew Actions phase, on a PC ship that is still in
+ * the fight, the crew members the user owns.
+ * @param {{crewPhase: boolean, side: string|undefined, out: boolean}} ship
+ * @param {string[]|undefined} crew The ship's system.narrative.crew.
+ * @param {function(string): boolean} owns Whether the user owns the actor with that id. The GM owns every actor.
+ * @returns {string[]}
+ */
+export function rollableCrew({ crewPhase, side, out }, crew, owns) {
+    if (!crewPhase || side !== "pc" || out) return [];
+    return [...new Set(crew ?? [])].filter(id => owns(id));
+}
+
+/**
+ * Whether each enemy tactic's Roll button is enabled, and the reason when it is not. A ship that already chose a
+ * tactic this round, or that must roll its Mine Layer check first, can't roll any tactic.
+ * @param {Array<{key: string, disabled: boolean, reason?: string}>} statuses From availableTactics.
+ * @param {{chosen: boolean, minesPending: boolean}} ship
+ * @returns {Record<string, {disabled: boolean, reason: string|null}>}
+ */
+export function tacticButtonStates(statuses, { chosen, minesPending }) {
+    const shipReason = chosen ? "alreadyChosen" : (minesPending ? "minesFirst" : null);
+    return Object.fromEntries(statuses.map(status => {
+        const reason = shipReason ?? (status.disabled ? status.reason : null);
+        return [status.key, { disabled: Boolean(reason), reason }];
+    }));
+}
+
+/**
+ * What the GM must be asked before an enemy tactic is rolled from the sheet. A tactic that targets a PC ship uses
+ * the target forced on the ship for that tactic this round, or the only PC ship in the fight, and asks otherwise.
+ * Cruel Taunt always asks for the Average or Hard DC.
+ * @param {string} tactic
+ * @param {object} options
+ * @param {boolean} options.pcTarget Whether the tactic targets a PC ship.
+ * @param {string[]} options.pcShips The PC ships still in the fight.
+ * @param {{tactic: string, targetShip?: string, round: number}|null} [options.forced] The ship's forcedTactic.
+ * @param {number} options.round
+ * @returns {{targetId: string|null, askTarget: boolean, askChoice: boolean}}
+ */
+export function tacticPrompt(tactic, { pcTarget, pcShips, forced, round }) {
+    const askChoice = tactic === "cruelTaunt";
+    if (!pcTarget) return { targetId: null, askTarget: false, askChoice };
+    const forcedTarget = forced?.round === round && forced.tactic === tactic && pcShips.includes(forced.targetShip)
+        ? forced.targetShip
+        : null;
+    if (forcedTarget) return { targetId: forcedTarget, askTarget: false, askChoice };
+    if (pcShips.length === 1) return { targetId: pcShips[0], askTarget: false, askChoice };
+    return { targetId: null, askTarget: pcShips.length > 1, askChoice };
+}

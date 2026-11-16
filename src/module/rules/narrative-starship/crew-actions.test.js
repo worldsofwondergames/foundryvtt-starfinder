@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-    NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles, dcFor, skillAllowed, skillLockedFor, successesFor
+    NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, crewActionKeys, dcFor, skillAllowed, skillLockedFor, successesFor
 } from "./crew-actions.js";
 
 const DCS = { average: 20, hard: 25 };
@@ -118,24 +118,18 @@ describe("skillLockedFor", () => {
     });
 });
 
-describe("actionsForRoles", () => {
-    test("includes any-crew actions and the role's own", () => {
-        const actions = actionsForRoles(["pilot"]);
-        expect(actions).toContain("provideAid");
-        expect(actions).toContain("outmaneuver");
+describe("crewActionKeys", () => {
+    test("lists every action in data order", () => {
+        expect(crewActionKeys()).toEqual(Object.keys(NARRATIVE_CREW_ACTIONS));
     });
 
-    test("leaves out other roles' actions", () => {
-        expect(actionsForRoles(["pilot"])).not.toContain("fireAtWill");
+    test("puts the chosen action first and keeps each action once", () => {
+        const keys = crewActionKeys("fireAtWill");
+        expect(keys[0]).toBe("fireAtWill");
+        expect([...keys].sort()).toEqual(Object.keys(NARRATIVE_CREW_ACTIONS).sort());
     });
 
-    test("combines several roles", () => {
-        const actions = actionsForRoles(["pilot", "gunner"]);
-        expect(actions).toContain("fireAtWill");
-        expect(actions).toContain("outmaneuver");
-    });
-
-    test("with no roles only any-crew actions remain", () => {
-        expect(actionsForRoles([])).toEqual(["provideAid"]);
+    test("ignores an unknown action", () => {
+        expect(crewActionKeys("nope")).toEqual(Object.keys(NARRATIVE_CREW_ACTIONS));
     });
 });

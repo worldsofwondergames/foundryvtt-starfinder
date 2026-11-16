@@ -9,7 +9,7 @@ const SHIPS = [
     { id: "e1", side: "enemy", crew: {} },
     { id: "e2", side: "enemy", crew: {} }
 ];
-const CREW = { pc1: { pilot: ["a1"], gunner: ["a2"] } };
+const CREW = { pc1: ["a1", "a2"] };
 const withSuccesses = (id, n, ships = SHIPS) => addSuccesses(initialState(ships), id, n);
 
 function deepFreeze(value) {
@@ -22,25 +22,25 @@ function deepFreeze(value) {
 
 describe("canAct", () => {
     const s = initialState(SHIPS);
-    it("refuses a player who is not assigned to the role", () => {
-        expect(canAct(s, { shipId: "pc1", actorId: "stranger", role: "pilot" }, CREW).reason).toBe("notCrew");
+    it("refuses an actor who is not on the ship's crew list", () => {
+        expect(canAct(s, { shipId: "pc1", actorId: "stranger" }, CREW).reason).toBe("notCrew");
     });
     it("refuses enemy ships and unknown ships", () => {
-        expect(canAct(s, { shipId: "e1", actorId: "a1", role: "pilot" }, CREW).reason).toBe("wrongSide");
-        expect(canAct(s, { shipId: "nope", actorId: "a1", role: "pilot" }, CREW).reason).toBe("wrongSide");
+        expect(canAct(s, { shipId: "e1", actorId: "a1" }, CREW).reason).toBe("wrongSide");
+        expect(canAct(s, { shipId: "nope", actorId: "a1" }, CREW).reason).toBe("wrongSide");
     });
     it("accepts assigned crew who have not acted", () => {
-        expect(canAct(s, { shipId: "pc1", actorId: "a1", role: "pilot" }, CREW)).toEqual({ ok: true });
+        expect(canAct(s, { shipId: "pc1", actorId: "a1" }, CREW)).toEqual({ ok: true });
     });
     it("refuses the crew of a player ship that is out of the fight", () => {
-        const who = { shipId: "pc1", actorId: "a1", role: "pilot" };
+        const who = { shipId: "pc1", actorId: "a1" };
         const out = initialState(SHIPS);
         out.ships.pc1.flags = ["out"];
         expect(canAct(out, who, CREW)).toEqual({ ok: false, reason: "shipOut" });
     });
     it("refuses a second action unless Give Orders granted one", () => {
         const acted = recordAction(s, "a1", "piloting");
-        const who = { shipId: "pc1", actorId: "a1", role: "pilot" };
+        const who = { shipId: "pc1", actorId: "a1" };
         expect(canAct(acted, who, CREW).reason).toBe("alreadyActed");
         expect(canAct(grantExtraAction(acted, "a1"), who, CREW).ok).toBe(true);
     });
@@ -167,7 +167,7 @@ describe("knockOutAtZero", () => {
         expect(r.out).toBe(true);
         expect(isShipOut(r.state, "pc1")).toBe(true);
         expect(isShipOut(r.state, "e1")).toBe(false);
-        expect(canAct(r.state, { shipId: "pc1", actorId: "a1", role: "pilot" }, CREW).reason).toBe("shipOut");
+        expect(canAct(r.state, { shipId: "pc1", actorId: "a1" }, CREW).reason).toBe("shipOut");
     });
     it("leaves a ship with HP left in the fight", () => {
         const state = initialState(SHIPS);
