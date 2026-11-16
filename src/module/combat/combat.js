@@ -5,7 +5,7 @@ import RollContext from "../rolls/rollcontext.js";
 import { postRoundEndCheckCards } from "../system/condition-end-check.js";
 import { postTurnStartFailures } from "../system/mech-failure-link.js";
 import { postsPhaseCard } from "../rules/combat-cards.js";
-import { nextCombatType, startingCombatType, starshipCombatTypeForMode } from "../rules/narrative-starship/mode.js";
+import { nextCombatType, starshipCombatTypeForMode } from "../rules/narrative-starship/mode.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 import { runTurnEvent } from "./turn-event.js";
@@ -82,12 +82,7 @@ export class CombatSFRPG extends foundry.documents.Combat {
         // Adding a combatant changes the combat type without waiting for the save, so a combat started right
         // after its first combatant was added could start as the old type and skip its start steps.
         await this._combatTypeUpdate;
-        const combatType = startingCombatType(
-            this.getCombatType(),
-            this.combatants.map(c => c.actor?.type),
-            game.settings.get("sfrpg", "starshipCombatMode")
-        );
-        if (combatType !== this.getCombatType()) await this.update({ "flags.sfrpg.combatType": combatType });
+        const combatType = this.getCombatType();
         const update = {
             "flags.sfrpg.startTime": game.time.worldTime,
             "flags.sfrpg.combatType": combatType,
