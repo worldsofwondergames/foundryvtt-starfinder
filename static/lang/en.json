@@ -2953,6 +2953,8 @@
             "NoUpgrades": "No upgrades installed.",
             "Override": "Override",
             "OverrideHint": "Leave empty to use the derived value",
+            "PickCrew": "Crew member",
+            "PickCrewTitle": "Who rolls?",
             "RangedAttack": "Ranged attack",
             "Rejected": {
                 "aidUsed": "This ship's Virtual Intelligence has already given aid this round.",
@@ -2987,8 +2989,6 @@
                 "wrongPhase": "Crew actions can only be taken during the Crew Actions phase.",
                 "wrongSide": "Only crew on a player ship can take crew actions."
             },
-            "PickCrew": "Crew member",
-            "PickCrewTitle": "Who rolls?",
             "RemoveCrew": "Remove from the crew",
             "RemoveSkillModifier": "Remove this skill modifier",
             "Resolve": {
@@ -3153,6 +3153,7 @@
             },
             "Threshold": "Threshold",
             "TierHint": "Set the tier to the party's Average Party Level",
+            "UnlinkedShipWhisper": "{ship}'s token in this combat is not linked to its actor, so the ship's HP and upgrades are tracked on the token, not on the ship's sheet. To track them on the sheet, link the token: turn on Link Actor Data in the token's settings, and in the ship's Prototype Token for new tokens.",
             "UpgradeButtons": {
                 "Header": "Once-per-Combat Upgrades",
                 "Used": "Used in this combat.",
@@ -3163,7 +3164,6 @@
                 "quantumDefender": "The GM is asked whether to use it when an enemy tactic would hit this ship.",
                 "trackingWeapons": "A crew member who fails the check of a gunner action against an enemy ship is asked whether to use it."
             },
-            "UnlinkedShipWhisper": "{ship}'s token in this combat is not linked to its actor, so the ship's HP and upgrades are tracked on the token, not on the ship's sheet. To track them on the sheet, link the token: turn on Link Actor Data in the token's settings, and in the ship's Prototype Token for new tokens.",
             "UpgradeCard": {
                 "AblativeAbsorbed": "Ablative Plating: {ship} ignores 1 hit. The plating is used up for this combat.",
                 "AidButton": "Provide Aid (Virtual Intelligence)",
