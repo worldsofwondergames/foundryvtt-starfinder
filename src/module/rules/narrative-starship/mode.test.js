@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { combatTypesForMode, nextCombatType, starshipCombatTypeForMode, narrativeSheetIsDefault, showStandardSheetToggle } from "./mode.js";
+import { combatTypesForMode, nextCombatType, startingCombatType, starshipCombatTypeForMode, narrativeSheetIsDefault, showStandardSheetToggle } from "./mode.js";
 
 describe("combatTypesForMode", () => {
     it("lists standard starship combat for standard mode", () => {
@@ -65,5 +65,21 @@ describe("starshipCombatTypeForMode", () => {
         expect(starshipCombatTypeForMode("standard")).toBe("starship");
         expect(starshipCombatTypeForMode("both")).toBe("starship");
         expect(starshipCombatTypeForMode("bogus")).toBe("starship");
+    });
+});
+
+describe("startingCombatType", () => {
+    it("starts a normal combat of starships as the mode's starship type", () => {
+        expect(startingCombatType("normal", ["starship", "starship"], "narrative")).toBe("narrativeStarship");
+        expect(startingCombatType("normal", ["starship"], "standard")).toBe("starship");
+    });
+    it("keeps the normal type when a combatant is not a starship or there are no combatants", () => {
+        expect(startingCombatType("normal", ["starship", "character"], "narrative")).toBe("normal");
+        expect(startingCombatType("normal", ["starship", undefined], "narrative")).toBe("normal");
+        expect(startingCombatType("normal", [], "narrative")).toBe("normal");
+    });
+    it("keeps a type that is already set", () => {
+        expect(startingCombatType("starship", ["starship"], "narrative")).toBe("starship");
+        expect(startingCombatType("vehicleChase", ["starship"], "narrative")).toBe("vehicleChase");
     });
 });

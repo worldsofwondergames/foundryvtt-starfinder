@@ -41,6 +41,20 @@ export function starshipCombatTypeForMode(mode) {
 }
 
 /**
+ * The combat type a combat starts as. Adding a combatant switches the type, but that update may not be saved yet
+ * when the GM starts the combat, or another GM's client made it. A combat still of the normal type whose
+ * combatants are all starships starts as the type a starship gives it in this mode. Any other type is kept.
+ * @param {string} current The combat's type now.
+ * @param {Array<string|undefined>} actorTypes The actor type of each combatant.
+ * @param {"standard"|"narrative"|"both"} mode
+ * @returns {string}
+ */
+export function startingCombatType(current, actorTypes, mode) {
+    if (current !== "normal" || actorTypes.length === 0 || actorTypes.some(type => type !== "starship")) return current;
+    return starshipCombatTypeForMode(mode);
+}
+
+/**
  * Whether the narrative starship sheet is the default sheet for starships.
  * @param {"standard"|"narrative"|"both"} mode
  * @returns {boolean}
