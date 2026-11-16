@@ -167,13 +167,16 @@ function onCreateCombatant(combatant) {
 }
 
 /**
- * The skill keys a crew member can roll. Leaves out disabled skills and trained-only skills without ranks.
+ * The skill keys a crew member can roll. Leaves out trained-only skills without ranks. A character has every
+ * skill: its `enabled` field is the NPC skill toggle and stays false, so it is ignored. NPCs and drones have only
+ * the skills that are enabled on them (a drone's chassis and mods enable its skills).
  * @param {Actor} actor
  * @returns {string[]}
  */
 export function usableSkills(actor) {
+    const useEnabled = actor.type !== "character";
     return Object.entries(actor.system.skills ?? {})
-        .filter(([, skill]) => skill.enabled !== false && !(skill.isTrainedOnly && !(skill.ranks > 0)))
+        .filter(([, skill]) => !(useEnabled && skill.enabled === false) && !(skill.isTrainedOnly && !(skill.ranks > 0)))
         .map(([key]) => key);
 }
 

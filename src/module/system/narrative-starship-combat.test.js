@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { crewByShip, isNarrativeCombat, queueForCombat, sharedShipActors } from "./narrative-starship-combat.js";
+import { crewByShip, isNarrativeCombat, queueForCombat, sharedShipActors, usableSkills } from "./narrative-starship-combat.js";
 
 function fakeCombat({ started = true, type = "narrativeStarship", ships = [] } = {}) {
     return {
@@ -71,5 +71,31 @@ describe("queueForCombat", () => {
         expect(error).toHaveBeenCalledTimes(1);
         expect(await next).toBe("ran");
         error.mockRestore();
+    });
+});
+
+describe("usableSkills", () => {
+    const skill = (enabled, extra = {}) => ({ enabled, isTrainedOnly: false, ranks: 0, ...extra });
+    it("gives a character every skill although each has enabled false, leaving out trained-only skills without ranks", () => {
+        const character = {
+            type: "character",
+            system: {
+                skills: {
+                    pil: skill(false, { ranks: 4 }),
+                    acr: skill(false),
+                    dis: skill(false, { isTrainedOnly: true }),
+                    eng: skill(false, { isTrainedOnly: true, ranks: 2 })
+                }
+            }
+        };
+        expect(usableSkills(character)).toEqual(["pil", "acr", "eng"]);
+    });
+    it("gives an NPC only the skills it has enabled", () => {
+        const npc = { type: "npc2", system: { skills: { pil: skill(true, { ranks: 10 }), acr: skill(false), eng: skill(true, { isTrainedOnly: true, ranks: 12 }) } } };
+        expect(usableSkills(npc)).toEqual(["pil", "eng"]);
+    });
+    it("gives a drone only the skills its chassis and mods enable", () => {
+        const drone = { type: "drone", system: { skills: { per: skill(true, { ranks: 3 }), ste: skill(false) } } };
+        expect(usableSkills(drone)).toEqual(["per"]);
     });
 });
