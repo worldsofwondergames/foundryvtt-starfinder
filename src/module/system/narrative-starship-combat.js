@@ -190,7 +190,7 @@ function onCreateCombatant(combatant) {
 
 /**
  * The skill keys a crew member can roll. Leaves out trained-only skills without ranks. A character has every
- * skill: its `enabled` field is the NPC skill toggle and stays false, so it is ignored. NPCs and drones have only
+ * skill. Its `enabled` field is the NPC skill toggle and stays false, so it is ignored. NPCs and drones have only
  * the skills that are enabled on them (a drone's chassis and mods enable its skills).
  * @param {Actor} actor
  * @returns {string[]}
