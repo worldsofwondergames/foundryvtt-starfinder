@@ -164,4 +164,18 @@
     .narrative-upgrade-use.used {
         opacity: 0.5;
     }
+
+    // The Act control holds an icon and a word, so it takes the width it needs and stays on one line.
+    .crew-list .crew-controls {
+        flex: 0 0 auto;
+        min-width: 44px;
+        flex-wrap: nowrap;
+        gap: 4px;
+        align-items: center;
+
+        a.narrative-act {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+    }
 }
