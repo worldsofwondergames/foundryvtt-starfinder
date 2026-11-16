@@ -73,6 +73,27 @@ export default class SFRPGActorStarship extends SFRPGActorBase {
                     label: "SFRPG.ShipTierLabel"
                 })
             }),
+            narrative: new fields.SchemaField({
+                averageDC: SFRPGActorStarship._narrativeOverride(),
+                // The crew list of a PC ship in narrative combat. Narrative ships have no crew roles.
+                crew: new fields.ArrayField(new fields.StringField({blank: false}), {initial: []}),
+                hardDC: SFRPGActorStarship._narrativeOverride(),
+                hp: new fields.SchemaField({
+                    value: new fields.NumberField({initial: null, nullable: true, integer: true, min: 0}),
+                    max: SFRPGActorStarship._narrativeOverride()
+                }),
+                threshold: SFRPGActorStarship._narrativeOverride(),
+                skillBonus: SFRPGActorStarship._narrativeOverride(),
+                skillModifiers: new fields.TypedObjectField(
+                    new fields.NumberField({initial: 0, integer: true, nullable: false}),
+                    {validateKey: (key) => key in CONFIG.SFRPG.starshipSkills}
+                ),
+                specialAbilities: new fields.HTMLField(),
+                upgrades: new fields.TypedObjectField(
+                    new fields.NumberField({initial: 0, integer: true, min: 0, nullable: false}),
+                    {validateKey: (key) => key in CONFIG.SFRPG.narrativeUpgrades}
+                )
+            }),
             quadrants: new fields.SchemaField({
                 aft: new fields.SchemaField(
                     SFRPGActorStarship._quadrantFieldData(),
@@ -94,6 +115,10 @@ export default class SFRPGActorStarship extends SFRPGActorBase {
         });
 
         return schema;
+    }
+
+    static _narrativeOverride() {
+        return new fields.NumberField({initial: null, nullable: true, integer: true});
     }
 
     static _quadrantFieldData() {

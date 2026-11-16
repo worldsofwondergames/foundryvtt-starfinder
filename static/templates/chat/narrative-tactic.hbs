@@ -1,0 +1,45 @@
+<div class="sfrpg chat-card narrative-tactic-card">
+    <header class="card-header flexrow">
+        <h3 class="action-name">{{tacticName}}</h3>
+    </header>
+    <div class="card-content">
+        <p>{{localize "SFRPG.NarrativeStarship.TacticsDialog.CardShip" ship=shipName}}</p>
+        {{#if targetName}}
+        <p>{{localize "SFRPG.NarrativeStarship.Card.Target" ship=targetName}}</p>
+        {{/if}}
+        {{#each rollsHTML as |html|}}
+        {{{html}}}
+        {{/each}}
+        {{#if quantumDefender}}
+        <p class="narrative-quantum-defender">{{localize "SFRPG.NarrativeStarship.UpgradeCard.QuantumUsed" ship=targetName}}</p>
+        {{#each rerollsHTML as |html|}}
+        {{{html}}}
+        {{/each}}
+        {{/if}}
+        {{#if mantleHTML}}
+        {{{mantleHTML}}}
+        <p class="narrative-mantle-result">{{mantleText}}</p>
+        {{/if}}
+        {{#if hasCheck}}
+        <p class="narrative-tactic-result {{#if success}}success{{else}}failure{{/if}}">
+            {{#if success}}
+            {{localize "SFRPG.NarrativeStarship.TacticsDialog.CardSuccess" dc=dc}}
+            {{else}}
+            {{localize "SFRPG.NarrativeStarship.TacticsDialog.CardFailure" dc=dc}}
+            {{/if}}
+        </p>
+        {{/if}}
+        <p>{{effectText}}</p>
+        {{#each lines as |line|}}
+        <p>{{line}}</p>
+        {{/each}}
+        {{#if manual}}
+        <p><strong>{{localize "SFRPG.NarrativeStarship.TacticsDialog.CardManual"}}</strong></p>
+        {{#if abilities}}
+        <div class="narrative-tactic-abilities">{{{abilities}}}</div>
+        {{else}}
+        <p>{{localize "SFRPG.NarrativeStarship.TacticsDialog.CardNoAbilities"}}</p>
+        {{/if}}
+        {{/if}}
+    </div>
+</div>

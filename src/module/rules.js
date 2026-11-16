@@ -85,6 +85,7 @@ import calculateStarshipCriticalStatus from './rules/actions/actor/starship/calc
 import calculateStarshipCritThreshold from './rules/actions/actor/starship/calculate-starship-ct.js';
 import calculateStarshipDrift from './rules/actions/actor/starship/calculate-starship-drift.js';
 import calculateStarshipFrame from './rules/actions/actor/starship/calculate-starship-frame.js';
+import calculateStarshipNarrative from './rules/actions/actor/starship/calculate-starship-narrative.js';
 import calculateStarshipPower from './rules/actions/actor/starship/calculate-starship-power.js';
 import calculateStarshipSensors from './rules/actions/actor/starship/calculate-starship-sensors.js';
 import calculateStarshipShields from './rules/actions/actor/starship/calculate-starship-shields.js';
@@ -178,6 +179,7 @@ export default function(engine) {
     calculateStarshipPower(engine);
     calculateStarshipSensors(engine);
     calculateStarshipShields(engine);
+    calculateStarshipNarrative(engine);
     calculateStarshipSpeed(engine);
     calculateStarshipTargetLock(engine);
     calculateStarshipFrame(engine);
@@ -337,6 +339,7 @@ export default function(engine) {
                     "calculateStarshipCritThreshold",
                     "calculateStarshipDrift",
                     "calculateStarshipShields",
+                    "calculateStarshipNarrative",
                     "calculateStarshipAblative",
                     "calculateStarshipPower",
                     "calculateStarshipSensors",

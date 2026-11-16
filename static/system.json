@@ -311,7 +311,8 @@
       },
       "starship": {
         "htmlFields": [
-          "details.notes"
+          "details.notes",
+          "narrative.specialAbilities"
         ]
       },
       "vehicle": {

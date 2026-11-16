@@ -1,0 +1,22 @@
+<ol class="narrative-stats">
+    {{#each narrative.stats as |stat|}}
+    <li class="narrative-stat flexrow" data-stat="{{stat.key}}">
+        <label class="narrative-stat-label">{{localize stat.label}}</label>
+        <span class="narrative-stat-value" data-tooltip="{{localize stat.source}}">
+            {{stat.value}}
+            {{#if stat.guessed}}
+            <i class="fas fa-triangle-exclamation narrative-guessed" data-tooltip="{{localize "SFRPG.NarrativeStarship.SkillBonusGuessed"}}"></i>
+            {{/if}}
+        </span>
+        {{#if (eq stat.key "hpMax")}}
+        <span class="narrative-hp-pips" data-tooltip="{{localize "SFRPG.NarrativeStarship.HPPipsHint"}}">
+            {{#each @root.narrative.pips as |pip|}}
+            <a class="narrative-hp-pip{{#if pip.filled}} filled{{/if}}" data-index="{{pip.index}}"></a>
+            {{/each}}
+        </span>
+        {{/if}}
+        <input class="narrative-override" type="number" step="1" name="{{stat.name}}" value="{{stat.override}}"
+            placeholder="{{localize "SFRPG.NarrativeStarship.Override"}}" data-tooltip="{{localize "SFRPG.NarrativeStarship.OverrideHint"}}" />
+    </li>
+    {{/each}}
+</ol>

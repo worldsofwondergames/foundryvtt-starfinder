@@ -3,6 +3,9 @@ import CheckEnricher from "./system/enrichers/check.js";
 import IconEnricher from "./system/enrichers/icon.js";
 import PPAbilityEnricher from "./system/enrichers/pp-ability.js";
 import TemplateEnricher from "./system/enrichers/template.js";
+import { NARRATIVE_CREW_ACTIONS } from "./rules/narrative-starship/crew-actions.js";
+import { NARRATIVE_TACTICS } from "./rules/narrative-starship/tactics.js";
+import { NARRATIVE_UPGRADES } from "./rules/narrative-starship/upgrades.js";
 import { tokenSizes } from "./token/token-sizes.js";
 
 /** @import { ItemSFRPG } from "./item/item.js" */
@@ -2714,9 +2717,14 @@ SFRPG.storageWeightProperties = {
     "level": "SFRPG.ActorSheet.Inventory.Container.CapacityPropertyLevel"
 };
 
+SFRPG.narrativeCrewActions = NARRATIVE_CREW_ACTIONS;
+SFRPG.narrativeTactics = NARRATIVE_TACTICS;
+SFRPG.narrativeUpgrades = NARRATIVE_UPGRADES;
+
 SFRPG.combatTypes = [
     "normal",
     "starship",
+    "narrativeStarship",
     "vehicleChase"
 ];
 
@@ -2728,6 +2736,9 @@ SFRPG.phaseIcons = {
     "SFRPG.Combat.Starship.Phases.4.Name": "systems/sfrpg/icons/cards/ship-wheel.svg", // Helm
     "SFRPG.Combat.Starship.Phases.5.Name": "systems/sfrpg/icons/cards/gunshot.svg", // Gunnery
     "SFRPG.Combat.Starship.Phases.6.Name": "systems/sfrpg/icons/cards/bullet-impacts.svg", // Damage
+    "SFRPG.Combat.NarrativeStarship.Phases.1.Name": "systems/sfrpg/icons/cards/ship-wheel.svg", // Enemy Tactics
+    "SFRPG.Combat.NarrativeStarship.Phases.2.Name": "systems/sfrpg/icons/cards/gunshot.svg", // Crew Actions
+    "SFRPG.Combat.NarrativeStarship.Phases.3.Name": "systems/sfrpg/icons/cards/bullet-impacts.svg", // Resolve
     "SFRPG.Combat.VehicleChase.Phases.1.Name": "systems/sfrpg/icons/cards/air-force.svg", // Pilot Actions
     "SFRPG.Combat.VehicleChase.Phases.2.Name": "systems/sfrpg/icons/cards/police-car.svg", // Chase Progress
     "SFRPG.Combat.VehicleChase.Phases.3.Name": "systems/sfrpg/icons/cards/light-sabers.svg" // Combat
