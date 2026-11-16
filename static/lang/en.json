@@ -3142,6 +3142,7 @@
                 "trackingWeapons": "A gunner is asked whether to use it after failing a check against an enemy ship."
             },
             "UpgradeCard": {
+                "AblativeAbsorbed": "Ablative Plating: {ship} ignores 1 hit. The plating is used up for this combat.",
                 "AidButton": "Provide Aid (Virtual Intelligence)",
                 "AidFailure": "Virtual Intelligence fails to aid {ally} against DC {dc}.",
                 "AidPrompt": "{ship}'s Virtual Intelligence can attempt Provide Aid for a crew member who hasn't acted this round.",

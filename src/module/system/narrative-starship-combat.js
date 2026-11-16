@@ -10,7 +10,7 @@ import {
 } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, NARRATIVE_ROLES, dcFor } from "../rules/narrative-starship/crew-actions.js";
 import { endOfRound, fleeingEnemies } from "../rules/narrative-starship/round-end.js";
-import { addShipToState, initialState } from "../rules/narrative-starship/state.js";
+import { addShipToState, initialState, isShipOut, knockOutAtZero } from "../rules/narrative-starship/state.js";
 import {
     absorbHit, activateMantle, applyActionUpgrades, hasUpgrade, pendingMines, quantumDefenderShip, resolveMines, useOnce,
     virtualIntelligenceBonus
@@ -312,14 +312,36 @@ async function askForNextTactic(combat, enemyId) {
 /**
  * Ablative Plating for a hit on a PC ship: takes the plating's one ignored hit off the amount and saves that it
  * is used up. Enemy ships and ships without the upgrade take the full amount.
- * @returns {Promise<number>} The hits the ship takes.
+ * @returns {Promise<{hits: number, absorbed: boolean}>} The hits the ship takes, and whether the plating took one.
  */
 async function absorbPcHit(combat, shipId, ship, hits) {
     const state = combat.getFlag("sfrpg", "narrative");
-    if (state?.ships?.[shipId]?.side !== "pc") return hits;
-    const absorbed = absorbHit(state, shipId, hits, ship.system.narrative?.upgrades);
-    if (absorbed.state !== state) await saveNarrativeState(combat, absorbed.state);
-    return absorbed.hits;
+    if (state?.ships?.[shipId]?.side !== "pc") return { hits, absorbed: false };
+    const result = absorbHit(state, shipId, hits, ship.system.narrative?.upgrades);
+    const absorbed = result.state !== state;
+    if (absorbed) await saveNarrativeState(combat, result.state);
+    return { hits: result.hits, absorbed };
+}
+
+/** Marks every combatant of a ship defeated, so the tracker shows it is out of the fight. */
+async function markShipDefeated(combat, shipId) {
+    for (const combatant of combat.combatants.filter(c => c.actorId === shipId)) {
+        await combatant.update({ defeated: true });
+    }
+}
+
+/**
+ * A ship that a hit left at 0 HP is out of the fight at once: its crew can't act and it can't use a tactic.
+ * @returns {Promise<boolean>} Whether the ship was marked out now.
+ */
+async function knockOutShip(combat, shipId, hpLeft) {
+    const state = combat.getFlag("sfrpg", "narrative");
+    if (!state) return false;
+    const knocked = knockOutAtZero(state, shipId, hpLeft);
+    if (!knocked.out) return false;
+    await saveNarrativeState(combat, knocked.state);
+    await markShipDefeated(combat, shipId);
+    return true;
 }
 
 /**
@@ -335,13 +357,20 @@ export async function applyEffects(combat, effects) {
             const derived = ship.system.narrative?.derived ?? {};
             const current = derived.hpValue ?? 0;
             let amount = effect.value;
-            if (effect.kind === "hit") amount = await absorbPcHit(combat, effect.target, ship, amount);
+            if (effect.kind === "hit") {
+                const plating = await absorbPcHit(combat, effect.target, ship, amount);
+                amount = plating.hits;
+                if (plating.absorbed) lines.push(game.i18n.format(LABEL + "UpgradeCard.AblativeAbsorbed", { ship: ship.name }));
+            }
             const value = effect.kind === "heal"
                 ? Math.min(derived.hpMax ?? current, current + amount)
                 : Math.max(0, current - amount);
             await ship.update({ "system.narrative.hp.value": value });
             const key = effect.kind === "heal" ? "Card.Healed" : "Card.Hit";
             lines.push(game.i18n.format(LABEL + key, { ship: ship.name, value: amount }));
+            if (effect.kind === "hit" && await knockOutShip(combat, effect.target, value)) {
+                lines.push(game.i18n.format(LABEL + "Resolve.Out", { ship: ship.name }));
+            }
         } else if (effect.kind === "regainResolve" || effect.kind === "spendResolve") {
             const target = game.actors.get(effect.target);
             const rp = target?.system.attributes?.rp;
@@ -448,9 +477,7 @@ async function resolveRoundNow(combat, round) {
     await saveNarrativeState(combat, end.state);
     await combat.setFlag("sfrpg", "narrativeResolvedRound", round);
     // A ship that fled or was knocked out is out of the fight, so the tracker marks it defeated.
-    for (const id of new Set([...result.out, ...end.fled])) {
-        await combat.combatants.find(c => c.actorId === id)?.update({ defeated: true });
-    }
+    for (const id of new Set([...result.out, ...end.fled])) await markShipDefeated(combat, id);
 
     const name = id => shipActor(combat, id)?.name ?? id;
     const content = await foundry.applications.handlebars.renderTemplate("systems/sfrpg/templates/chat/narrative-resolve.hbs", {
@@ -710,7 +737,8 @@ export function actableCrew(ship) {
     const combat = narrativeCombatFor(ship.id);
     if (!combat || combat.flags.sfrpg?.phase !== CREW_ACTIONS_PHASE) return null;
     const state = combat.getFlag("sfrpg", "narrative");
-    if (state.ships[ship.id]?.side !== "pc") return null;
+    // The crew of a ship that is out of the fight can't act, so no Act button shows.
+    if (state.ships[ship.id]?.side !== "pc" || isShipOut(state, ship.id)) return null;
     const actable = {};
     for (const role of CREW_ROLES) {
         actable[role] = {};
@@ -787,7 +815,7 @@ export async function postVirtualIntelligenceCards(combat) {
     if (!state) return;
     for (const [id, data] of Object.entries(state.ships)) {
         const ship = shipActor(combat, id);
-        if (data.side !== "pc" || data.flags.includes("out")) continue;
+        if (data.side !== "pc" || isShipOut(state, id)) continue;
         if (!hasUpgrade(ship?.system.narrative?.upgrades, "virtualIntelligence")) continue;
         const name = foundry.utils.escapeHTML(ship.name);
         const button = game.i18n.localize(LABEL + "UpgradeCard.AidButton");

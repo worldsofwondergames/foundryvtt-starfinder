@@ -34,7 +34,7 @@
  * it is clearTakeCover, the pilot's special Piloting check, which removes the flag and gives no successes.
  */
 import { NARRATIVE_CREW_ACTIONS, skillLockedFor, successesFor } from "./crew-actions.js";
-import { addModifier, addSuccesses, canAct, grantExtraAction, modifiersFor, recordAction, resolveRound } from "./state.js";
+import { addModifier, addSuccesses, canAct, grantExtraAction, isShipOut, modifiersFor, recordAction, resolveRound } from "./state.js";
 import { absorbHit } from "./upgrades.js";
 
 /** Actions that need an enemy ship chosen. */
@@ -272,6 +272,7 @@ export function addAidBonus(state, allyId, margin, round) {
  */
 export function applyVirtualIntelligenceAid(state, { shipId, allyId, total, dc, crew }, round) {
     if (state.ships[shipId]?.side !== "pc") return { state, ok: false, reason: "wrongSide" };
+    if (isShipOut(state, shipId)) return { state, ok: false, reason: "shipOut" };
     if (modifiersFor(state, shipId, "virtualIntelligenceUsed", round) > 0) return { state, ok: false, reason: "aidUsed" };
     if (allyProblem(state, { shipId, crew }, allyId, { acted: false })) return { state, ok: false, reason: "badAlly" };
     let next = addModifier(state, { target: shipId, kind: "virtualIntelligenceUsed", value: 1, expiresAfterRound: round });

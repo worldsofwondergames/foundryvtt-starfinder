@@ -68,6 +68,32 @@ export function addShipToState(state, { id, side }) {
 }
 
 /**
+ * Whether a ship is out of the fight.
+ * @param {object} state
+ * @param {string} shipId
+ * @returns {boolean}
+ */
+export function isShipOut(state, shipId) {
+    return Boolean(state?.ships?.[shipId]?.flags?.includes("out"));
+}
+
+/**
+ * Marks a ship out of the fight when a hit leaves it at 0 HP: "Any starship that takes a number of hits equal to
+ * its HP is out of the combat." Hits from tactics, crew actions, and mines use this at once; the Resolve phase
+ * marks the ships its own hits knock out.
+ * @param {object} state
+ * @param {string} shipId
+ * @param {number} hpLeft The ship's HP after the hit.
+ * @returns {{state: object, out: boolean}} out is true when the ship was marked now. The state is the same object
+ *   when nothing changed.
+ */
+export function knockOutAtZero(state, shipId, hpLeft) {
+    const ship = state.ships[shipId];
+    if (!ship || hpLeft > 0 || ship.flags.includes("out")) return { state, out: false };
+    return { state: { ...state, ships: { ...state.ships, [shipId]: { ...ship, flags: [...ship.flags, "out"] } } }, out: true };
+}
+
+/**
  * @param {object} state
  * @param {{shipId: string, actorId: string, role: string}} who
  * @param {Record<string, Record<string, string[]>>} crewByShip

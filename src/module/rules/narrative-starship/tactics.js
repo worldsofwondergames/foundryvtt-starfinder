@@ -164,11 +164,14 @@ function tacticProblem(state, enemyId, tactic, targetId, round) {
     if (!NARRATIVE_TACTICS[tactic]) return "unknownTactic";
     if (state.ships[enemyId]?.side !== "enemy") return "notEnemy";
     if (state.ships[enemyId].flags?.includes("out")) return "shipOut";
-    if (NARRATIVE_TACTICS[tactic].pcTarget && state.ships[targetId]?.side !== "pc") return "badTarget";
+    // A PC ship that is out of the fight can't be targeted.
+    const outTarget = id => state.ships[id]?.flags?.includes("out");
+    if (NARRATIVE_TACTICS[tactic].pcTarget && (state.ships[targetId]?.side !== "pc" || outTarget(targetId))) return "badTarget";
     const status = availableTactics(state, enemyId, round).find(t => t.key === tactic);
     if (status.disabled) return status.reason;
     const forced = state.ships[enemyId].forcedTactic;
-    if (forced?.round === round && forced.targetShip && targetId !== forced.targetShip) return "forcedTarget";
+    const forcedTarget = forced?.round === round && forced.targetShip && !outTarget(forced.targetShip);
+    if (forcedTarget && targetId !== forced.targetShip) return "forcedTarget";
     return null;
 }
 

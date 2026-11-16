@@ -4,7 +4,7 @@ import {
     navScramExpiry, onceButtons, pendingMines, quantumDefenderShip, resolveMines, upgradeChecklist, useOnce
 } from "./upgrades.js";
 import { applyVirtualIntelligenceAid } from "./apply-crew-action.js";
-import { addModifier, initialState, modifiersFor, recordAction } from "./state.js";
+import { addModifier, initialState, knockOutAtZero, modifiersFor, recordAction } from "./state.js";
 import { applyTactic, chooseTactic, enemyCheckBonus, mantleCheckNeeded } from "./tactics.js";
 
 const SHIPS = [{ id: "pc1", side: "pc" }, { id: "pc2", side: "pc" }, { id: "e1", side: "enemy" }];
@@ -266,6 +266,10 @@ describe("applyVirtualIntelligenceAid", () => {
         const acted = recordAction(fresh(), "g1", "acr");
         expect(aid(acted, { total: 15 })).toMatchObject({ ok: false, reason: "badAlly" });
         expect(aid(fresh(), { total: 15, allyId: "stranger" })).toMatchObject({ ok: false, reason: "badAlly" });
+    });
+    it("refuses a ship that is out of the fight", () => {
+        const out = knockOutAtZero(fresh(), "pc1", 0).state;
+        expect(aid(out, { total: 15 })).toMatchObject({ ok: false, reason: "shipOut" });
     });
     it("refuses a ship that is not a PC ship", () => {
         expect(applyVirtualIntelligenceAid(addModifier(fresh(), { target: "x", kind: "y", value: 0, expiresAfterRound: 9 }),

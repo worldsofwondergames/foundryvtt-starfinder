@@ -3,7 +3,7 @@ import RollContext from "../rolls/rollcontext.js";
 import { RPC } from "../rpc.js";
 import { actionNeeds, applyCrewAction, grantsSuccesses, rollBonuses, rolesOf } from "../rules/narrative-starship/apply-crew-action.js";
 import { NARRATIVE_CREW_ACTIONS, RANGED_ATTACK_BONUS, actionsForRoles, skillLockedFor } from "../rules/narrative-starship/crew-actions.js";
-import { modifiersFor } from "../rules/narrative-starship/state.js";
+import { isShipOut, modifiersFor } from "../rules/narrative-starship/state.js";
 import { canUseTrackingWeapons, hasUpgrade } from "../rules/narrative-starship/upgrades.js";
 import { crewActionDC, crewByShip, shipActor, usableSkills } from "../system/narrative-starship-combat.js";
 
@@ -122,6 +122,10 @@ function updateRows(form, usedLastRound) {
 export async function openNarrativeCrewActionDialog({ combat, ship, actor, role }) {
     const state = combat.getFlag("sfrpg", "narrative");
     if (!state) return;
+    if (isShipOut(state, ship.id)) {
+        ui.notifications.warn(game.i18n.localize(LABEL + "Rejected.shipOut"));
+        return;
+    }
     const round = combat.round;
     const crew = crewByShip(combat, state);
     const shipCrew = crew[ship.id] ?? {};

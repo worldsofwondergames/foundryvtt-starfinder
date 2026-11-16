@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { addModifier, addShipToState, addSuccesses, canAct, grantExtraAction, initialState, modifiersFor, recordAction, resolveRound } from "./state.js";
+import {
+    addModifier, addShipToState, addSuccesses, canAct, grantExtraAction, initialState, isShipOut, knockOutAtZero, modifiersFor, recordAction,
+    resolveRound
+} from "./state.js";
 
 const SHIPS = [
     { id: "pc1", side: "pc", crew: {} },
@@ -154,5 +157,29 @@ describe("purity", () => {
         ];
         for (const r of results) expect(JSON.parse(JSON.stringify(r))).toEqual(r);
         expect(s.ships.e1.successes).toBe(4);
+    });
+});
+
+describe("knockOutAtZero", () => {
+    it("marks a ship out when a hit leaves it at 0 HP, so its crew can't act", () => {
+        const state = deepFreeze(initialState(SHIPS));
+        const r = knockOutAtZero(state, "pc1", 0);
+        expect(r.out).toBe(true);
+        expect(isShipOut(r.state, "pc1")).toBe(true);
+        expect(isShipOut(r.state, "e1")).toBe(false);
+        expect(canAct(r.state, { shipId: "pc1", actorId: "a1", role: "pilot" }, CREW).reason).toBe("shipOut");
+    });
+    it("leaves a ship with HP left in the fight", () => {
+        const state = initialState(SHIPS);
+        const r = knockOutAtZero(state, "e1", 1);
+        expect(r).toEqual({ state, out: false });
+        expect(isShipOut(r.state, "e1")).toBe(false);
+    });
+    it("does not mark a ship twice or a ship that is not in the combat", () => {
+        const once = knockOutAtZero(initialState(SHIPS), "e1", 0).state;
+        const again = knockOutAtZero(once, "e1", 0);
+        expect(again.out).toBe(false);
+        expect(again.state.ships.e1.flags).toEqual(["out"]);
+        expect(knockOutAtZero(once, "gone", 0)).toEqual({ state: once, out: false });
     });
 });

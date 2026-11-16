@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dcFor, NARRATIVE_CREW_ACTIONS } from "./crew-actions.js";
 import { resolveNarrativeRound, rollBonuses } from "./apply-crew-action.js";
-import { addModifier, initialState, modifiersFor, resolveRound } from "./state.js";
+import { addModifier, initialState, knockOutAtZero, modifiersFor, resolveRound } from "./state.js";
 import {
     NARRATIVE_TACTICS, applyTactic, availableNextTactics, availableTactics, chooseTactic, enemyCheckBonus, forceHardFor, presetNextTactic, revealPending,
     tacticDC, tacticRollCount
@@ -123,6 +123,18 @@ describe("chooseTactic", () => {
         const state = fresh();
         state.ships.e1.forcedTactic = { tactic: "openFire", targetShip: "pc1", round: ROUND };
         expect(() => chooseTactic(state, "e1", "openFire", "pc2", ROUND)).toThrow("forcedTarget");
+    });
+
+    it("refuses a PC ship that is out of the fight as the target", () => {
+        const state = knockOutAtZero(fresh(), "pc1", 0).state;
+        expect(() => chooseTactic(state, "e1", "ram", "pc1", ROUND)).toThrow("badTarget");
+        expect(chooseTactic(state, "e1", "ram", "pc2", ROUND).ships.e1.tacticTarget).toBe("pc2");
+    });
+
+    it("lets Draw Fire's forced Open Fire target another ship when the forcing ship is out", () => {
+        const state = knockOutAtZero(fresh(), "pc1", 0).state;
+        state.ships.e1.forcedTactic = { tactic: "openFire", targetShip: "pc1", round: ROUND };
+        expect(chooseTactic(state, "e1", "openFire", "pc2", ROUND).ships.e1.tacticTarget).toBe("pc2");
     });
 
     it("refuses a second tactic for an enemy that already chose one this round", () => {
