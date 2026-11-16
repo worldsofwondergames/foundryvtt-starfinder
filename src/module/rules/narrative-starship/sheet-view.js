@@ -99,10 +99,11 @@ export function skillModifierView(skillModifiers, skills) {
 /**
  * Crew actions grouped by role, in the given role order, for the sheet's Crew Actions tab.
  * Roles with no actions are left out.
- * @param {Object<string, {role: string, preferred: string[]|"any", hardAlways: boolean}>} actions
+ * @param {Object<string, {role: string, preferred: string[]|"any", hardAlways: boolean, dcOf: string}>} actions
  * @param {string[]} roles Role keys in display order.
  * @param {Object<string, string>} skills Skill key to label. Keys missing from it are shown as the key.
- * @returns {Array<{role: string, actions: Array<{key: string, anySkill: boolean, skills: string, hardAlways: boolean}>}>}
+ * @returns {Array<{role: string, actions: Array<{key: string, anySkill: boolean, skills: string, hardAlways: boolean,
+ *     dcOf: string}>}>}
  */
 export function crewActionGroups(actions, roles, skills) {
     return roles
@@ -114,10 +115,29 @@ export function crewActionGroups(actions, roles, skills) {
                     key,
                     anySkill: action.preferred === "any",
                     skills: action.preferred === "any" ? "" : action.preferred.map(k => skills[k] ?? k).join(", "),
-                    hardAlways: action.hardAlways
+                    hardAlways: action.hardAlways,
+                    dcOf: action.dcOf
                 }))
         }))
         .filter(group => group.actions.length > 0);
+}
+
+/**
+ * The Hard DC to show beside an action that always uses the Hard DC.
+ * An action that uses your ship's DC shows your ship's Hard DC. An action that uses the target's DC shows the enemy
+ * ships' Hard DC in this ship's narrative combat: one number when they all share it, or one per enemy ship.
+ * @param {"own"|"target"} dcOf
+ * @param {number|undefined} ownHard This ship's Hard DC.
+ * @param {Array<{name: string, hard: number|undefined}>} enemies The enemy ships in this ship's combat.
+ * @returns {Array<{dc: number, name: string|null}>} Empty when the DC is not known, such as outside combat.
+ */
+export function hardDCDisplay(dcOf, ownHard, enemies) {
+    const known = value => typeof value === "number" && Number.isFinite(value);
+    if (dcOf === "own") return known(ownHard) ? [{ dc: ownHard, name: null }] : [];
+    const ships = enemies.filter(ship => known(ship.hard));
+    if (ships.length === 0) return [];
+    if (ships.every(ship => ship.hard === ships[0].hard)) return [{ dc: ships[0].hard, name: null }];
+    return ships.map(ship => ({ dc: ship.hard, name: ship.name }));
 }
 
 function blank(value) {

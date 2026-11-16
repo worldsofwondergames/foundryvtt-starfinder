@@ -3049,8 +3049,9 @@
             "Tabs": {
                 "Crew": "Crew",
                 "CrewActions": "Crew Actions",
+                "DC": "DC {dc}",
                 "EnemyActions": "Enemy Actions",
-                "HardAlways": "Hard DC, whatever the skill",
+                "HardAlways": "Target's Hard DC",
                 "PreferredSkills": "Preferred skills: {skills}",
                 "Stats": "Stats",
                 "Upgrades": "Upgrades"

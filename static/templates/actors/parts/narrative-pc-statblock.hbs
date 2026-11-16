@@ -83,7 +83,8 @@
                 <button type="button" class="narrative-action-roll" data-action-key="{{action.key}}"><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Dialog.Roll"}}</button>
                 {{/if}}
             </div>
-            <div class="narrative-action-skills">{{action.skillText}}</div>
+            <div class="narrative-action-skills">{{action.skillText}}{{#if action.hardAlways}}.
+                {{#if action.hardDCs.length}}{{#each action.hardDCs as |entry|}}{{#unless @first}}, {{/unless}}<strong>{{localize "SFRPG.NarrativeStarship.Tabs.DC" dc=entry.dc}}</strong>{{#if entry.name}} ({{entry.name}}){{/if}}{{/each}}{{else}}<strong>{{localize "SFRPG.NarrativeStarship.Tabs.HardAlways"}}</strong>{{/if}}{{/if}}</div>
             <div class="narrative-action-effect">{{action.effect}}</div>
         </li>
         {{/each}}

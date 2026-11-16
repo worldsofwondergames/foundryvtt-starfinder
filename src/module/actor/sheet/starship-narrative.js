@@ -5,6 +5,7 @@ import { NARRATIVE_TACTICS } from "../../rules/narrative-starship/tactics.js";
 import {
     addCrewMember,
     crewActionGroups,
+    hardDCDisplay,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
@@ -16,7 +17,7 @@ import {
 import { clampUpgradeCount, onceButtons, upgradeRows } from "../../rules/narrative-starship/upgrades.js";
 import { NARRATIVE_ROLES } from "../../rules/narrative-starship/crew-actions.js";
 import {
-    actableCrew, enemyTacticButtons, requestUpgradeUse, runEnemyTactic, shipActor, tacticsCombatFor, upgradeButtonsCombatFor
+    actableCrew, enemyTacticButtons, narrativeCombatFor, requestUpgradeUse, runEnemyTactic, shipActor, tacticsCombatFor, upgradeButtonsCombatFor
 } from "../../system/narrative-starship-combat.js";
 import { ActorSheetSFRPGStarship } from "./starship.js";
 
@@ -72,7 +73,7 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             showTactics: layout === "npc" && Boolean(tacticsCombatFor(this.actor)),
             upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : { installed: [], available: [] },
             onceButtons: layout === "pc" ? this._onceButtonRows(narrative.upgrades) : [],
-            crewActions: layout === "pc" ? this._crewActionRows(skills) : [],
+            crewActions: layout === "pc" ? this._crewActionRows(skills, derived.hardDC) : [],
             tactics: layout === "npc" ? this._tacticRows(enemyTacticButtons(this.actor)?.buttons) : []
         };
 
@@ -103,10 +104,16 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         };
     }
 
-    /** The Crew Actions tab: every crew action by role, with its skills and effect. */
-    _crewActionRows(skills) {
+    /**
+     * The Crew Actions tab: every crew action by role, with its skills and effect, and the Hard DC for actions that
+     * always use it.
+     * @param {Object<string, string>} skills
+     * @param {number|undefined} ownHard This ship's Hard DC.
+     */
+    _crewActionRows(skills, ownHard) {
         const label = key => game.i18n.localize(key);
         const names = { ...skills, rangedAttack: label("SFRPG.NarrativeStarship.RangedAttack") };
+        const enemies = this._enemyHardDCs();
         return crewActionGroups(CONFIG.SFRPG.narrativeCrewActions, NARRATIVE_ROLES, names).map(group => ({
             label: label(`SFRPG.NarrativeStarship.Roles.${group.role}`),
             actions: group.actions.map(action => {
@@ -117,10 +124,23 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
                     key: action.key,
                     label: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Name`),
                     effect: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Effect`),
-                    skillText: action.hardAlways ? `${skillText}. ${label("SFRPG.NarrativeStarship.Tabs.HardAlways")}` : skillText
+                    skillText,
+                    hardAlways: action.hardAlways,
+                    hardDCs: action.hardAlways ? hardDCDisplay(action.dcOf, ownHard, enemies) : []
                 };
             })
         }));
+    }
+
+    /** The name and Hard DC of each enemy ship in this ship's narrative combat. Empty outside combat. */
+    _enemyHardDCs() {
+        const combat = narrativeCombatFor(this.actor.id);
+        const ships = combat?.getFlag("sfrpg", "narrative")?.ships ?? {};
+        return Object.entries(ships)
+            .filter(([, ship]) => ship.side === "enemy")
+            .map(([id]) => shipActor(combat, id))
+            .filter(Boolean)
+            .map(actor => ({ name: actor.name, hard: actor.system.narrative?.derived?.hardDC }));
     }
 
     /**

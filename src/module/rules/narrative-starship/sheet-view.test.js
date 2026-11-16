@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     addCrewMember,
     crewActionGroups,
+    hardDCDisplay,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
@@ -237,5 +238,27 @@ describe("tacticPrompt", () => {
     it("asks nothing for a tactic without a PC target, and always asks Cruel Taunt's DC", () => {
         expect(tacticPrompt("takeCover", { ...base, pcTarget: false })).toEqual({ targetId: null, askTarget: false, askChoice: false });
         expect(tacticPrompt("cruelTaunt", { ...base, pcShips: ["pc1"] })).toEqual({ targetId: "pc1", askTarget: false, askChoice: true });
+    });
+});
+
+describe("hardDCDisplay", () => {
+    const enemies = [{ name: "Bow", hard: 24 }, { name: "Stern", hard: 24 }];
+
+    it("shows this ship's Hard DC for an action that uses your ship's DC", () => {
+        expect(hardDCDisplay("own", 25, enemies)).toEqual([{ dc: 25, name: null }]);
+    });
+
+    it("shows one Hard DC when every enemy ship shares it", () => {
+        expect(hardDCDisplay("target", 25, enemies)).toEqual([{ dc: 24, name: null }]);
+    });
+
+    it("names each enemy ship when their Hard DCs differ", () => {
+        const mixed = [{ name: "Bow", hard: 24 }, { name: "Stern", hard: 26 }];
+        expect(hardDCDisplay("target", 25, mixed)).toEqual([{ dc: 24, name: "Bow" }, { dc: 26, name: "Stern" }]);
+    });
+
+    it("shows nothing when the DC is not known", () => {
+        expect(hardDCDisplay("target", 25, [])).toEqual([]);
+        expect(hardDCDisplay("own", undefined, enemies)).toEqual([]);
     });
 });
