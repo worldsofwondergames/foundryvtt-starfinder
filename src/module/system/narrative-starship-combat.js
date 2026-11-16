@@ -125,8 +125,34 @@ export function sharedShipActors(combatants) {
 }
 
 /**
+ * The PC starships whose combatant token is not linked to its actor. Hits and upgrade use go to the token's own
+ * copy of the actor, so the ship's sheet in the sidebar does not show them.
+ * @param {Iterable<{actorId: string, actor: {type: string, system: object}|null, token: {actorLink: boolean}|null}>} combatants
+ * @returns {string[]} The actor ids, each once.
+ */
+export function unlinkedPcShips(combatants) {
+    const ids = new Set();
+    for (const combatant of combatants) {
+        const actor = combatant.actor;
+        if (actor?.type !== "starship" || shipSide(actor) !== "pc" || !combatant.token) continue;
+        if (!combatant.token.actorLink) ids.add(combatant.actorId);
+    }
+    return [...ids];
+}
+
+/** Whispers the GM a message about a ship. */
+async function whisperGM(combat, key, shipId) {
+    const name = foundry.utils.escapeHTML(shipActor(combat, shipId)?.name ?? shipId);
+    await ChatMessage.create({
+        content: `<p>${game.i18n.format(LABEL + key, { ship: name })}</p>`,
+        whisper: ChatMessage.getWhisperRecipients("GM").map(u => u.id),
+        speaker: { alias: combat.getCombatName?.() ?? "" }
+    });
+}
+
+/**
  * A combat start step. Builds the round state from the starships in a narrative combat, and tells the GM about
- * starship actors with more than one combatant, which count as one ship.
+ * starship actors with more than one combatant, which count as one ship, and about PC ships with unlinked tokens.
  * @param {Combat} combat
  */
 export async function initializeNarrativeState(combat) {
@@ -139,18 +165,13 @@ export async function initializeNarrativeState(combat) {
     }
     await saveNarrativeState(combat, initialState(ships));
     await combat.unsetFlag("sfrpg", "narrativeResolvedRound");
-    for (const id of sharedShipActors(combat.combatants)) {
-        const name = foundry.utils.escapeHTML(shipActor(combat, id)?.name ?? id);
-        await ChatMessage.create({
-            content: `<p>${game.i18n.format(LABEL + "SharedActorWhisper", { ship: name })}</p>`,
-            whisper: ChatMessage.getWhisperRecipients("GM").map(u => u.id),
-            speaker: { alias: combat.getCombatName?.() ?? "" }
-        });
-    }
+    for (const id of sharedShipActors(combat.combatants)) await whisperGM(combat, "SharedActorWhisper", id);
+    for (const id of unlinkedPcShips(combat.combatants)) await whisperGM(combat, "UnlinkedShipWhisper", id);
 }
 
 /**
- * Adds a starship that joins a started narrative combat to the round state. Only the active GM runs it.
+ * Adds a starship that joins a started narrative combat to the round state, and tells the GM when it is a PC
+ * ship with an unlinked token. Only the active GM runs it.
  * @param {Combatant} combatant
  */
 function onCreateCombatant(combatant) {
@@ -163,6 +184,7 @@ function onCreateCombatant(combatant) {
         if (!state) return;
         const next = addShipToState(state, { id: combatant.actorId, side: shipSide(actor) });
         if (next !== state) await saveNarrativeState(combat, next);
+        if (unlinkedPcShips([combatant]).length > 0) await whisperGM(combat, "UnlinkedShipWhisper", combatant.actorId);
     });
 }
 

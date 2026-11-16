@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { crewByShip, isNarrativeCombat, queueForCombat, sharedShipActors, usableSkills } from "./narrative-starship-combat.js";
+import { crewByShip, isNarrativeCombat, queueForCombat, sharedShipActors, unlinkedPcShips, usableSkills } from "./narrative-starship-combat.js";
 
 function fakeCombat({ started = true, type = "narrativeStarship", ships = [] } = {}) {
     return {
@@ -97,5 +97,23 @@ describe("usableSkills", () => {
     it("gives a drone only the skills its chassis and mods enable", () => {
         const drone = { type: "drone", system: { skills: { per: skill(true, { ranks: 3 }), ste: skill(false) } } };
         expect(usableSkills(drone)).toEqual(["per"]);
+    });
+});
+
+describe("unlinkedPcShips", () => {
+    const pcShip = { type: "starship", system: { crew: { useNPCCrew: false } } };
+    const enemyShip = { type: "starship", system: { crew: { useNPCCrew: true } } };
+    it("names each PC ship whose combatant token is not linked to its actor, once", () => {
+        const combatants = [
+            { actorId: "pc1", actor: pcShip, token: { actorLink: false } },
+            { actorId: "pc1", actor: pcShip, token: { actorLink: false } },
+            { actorId: "pc2", actor: pcShip, token: { actorLink: true } },
+            { actorId: "e1", actor: enemyShip, token: { actorLink: false } },
+            { actorId: "c1", actor: { type: "character", system: {} }, token: { actorLink: false } },
+            { actorId: "pc3", actor: pcShip, token: null },
+            { actorId: "gone", actor: null, token: { actorLink: false } }
+        ];
+        expect(unlinkedPcShips(combatants)).toEqual(["pc1"]);
+        expect(unlinkedPcShips(combatants.slice(2))).toEqual([]);
     });
 });

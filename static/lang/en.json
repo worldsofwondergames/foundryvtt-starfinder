@@ -3141,6 +3141,7 @@
                 "quantumDefender": "The GM is asked whether to use it when an enemy tactic would hit this ship.",
                 "trackingWeapons": "A gunner is asked whether to use it after failing a check against an enemy ship."
             },
+            "UnlinkedShipWhisper": "{ship}'s token in this combat is not linked to its actor, so the ship's HP and upgrades are tracked on the token, not on the ship's sheet. To track them on the sheet, link the token: turn on Link Actor Data in the token's settings, and in the ship's Prototype Token for new tokens.",
             "UpgradeCard": {
                 "AblativeAbsorbed": "Ablative Plating: {ship} ignores 1 hit. The plating is used up for this combat.",
                 "AidButton": "Provide Aid (Virtual Intelligence)",
