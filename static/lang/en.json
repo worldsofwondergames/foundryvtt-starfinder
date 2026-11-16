@@ -619,18 +619,14 @@
                 "Name": "Narrative Starship Combat",
                 "Phases": {
                     "1": {
-                        "Description": "Crew members may switch roles now.",
-                        "Name": "Change Roles"
-                    },
-                    "2": {
                         "Description": "The GM chooses a tactic for each enemy ship.",
                         "Name": "Enemy Tactics"
                     },
-                    "3": {
+                    "2": {
                         "Description": "Each crew member takes one action, in any order.",
                         "Name": "Crew Actions"
                     },
-                    "4": {
+                    "3": {
                         "Description": "Successes turn into hits and the round ends.",
                         "Name": "Resolve"
                     }
@@ -3137,16 +3133,18 @@
                 "Chosen": "Tactic this round: {tactic}",
                 "ChosenTarget": "Tactic this round: {tactic}, against {ship}",
                 "DC": "DC",
-                "DialogHint": "Round {round}. Pick one tactic for each enemy ship. Two enemy ships can't use the same tactic in a round.",
+                "DialogHint": "Pick one tactic for each enemy ship. Two enemy ships can't use the same tactic in a round.",
                 "DialogTitle": "Enemy Tactics",
                 "Forced": "Draw Fire or Prognosticate set this ship's tactic for this round.",
                 "Mines": "Roll the Mine Layer check",
                 "MinesHint": "Mines were laid in this ship's path. Before it chooses a tactic, it rolls a skill check against DC {dc} or takes 1 hit.",
                 "NextTactic": "Next round's tactic",
                 "NoEnemies": "No enemy ship is in the fight.",
+                "NotTacticsPhase": "Tactics are rolled during the Enemy Tactics phase. Move the combat to that phase to roll.",
                 "Open": "Enemy Tactics",
                 "RevealHint": "Prognosticate succeeded against this ship. Pick its tactic for next round now.",
                 "RevealWhisper": "Prognosticate succeeded against {ship}. Pick its tactic for next round now in the Enemy Tactics dialog.",
+                "Round": "Round {round}",
                 "SetNext": "Set next round's tactic",
                 "Tactic": "Tactic",
                 "Target": "Target"

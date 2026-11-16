@@ -91,28 +91,24 @@ describe("missedResolveRound", () => {
     const base = { combatType: "narrativeStarship", isNewRound: true, direction: 1, oldRound: 2, resolvedRound: 1 };
 
     it("gives the old round when the round moved on from Enemy Tactics or Crew Actions before Resolve ran", () => {
+        expect(missedResolveRound({ ...base, oldPhaseIndex: 0 })).toBe(2);
         expect(missedResolveRound({ ...base, oldPhaseIndex: 1 })).toBe(2);
-        expect(missedResolveRound({ ...base, oldPhaseIndex: 2 })).toBe(2);
     });
 
     it("is null when Resolve already ran for that round", () => {
-        expect(missedResolveRound({ ...base, oldPhaseIndex: 2, resolvedRound: 2 })).toBeNull();
-    });
-
-    it("is null when the round moved on from Change Roles", () => {
-        expect(missedResolveRound({ ...base, oldPhaseIndex: 0 })).toBeNull();
+        expect(missedResolveRound({ ...base, oldPhaseIndex: 1, resolvedRound: 2 })).toBeNull();
     });
 
     it("is null when the round moved on from Resolve", () => {
-        expect(missedResolveRound({ ...base, oldPhaseIndex: 3 })).toBeNull();
+        expect(missedResolveRound({ ...base, oldPhaseIndex: 2 })).toBeNull();
     });
 
     it("is null when going back", () => {
-        expect(missedResolveRound({ ...base, oldPhaseIndex: 2, direction: -1 })).toBeNull();
+        expect(missedResolveRound({ ...base, oldPhaseIndex: 1, direction: -1 })).toBeNull();
     });
 
     it("is null without a new round", () => {
-        expect(missedResolveRound({ ...base, oldPhaseIndex: 2, isNewRound: false })).toBeNull();
+        expect(missedResolveRound({ ...base, oldPhaseIndex: 1, isNewRound: false })).toBeNull();
     });
 
     it("is null in other combat types", () => {

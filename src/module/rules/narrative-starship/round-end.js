@@ -6,9 +6,9 @@
  * than 0 HP at the end of the round, it flees the battle."
  */
 
-/** Phase indexes of the narrative combat type: Change Roles, Enemy Tactics, Crew Actions, Resolve. */
-const TACTICS_PHASE = 1;
-const CREW_ACTIONS_PHASE = 2;
+/** Phase indexes of the narrative combat type: Enemy Tactics, Crew Actions, Resolve. */
+const TACTICS_PHASE = 0;
+const CREW_ACTIONS_PHASE = 1;
 
 /** Flags that last only for the round they were set in. */
 const ROUND_FLAGS = ["takeCover", "fleeing"];

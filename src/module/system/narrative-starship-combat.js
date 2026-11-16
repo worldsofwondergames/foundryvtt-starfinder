@@ -23,9 +23,9 @@ import {
 
 export const NARRATIVE_COMBAT_TYPE = "narrativeStarship";
 /** Phase indexes of the narrative combat type. */
-export const TACTICS_PHASE = 1;
-export const CREW_ACTIONS_PHASE = 2;
-export const RESOLVE_PHASE = 3;
+export const TACTICS_PHASE = 0;
+export const CREW_ACTIONS_PHASE = 1;
+export const RESOLVE_PHASE = 2;
 
 const LABEL = "SFRPG.NarrativeStarship.";
 

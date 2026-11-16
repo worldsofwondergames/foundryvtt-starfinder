@@ -130,6 +130,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
         this._handleTimedEffects(eventData);
         await this._notifyAfterUpdate(eventData);
         await this._postTurnStartFailures(eventData);
+        // A narrative combat starts in Enemy Tactics, so the GM picks each enemy's tactic right away.
+        if (game.user.isGM && combatType === "narrativeStarship") openNarrativeTacticsDialog(this);
     }
 
     async delete(options = {}) {
@@ -1187,7 +1189,7 @@ CombatSFRPG.starshipCombat = {
 CombatSFRPG.narrativeStarship = {
     name: "SFRPG.Combat.NarrativeStarship.Name",
     initiativeSorting: "desc",
-    phases: [1, 2, 3, 4].map(number => ({
+    phases: [1, 2, 3].map(number => ({
         name: `SFRPG.Combat.NarrativeStarship.Phases.${number}.Name`,
         description: `SFRPG.Combat.NarrativeStarship.Phases.${number}.Description`,
         iterateTurns: false,

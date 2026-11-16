@@ -1,4 +1,4 @@
-import { NARRATIVE_TACTICS, availableNextTactics, availableTactics, revealPending } from "../rules/narrative-starship/tactics.js";
+import { NARRATIVE_TACTICS, availableNextTactics, availableTactics, revealPending, tacticDC } from "../rules/narrative-starship/tactics.js";
 import { pendingMines } from "../rules/narrative-starship/upgrades.js";
 import { TACTICS_PHASE, presetEnemyTactic, rollEnemyMines, runEnemyTactic, shipActor } from "../system/narrative-starship-combat.js";
 
@@ -14,7 +14,9 @@ function tacticOptions(statuses, selected) {
         disabled: status.disabled,
         title: status.disabled ? game.i18n.localize(`${LABEL}TacticRejected.${status.reason}`) : "",
         selected: status.key === selected,
-        pcTarget: NARRATIVE_TACTICS[status.key].pcTarget
+        pcTarget: NARRATIVE_TACTICS[status.key].pcTarget,
+        dc: NARRATIVE_TACTICS[status.key].dc ?? "",
+        effect: game.i18n.localize(`${LABEL}Tactics.${status.key}.Effect`)
     }));
 }
 
@@ -23,16 +25,27 @@ function firstOpen(statuses) {
     return statuses.find(s => !s.disabled)?.key ?? null;
 }
 
-/** Shows the target select only for tactics that target a PC ship, and the DC choice only for Cruel Taunt. */
+/**
+ * Shows the target select only for tactics that target a PC ship and the DC choice only for Cruel Taunt, and
+ * writes the chosen tactic's DC against the chosen target and its effect under the selects.
+ */
 function updateRow(row) {
     for (const select of row.querySelectorAll("select[data-field='tactic']")) {
         const group = select.closest("[data-group]");
         const option = select.selectedOptions[0];
         const target = group.querySelector("[data-part='target']");
         const choice = group.querySelector("[data-part='choice']");
-        // The hidden attribute loses to the form-group display rule, so set the style.
-        if (target) target.style.display = option?.dataset.pcTarget === "true" ? "" : "none";
+        const showTarget = option?.dataset.pcTarget === "true";
+        if (target) target.style.display = showTarget ? "" : "none";
         if (choice) choice.style.display = select.value === "cruelTaunt" ? "" : "none";
+
+        const kind = option?.dataset.dc === "choice" ? group.querySelector("[data-field='choice']")?.value : option?.dataset.dc;
+        const ship = showTarget ? group.querySelector("[data-field='target']")?.selectedOptions[0] : null;
+        const dc = kind && ship ? ship.dataset[kind] : "";
+        const dcText = group.querySelector(".narrative-tactic-dc");
+        if (dcText) dcText.textContent = dc ? game.i18n.format(`${LABEL}Tabs.DC`, { dc }) : "";
+        const effect = group.querySelector(".narrative-tactic-effect-text");
+        if (effect) effect.textContent = option?.dataset.effect ?? "";
     }
 }
 
@@ -50,9 +63,9 @@ function tacticsAppClass() {
         }
 
         static DEFAULT_OPTIONS = {
-            classes: ["sfrpg", "narrative-tactics"],
-            window: { title: "SFRPG.NarrativeStarship.TacticsDialog.DialogTitle", resizable: true },
-            position: { width: 560, height: "auto" },
+            classes: ["sfrpg", "narrative-tactics", "themed", "theme-light"],
+            window: { title: "SFRPG.NarrativeStarship.TacticsDialog.DialogTitle", icon: "fas fa-dice-d20", resizable: true },
+            position: { width: 600, height: "auto" },
             actions: {
                 roll: NarrativeTacticsDialog.#onRoll,
                 preset: NarrativeTacticsDialog.#onPreset,
@@ -72,7 +85,13 @@ function tacticsAppClass() {
             const pcs = Object.entries(state.ships)
                 .filter(([, ship]) => ship.side === "pc" && !ship.flags.includes("out"))
                 .map(([id]) => ({ id, name: name(id) }));
-            const targetsFor = forced => pcs.map(pc => ({ ...pc, selected: pc.id === forced }));
+            // Each target's DC for an Average and a Hard tactic, after the effects that make tactics use the Hard DC.
+            const targetsFor = (forced, enemyId) => pcs.map(pc => {
+                const derived = shipActor(combat, pc.id)?.system.narrative?.derived ?? {};
+                const dcs = { average: derived.averageDC, hard: derived.hardDC };
+                const dcOf = choice => tacticDC(state, { enemyId, targetId: pc.id, tactic: "cruelTaunt", choice }, dcs, round);
+                return { ...pc, selected: pc.id === forced, average: dcOf("average"), hard: dcOf("hard") };
+            });
 
             const rows = Object.entries(state.ships)
                 .filter(([, ship]) => ship.side === "enemy" && !ship.flags.includes("out"))
@@ -82,10 +101,11 @@ function tacticsAppClass() {
                     const row = {
                         id,
                         name: name(id),
+                        img: shipActor(combat, id)?.img ?? "",
                         chosen: ship.tactic ? game.i18n.localize(`${LABEL}Tactics.${ship.tactic}.Name`) : "",
                         chosenTarget: ship.tacticTarget ? name(ship.tacticTarget) : "",
                         tactics: tacticOptions(statuses, forced?.tactic ?? firstOpen(statuses)),
-                        targets: targetsFor(forced?.targetShip),
+                        targets: targetsFor(forced?.targetShip, id),
                         targetLocked: Boolean(forced?.targetShip),
                         forced: Boolean(forced),
                         // Mine Layer: the ship's mines check comes before its tactic.
@@ -93,7 +113,7 @@ function tacticsAppClass() {
                     };
                     if (revealPending(state, id, round)) {
                         const next = availableNextTactics(state, id, round);
-                        row.reveal = { tactics: tacticOptions(next, firstOpen(next)), targets: targetsFor(null) };
+                        row.reveal = { tactics: tacticOptions(next, firstOpen(next)), targets: targetsFor(null, id) };
                     }
                     return row;
                 });
