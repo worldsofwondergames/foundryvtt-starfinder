@@ -3606,6 +3606,10 @@
                 "Hint": "When enabled, a few minor tweaks to Foundry's colors will be made to match Starfinder's color scheme.",
                 "Name": "Custom SFRPG theme"
             },
+            "ScaleTokensToGrid": {
+                "Hint": "When enabled, a token dropped onto a scene is sized to that scene's grid scale, so a Large creature covers 10 ft whether a square is 5 ft or 10 ft. Mechs follow the Tech Revolution rule and never shrink below one square.",
+                "Name": "Scale Tokens to Grid"
+            },
             "ScalingCantrips": {
                 "Hint": "Enables the Scaling Cantrips variant rule from Galactic Magic pg. 88. Changing this setting will alter the formulas of all affected spells on all actors, so can take a while if you have lots.",
                 "Name": "Enable Scaling Cantrips"

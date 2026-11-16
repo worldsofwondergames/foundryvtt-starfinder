@@ -14,6 +14,7 @@
 
 ## Bugfixes
 - A player's client could send the GM a request that claimed to come from another user, and the GM's client believed it. The GM's client now takes the sender from the server, which names the player whose client sent the request
+- The Scale Tokens to Grid setting showed its translation keys in place of a name and description. It now has English text
 
 # Version 14.1.8
 
