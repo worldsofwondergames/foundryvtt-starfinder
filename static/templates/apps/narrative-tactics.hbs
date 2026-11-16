@@ -96,4 +96,15 @@
     {{else}}
     <p class="narrative-tactics-notice">{{localize "SFRPG.NarrativeStarship.TacticsDialog.NoEnemies"}}</p>
     {{/each}}
+
+    {{#if canRoll}}
+    <footer class="narrative-tactics-footer">
+        {{#unless allChosen}}
+        <span class="narrative-tactics-hint">{{localize "SFRPG.NarrativeStarship.TacticsDialog.ContinueHint"}}</span>
+        {{/unless}}
+        <button type="button" class="narrative-tactic-button" data-action="continue" {{#unless allChosen}}disabled{{/unless}}>
+            {{localize "SFRPG.NarrativeStarship.TacticsDialog.Continue"}} <i class="fas fa-arrow-right"></i>
+        </button>
+    </footer>
+    {{/if}}
 </div>

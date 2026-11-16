@@ -3132,6 +3132,8 @@
                 "CardSuccess": "Success against DC {dc}.",
                 "Chosen": "Tactic this round: {tactic}",
                 "ChosenTarget": "Tactic this round: {tactic}, against {ship}",
+                "Continue": "Continue to Crew Actions",
+                "ContinueHint": "Roll a tactic for each enemy ship to continue.",
                 "DC": "DC",
                 "DialogHint": "Pick one tactic for each enemy ship. Two enemy ships can't use the same tactic in a round.",
                 "DialogTitle": "Enemy Tactics",

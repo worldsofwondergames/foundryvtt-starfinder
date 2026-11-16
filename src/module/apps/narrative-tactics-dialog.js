@@ -69,7 +69,8 @@ function tacticsAppClass() {
             actions: {
                 roll: NarrativeTacticsDialog.#onRoll,
                 preset: NarrativeTacticsDialog.#onPreset,
-                mines: NarrativeTacticsDialog.#onMines
+                mines: NarrativeTacticsDialog.#onMines,
+                continue: NarrativeTacticsDialog.#onContinue
             }
         };
 
@@ -117,7 +118,10 @@ function tacticsAppClass() {
                     }
                     return row;
                 });
-            return { rows, canRoll: combat.flags.sfrpg?.phase === TACTICS_PHASE, round };
+            const canRoll = combat.flags.sfrpg?.phase === TACTICS_PHASE;
+            // Every enemy ship has rolled its tactic, so the GM can move on to Crew Actions.
+            const allChosen = rows.length > 0 && rows.every(row => row.chosen);
+            return { rows, canRoll, allChosen, round };
         }
 
         _onRender(context, options) {
@@ -151,6 +155,13 @@ function tacticsAppClass() {
             target.disabled = true;
             await rollEnemyMines(this.combat, target.closest(".narrative-tactic-row").dataset.enemyId);
             if (this.rendered) this.render();
+        }
+
+        /** Moves the combat on to the Crew Actions phase and closes the dialog. */
+        static async #onContinue(event, target) {
+            target.disabled = true;
+            if (this.combat.flags.sfrpg?.phase === TACTICS_PHASE) await this.combat.nextTurn();
+            await this.close();
         }
 
         static async #onPreset(event, target) {
