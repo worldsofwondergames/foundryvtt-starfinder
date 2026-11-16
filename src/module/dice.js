@@ -210,7 +210,8 @@ export class DiceSFRPG {
             debug: false,
             defaultButton: "normal",
             dialogOptions: dialogOptions,
-            mainDie: "1d20",
+            // The roll dialog shows the die the Normal button rolls, such as 2d20kh for a check rolled twice.
+            mainDie: mainDie,
             rollType: rollType,
             skipUI: ((game.settings.get('sfrpg', 'useQuickRollAsDefault')) ? !event?.shiftKey : event?.shiftKey || dialogOptions?.skipUI) && !rollContext.hasMultipleSelectors(),
             title: title,
