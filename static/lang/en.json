@@ -2791,6 +2791,7 @@
         "NarrativeStarship": {
             "Act": "Act",
             "AddSkillModifier": "Add a skill modifier",
+            "AddUpgrade": "Add this upgrade",
             "AverageDC": "Average DC",
             "Card": {
                 "Failure": "Failure: {total} against DC {dc}.",
@@ -2950,6 +2951,7 @@
             "HP": "HP",
             "HPPipsHint": "Click a pip to set the ship's current HP",
             "HardDC": "Hard DC",
+            "NoUpgrades": "No upgrades installed.",
             "Override": "Override",
             "OverrideHint": "Leave empty to use the derived value",
             "RangedAttack": "Ranged attack",
@@ -2988,6 +2990,7 @@
                 "wrongSide": "Only crew on a player ship can take crew actions."
             },
             "RemoveSkillModifier": "Remove this skill modifier",
+            "RemoveUpgrade": "Remove this upgrade",
             "Resolve": {
                 "EndCombat": "End Combat",
                 "Fled": "{ship} flees the battle.",
@@ -3037,6 +3040,15 @@
                 "Tier": "From the ship's tier"
             },
             "SpecialAbilities": "Special Abilities",
+            "Tabs": {
+                "Crew": "Crew",
+                "CrewActions": "Crew Actions",
+                "EnemyActions": "Enemy Actions",
+                "HardAlways": "Hard DC, whatever the skill",
+                "PreferredSkills": "Preferred skills: {skills}",
+                "Stats": "Stats",
+                "Upgrades": "Upgrades"
+            },
             "TacticRejected": {
                 "alreadyChosen": "This enemy ship already used a tactic this round.",
                 "badRoll": "The roll is missing or not a number.",

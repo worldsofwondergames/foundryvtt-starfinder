@@ -33,6 +33,17 @@
         </div>
     </header>
 
+    <nav class="sheet-navigation tabs narrative-tabs" data-group="primary">
+        <a class="item" data-tab="stats">{{localize "SFRPG.NarrativeStarship.Tabs.Stats"}}</a>
+        {{#unless narrative.isNPC}}
+        <a class="item" data-tab="upgrades">{{localize "SFRPG.NarrativeStarship.Tabs.Upgrades"}}</a>
+        <a class="item" data-tab="actions">{{localize "SFRPG.NarrativeStarship.Tabs.CrewActions"}}</a>
+        <a class="item" data-tab="crew">{{localize "SFRPG.NarrativeStarship.Tabs.Crew"}}</a>
+        {{else}}
+        <a class="item" data-tab="actions">{{localize "SFRPG.NarrativeStarship.Tabs.EnemyActions"}}</a>
+        {{/unless}}
+    </nav>
+
     <section class="sheet-body narrative-body">
         {{#if narrative.isNPC}}
         {{> "systems/sfrpg/templates/actors/parts/narrative-npc-statblock.hbs"}}

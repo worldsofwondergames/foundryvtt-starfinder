@@ -62,9 +62,42 @@
         }
     }
 
+    .narrative-tabs {
+        flex: 0 0 auto;
+        margin: 4px 0;
+    }
+
     .narrative-body {
         padding: 4px 8px;
         overflow-y: auto;
+    }
+
+    .narrative-action-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .narrative-action {
+        padding: 4px 0;
+        border-bottom: 1px solid @colorFaint;
+
+        .narrative-action-name {
+            font-weight: bold;
+        }
+
+        .narrative-action-skills {
+            font-size: var(--font-size-12);
+            font-style: italic;
+        }
+
+        .narrative-action-effect {
+            font-size: var(--font-size-12);
+        }
+    }
+
+    .narrative-empty {
+        font-style: italic;
     }
 
     .form-header {
@@ -84,6 +117,7 @@
 
     .narrative-stat,
     .narrative-upgrade,
+    .narrative-upgrade-new,
     .narrative-skill-row,
     .narrative-skill-new {
         align-items: center;
@@ -157,8 +191,10 @@
         }
     }
 
-    .narrative-upgrade {
-        .narrative-upgrade-name {
+    .narrative-upgrade,
+    .narrative-upgrade-new {
+        .narrative-upgrade-name,
+        .narrative-upgrade-select {
             flex: 1;
         }
 
@@ -166,8 +202,9 @@
             flex: 0 0 60px;
         }
 
-        input[type="checkbox"] {
-            flex: 0 0 auto;
+        a {
+            flex: 0 0 20px;
+            text-align: center;
         }
     }
 

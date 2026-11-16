@@ -96,6 +96,30 @@ export function skillModifierView(skillModifiers, skills) {
     return { rows, available };
 }
 
+/**
+ * Crew actions grouped by role, in the given role order, for the sheet's Crew Actions tab.
+ * Roles with no actions are left out.
+ * @param {Object<string, {role: string, preferred: string[]|"any", hardAlways: boolean}>} actions
+ * @param {string[]} roles Role keys in display order.
+ * @param {Object<string, string>} skills Skill key to label. Keys missing from it are shown as the key.
+ * @returns {Array<{role: string, actions: Array<{key: string, anySkill: boolean, skills: string, hardAlways: boolean}>}>}
+ */
+export function crewActionGroups(actions, roles, skills) {
+    return roles
+        .map(role => ({
+            role,
+            actions: Object.entries(actions)
+                .filter(([, action]) => action.role === role)
+                .map(([key, action]) => ({
+                    key,
+                    anySkill: action.preferred === "any",
+                    skills: action.preferred === "any" ? "" : action.preferred.map(k => skills[k] ?? k).join(", "),
+                    hardAlways: action.hardAlways
+                }))
+        }))
+        .filter(group => group.actions.length > 0);
+}
+
 function blank(value) {
     return value === null || value === undefined || value === "" || Number.isNaN(value);
 }

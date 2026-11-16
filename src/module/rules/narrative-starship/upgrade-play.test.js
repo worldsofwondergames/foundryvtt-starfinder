@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     activateMantle, applyActionUpgrades, canUseTrackingWeapons, clampUpgradeCount, mantleBlocks,
-    navScramExpiry, onceButtons, pendingMines, quantumDefenderShip, resolveMines, upgradeChecklist, useOnce
+    navScramExpiry, onceButtons, pendingMines, quantumDefenderShip, resolveMines, upgradeRows, useOnce
 } from "./upgrades.js";
 import { applyVirtualIntelligenceAid } from "./apply-crew-action.js";
 import { addModifier, initialState, knockOutAtZero, modifiersFor, recordAction } from "./state.js";
@@ -34,15 +34,21 @@ describe("clampUpgradeCount", () => {
     });
 });
 
-describe("upgradeChecklist", () => {
-    it("has a row per upgrade, numeric only for the ones with a count above 1", () => {
-        const rows = upgradeChecklist({ driftEngineUpgrade: 2, tractorBeam: 1 });
-        expect(rows).toHaveLength(10);
-        const byKey = Object.fromEntries(rows.map(r => [r.key, r]));
-        expect(byKey.driftEngineUpgrade).toMatchObject({ numeric: true, count: 2, max: 4 });
-        expect(byKey.expansionBay).toMatchObject({ numeric: true, count: 0, max: null });
-        expect(byKey.tractorBeam).toMatchObject({ numeric: false, checked: true });
-        expect(byKey.mineLayer).toMatchObject({ numeric: false, checked: false });
+describe("upgradeRows", () => {
+    it("lists installed upgrades as rows and the rest as choices to add", () => {
+        const { installed, available } = upgradeRows({ driftEngineUpgrade: 2, tractorBeam: 1, mineLayer: 0 });
+        expect(installed.map(r => r.key)).toEqual(["driftEngineUpgrade", "tractorBeam"]);
+        expect(installed[0]).toMatchObject({ numeric: true, count: 2, max: 4 });
+        expect(installed[1]).toMatchObject({ numeric: false, count: 1 });
+        expect(available.map(r => r.key)).toContain("mineLayer");
+        expect(available.map(r => r.key)).not.toContain("tractorBeam");
+        expect(installed.length + available.length).toBe(10);
+    });
+
+    it("offers every upgrade when none is installed", () => {
+        const { installed, available } = upgradeRows(undefined);
+        expect(installed).toEqual([]);
+        expect(available.find(r => r.key === "expansionBay")).toMatchObject({ numeric: true, max: null });
     });
 });
 

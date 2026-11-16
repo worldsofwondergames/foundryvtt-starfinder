@@ -2,6 +2,7 @@ import { openNarrativeCrewActionDialog } from "../../apps/narrative-crew-action-
 import { openNarrativeTacticsDialog } from "../../apps/narrative-tactics-dialog.js";
 import { showStandardSheetToggle } from "../../rules/narrative-starship/mode.js";
 import {
+    crewActionGroups,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
@@ -9,7 +10,8 @@ import {
     normalizeNarrativeFormData,
     skillModifierView
 } from "../../rules/narrative-starship/sheet-view.js";
-import { clampUpgradeCount, onceButtons, upgradeChecklist } from "../../rules/narrative-starship/upgrades.js";
+import { clampUpgradeCount, onceButtons, upgradeRows } from "../../rules/narrative-starship/upgrades.js";
+import { NARRATIVE_ROLES } from "../../rules/narrative-starship/crew-actions.js";
 import {
     actableCrew, requestUpgradeUse, tacticsCombatFor, upgradeButtonsCombatFor
 } from "../../system/narrative-starship-combat.js";
@@ -25,7 +27,7 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         const options = super.defaultOptions;
         options.classes = [...options.classes, "narrative-starship"];
         options.width = 560;
-        options.tabs = [];
+        options.tabs = [{ navSelector: ".narrative-tabs", contentSelector: ".narrative-body", initial: "stats" }];
         return options;
     }
 
@@ -57,8 +59,10 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             actable: layout === "pc" ? actableCrew(this.actor)?.actable ?? null : null,
             // The GM's Enemy Tactics button on an enemy ship.
             showTactics: layout === "npc" && Boolean(tacticsCombatFor(this.actor)),
-            upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : [],
-            onceButtons: layout === "pc" ? this._onceButtonRows(narrative.upgrades) : []
+            upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : { installed: [], available: [] },
+            onceButtons: layout === "pc" ? this._onceButtonRows(narrative.upgrades) : [],
+            crewActions: layout === "pc" ? this._crewActionRows(skills) : [],
+            tactics: layout === "npc" ? this._tacticRows() : []
         };
 
         data.enrichedSpecialAbilities = await foundry.applications.ux.TextEditor.enrichHTML(narrative.specialAbilities ?? "", {
@@ -70,12 +74,50 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         return data;
     }
 
-    /** The upgrades checklist, with each upgrade's name and effect text. */
+    /** The installed upgrades and the ones left to add, with each upgrade's name and effect text. */
     _upgradeRows(upgrades) {
-        return upgradeChecklist(upgrades).map(row => ({
+        const named = row => ({
             ...row,
             label: game.i18n.localize(`SFRPG.NarrativeStarship.Upgrades.${row.key}.Name`),
             effect: game.i18n.localize(`SFRPG.NarrativeStarship.Upgrades.${row.key}.Effect`)
+        });
+        const { installed, available } = upgradeRows(upgrades);
+        // Viewers who can't edit the ship see only what is installed, and no section at all when nothing is.
+        const showAdd = this.isEditable && available.length > 0;
+        return {
+            installed: installed.map(named),
+            available: available.map(named),
+            showAdd,
+            showSection: installed.length > 0 || showAdd
+        };
+    }
+
+    /** The Crew Actions tab: every crew action by role, with its skills and effect. */
+    _crewActionRows(skills) {
+        const label = key => game.i18n.localize(key);
+        const names = { ...skills, rangedAttack: label("SFRPG.NarrativeStarship.RangedAttack") };
+        return crewActionGroups(CONFIG.SFRPG.narrativeCrewActions, NARRATIVE_ROLES, names).map(group => ({
+            label: label(`SFRPG.NarrativeStarship.Roles.${group.role}`),
+            actions: group.actions.map(action => {
+                const skillText = action.anySkill
+                    ? label("SFRPG.NarrativeStarship.Dialog.AnySkill")
+                    : game.i18n.format("SFRPG.NarrativeStarship.Tabs.PreferredSkills", { skills: action.skills });
+                return {
+                    key: action.key,
+                    label: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Name`),
+                    effect: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Effect`),
+                    skillText: action.hardAlways ? `${skillText}. ${label("SFRPG.NarrativeStarship.Tabs.HardAlways")}` : skillText
+                };
+            })
+        }));
+    }
+
+    /** The Enemy Actions tab: every enemy tactic with its effect. */
+    _tacticRows() {
+        return Object.keys(CONFIG.SFRPG.narrativeTactics).map(key => ({
+            key,
+            label: game.i18n.localize(`SFRPG.NarrativeStarship.Tactics.${key}.Name`),
+            effect: game.i18n.localize(`SFRPG.NarrativeStarship.Tactics.${key}.Effect`)
         }));
     }
 
@@ -107,6 +149,8 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         html.find(".narrative-hp-pip").click(this._onHPPipClick.bind(this));
         html.find(".narrative-skill-add").click(this._onSkillModifierAdd.bind(this));
         html.find(".narrative-skill-remove").click(this._onSkillModifierRemove.bind(this));
+        html.find(".narrative-upgrade-add").click(this._onUpgradeAdd.bind(this));
+        html.find(".narrative-upgrade-remove").click(this._onUpgradeRemove.bind(this));
         html.find(".narrative-standard-toggle").click(this._onStandardSheetToggle.bind(this));
         html.find(".narrative-tactics-open").click(this._onOpenTactics.bind(this));
     }
@@ -122,13 +166,35 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
     }
 
     /**
-     * Saves a change to the upgrades checklist. The count is kept between 0 and the upgrade's maximum, and a
-     * count of 0 removes the upgrade.
+     * Installs the upgrade chosen in the add row.
+     * @param {Event} event The click event
+     */
+    async _onUpgradeAdd(event) {
+        event.preventDefault();
+        const row = event.currentTarget.closest(".narrative-upgrade-new");
+        const key = row.querySelector(".narrative-upgrade-select").value;
+        if (!key) return;
+        await this.actor.update({ [`system.narrative.upgrades.${key}`]: 1 });
+    }
+
+    /**
+     * Removes an installed upgrade.
+     * @param {Event} event The click event
+     */
+    async _onUpgradeRemove(event) {
+        event.preventDefault();
+        const key = event.currentTarget.closest(".narrative-upgrade").dataset.upgrade;
+        await this.actor.update({ [`system.narrative.upgrades.-=${key}`]: null });
+    }
+
+    /**
+     * Saves a change to an installed upgrade's count. The count is kept between 0 and the upgrade's maximum,
+     * and a count of 0 removes the upgrade.
      * @param {HTMLInputElement} input
      */
     async _onUpgradeChange(input) {
         const key = input.closest(".narrative-upgrade").dataset.upgrade;
-        const count = clampUpgradeCount(key, input.type === "checkbox" ? Number(input.checked) : input.value);
+        const count = clampUpgradeCount(key, input.value);
         const update = count > 0
             ? { [`system.narrative.upgrades.${key}`]: count }
             : { [`system.narrative.upgrades.-=${key}`]: null };
@@ -202,13 +268,13 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
     }
 
     /**
-     * The add row's skill select and value are read when the add button is clicked,
+     * The add rows' selects and values are read when the add button is clicked,
      * so changing them must not submit the form and redraw the sheet.
      * @param {Event} event The change event
      */
     async _onChangeInput(event) {
-        if (event.target.closest(".narrative-skill-new")) return;
-        // The upgrades checklist saves itself, so 0 removes the key instead of saving false or 0.
+        if (event.target.closest(".narrative-skill-new, .narrative-upgrade-new")) return;
+        // An upgrade count saves itself, so 0 removes the key instead of saving 0.
         if (event.target.closest(".narrative-upgrade")) return this._onUpgradeChange(event.target);
         return super._onChangeInput(event);
     }

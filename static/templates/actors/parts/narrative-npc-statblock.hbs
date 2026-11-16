@@ -1,4 +1,4 @@
-<div class="narrative-statblock narrative-npc">
+<div class="tab narrative-statblock narrative-npc" data-group="primary" data-tab="stats">
     {{> "systems/sfrpg/templates/actors/parts/narrative-stats.hbs"}}
 
     <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.SpecialAbilities"}}</h3>
@@ -11,4 +11,15 @@
             engine="prosemirror"
         }}
     </div>
+</div>
+
+<div class="tab narrative-actions" data-group="primary" data-tab="actions">
+    <ol class="narrative-action-list">
+        {{#each narrative.tactics as |tactic|}}
+        <li class="narrative-action" data-tactic="{{tactic.key}}">
+            <div class="narrative-action-name">{{tactic.label}}</div>
+            <div class="narrative-action-effect">{{tactic.effect}}</div>
+        </li>
+        {{/each}}
+    </ol>
 </div>

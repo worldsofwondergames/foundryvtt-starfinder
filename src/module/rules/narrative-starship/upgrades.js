@@ -96,15 +96,18 @@ export function clampUpgradeCount(key, n) {
 }
 
 /**
- * Rows for the upgrades checklist on the PC sheet. Upgrades with a count above 1 get a number input.
+ * The PC sheet's upgrades: a row for each installed upgrade, and the rest as choices for the add row.
+ * Upgrades that can be installed more than once get a count input.
  * @param {Record<string, number>|undefined} upgrades
- * @returns {Array<{key: string, count: number, max: number|null, numeric: boolean, checked: boolean}>}
+ * @returns {{installed: Array<{key: string, count: number, max: number|null, numeric: boolean}>,
+ *     available: Array<{key: string, count: number, max: number|null, numeric: boolean}>}}
  */
-export function upgradeChecklist(upgrades) {
-    return Object.entries(NARRATIVE_UPGRADES).map(([key, data]) => {
+export function upgradeRows(upgrades) {
+    const rows = Object.entries(NARRATIVE_UPGRADES).map(([key, data]) => {
         const count = upgrades?.[key] ?? 0;
-        return { key, count, max: data.maxCount, numeric: data.maxCount !== 1, checked: count >= 1 };
+        return { key, count, max: data.maxCount, numeric: data.maxCount !== 1 };
     });
+    return { installed: rows.filter(r => r.count > 0), available: rows.filter(r => r.count <= 0) };
 }
 
 /** The once-per-combat upgrade with its own button. The others are used from the crew action and tactic flows. */

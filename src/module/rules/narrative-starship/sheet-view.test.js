@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+    crewActionGroups,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
@@ -137,5 +138,27 @@ describe("normalizeNarrativeFormData", () => {
     it("does not add fields that were not submitted", () => {
         const data = normalizeNarrativeFormData({ name: "Ship" });
         expect(data).toEqual({ name: "Ship" });
+    });
+});
+
+describe("crewActionGroups", () => {
+    const actions = {
+        b: { role: "gunner", preferred: ["pil", "rangedAttack"], hardAlways: false },
+        a: { role: "captain", preferred: "any", hardAlways: true },
+        c: { role: "captain", preferred: ["int"], hardAlways: false }
+    };
+    const skills = { pil: "Piloting", int: "Intimidate", rangedAttack: "Ranged attack" };
+
+    it("groups actions by role in the given order and leaves out empty roles", () => {
+        const groups = crewActionGroups(actions, ["any", "captain", "gunner"], skills);
+        expect(groups.map(g => g.role)).toEqual(["captain", "gunner"]);
+        expect(groups[0].actions.map(a => a.key)).toEqual(["a", "c"]);
+    });
+
+    it("names the preferred skills, or marks an action that takes any skill", () => {
+        const [captain, gunner] = crewActionGroups(actions, ["captain", "gunner"], skills);
+        expect(captain.actions[0]).toMatchObject({ anySkill: true, skills: "", hardAlways: true });
+        expect(captain.actions[1]).toMatchObject({ anySkill: false, skills: "Intimidate", hardAlways: false });
+        expect(gunner.actions[0].skills).toBe("Piloting, Ranged attack");
     });
 });

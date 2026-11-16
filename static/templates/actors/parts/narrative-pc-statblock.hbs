@@ -1,4 +1,4 @@
-<div class="narrative-statblock narrative-pc">
+<div class="tab narrative-statblock narrative-pc" data-group="primary" data-tab="stats">
     {{> "systems/sfrpg/templates/actors/parts/narrative-stats.hbs"}}
 
     <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.SkillModifiers"}}</h3>
@@ -23,6 +23,9 @@
         {{/if}}
     </ol>
 
+</div>
+
+<div class="tab narrative-upgrades" data-group="primary" data-tab="upgrades">
     {{#if narrative.onceButtons.length}}
     <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.UpgradeButtons.Header"}}</h3>
     <ol class="narrative-upgrade-buttons">
@@ -36,20 +39,53 @@
     </ol>
     {{/if}}
 
+    {{#unless narrative.upgrades.showSection}}
+    <p class="narrative-empty">{{localize "SFRPG.NarrativeStarship.NoUpgrades"}}</p>
+    {{/unless}}
+    {{#if narrative.upgrades.showSection}}
     <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.UpgradesHeader"}}</h3>
     <ol class="narrative-upgrade-list">
-        {{#each narrative.upgrades as |row|}}
+        {{#each narrative.upgrades.installed as |row|}}
         <li class="narrative-upgrade flexrow" data-upgrade="{{row.key}}">
             <span class="narrative-upgrade-name" data-tooltip="{{row.effect}}">{{row.label}}</span>
             {{#if row.numeric}}
             <input class="narrative-upgrade-count" type="number" step="1" min="0" {{#if row.max}}max="{{row.max}}"{{/if}} value="{{row.count}}" {{#unless @root.editable}}disabled{{/unless}} />
-            {{else}}
-            <input class="narrative-upgrade-check" type="checkbox" {{checked row.checked}} {{#unless @root.editable}}disabled{{/unless}} />
+            {{/if}}
+            {{#if @root.editable}}
+            <a class="narrative-upgrade-remove" data-tooltip="{{localize "SFRPG.NarrativeStarship.RemoveUpgrade"}}"><i class="fas fa-trash"></i></a>
             {{/if}}
         </li>
         {{/each}}
+        {{#if narrative.upgrades.showAdd}}
+        <li class="narrative-upgrade-new flexrow">
+            <select class="narrative-upgrade-select">
+                {{#each narrative.upgrades.available as |row|}}
+                <option value="{{row.key}}" title="{{row.effect}}">{{row.label}}</option>
+                {{/each}}
+            </select>
+            <a class="narrative-upgrade-add" data-tooltip="{{localize "SFRPG.NarrativeStarship.AddUpgrade"}}"><i class="fas fa-plus"></i></a>
+        </li>
+        {{/if}}
     </ol>
+    {{/if}}
 
-    <h3 class="form-header">{{localize "SFRPG.StarshipSheet.Crew.Header"}}</h3>
+</div>
+
+<div class="tab narrative-actions" data-group="primary" data-tab="actions">
+    {{#each narrative.crewActions as |group|}}
+    <h3 class="form-header">{{group.label}}</h3>
+    <ol class="narrative-action-list">
+        {{#each group.actions as |action|}}
+        <li class="narrative-action" data-action="{{action.key}}">
+            <div class="narrative-action-name">{{action.label}}</div>
+            <div class="narrative-action-skills">{{action.skillText}}</div>
+            <div class="narrative-action-effect">{{action.effect}}</div>
+        </li>
+        {{/each}}
+    </ol>
+    {{/each}}
+</div>
+
+<div class="tab narrative-crew" data-group="primary" data-tab="crew">
     {{> "systems/sfrpg/templates/actors/parts/starship-crew-roster.hbs" crew=crew}}
 </div>
