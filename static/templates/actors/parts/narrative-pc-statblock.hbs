@@ -45,33 +45,18 @@
     {{#if narrative.upgrades.showSection}}
     <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.UpgradesHeader"}}</h3>
     <ol class="narrative-upgrade-list">
-        {{#each narrative.upgrades.installed as |row|}}
+        {{#each narrative.upgrades.rows as |row|}}
         <li class="narrative-upgrade flexrow" data-upgrade="{{row.key}}">
-            <span class="narrative-upgrade-name" data-tooltip="{{row.effect}}">{{row.label}}</span>
-            {{#if row.numeric}}
+            <label class="checkbox narrative-upgrade-name" data-tooltip="{{row.effect}}">
+                <input class="narrative-upgrade-check" type="checkbox" {{#if row.count}}checked{{/if}} {{#unless @root.editable}}disabled{{/unless}} />
+                {{row.label}}
+            </label>
+            {{#if row.count}}{{#if row.numeric}}
             <input class="narrative-upgrade-count" type="number" step="1" min="0" {{#if row.max}}max="{{row.max}}"{{/if}} value="{{row.count}}" {{#unless @root.editable}}disabled{{/unless}} />
-            {{/if}}
-            {{#if @root.editable}}
-            <a class="narrative-upgrade-remove" data-tooltip="{{localize "SFRPG.NarrativeStarship.RemoveUpgrade"}}"><i class="fas fa-trash"></i></a>
-            {{/if}}
+            {{/if}}{{/if}}
         </li>
         {{/each}}
     </ol>
-    {{#if narrative.upgrades.showAdd}}
-    <details class="narrative-upgrade-picker" {{#if narrative.upgradePickerOpen}}open{{/if}}>
-        <summary>{{localize "SFRPG.NarrativeStarship.AddUpgrade"}}</summary>
-        <ol>
-            {{#each narrative.upgrades.all as |row|}}
-            <li>
-                <label class="checkbox" data-tooltip="{{row.effect}}">
-                    <input type="checkbox" data-upgrade="{{row.key}}" {{#if row.count}}checked{{/if}} />
-                    {{row.label}}
-                </label>
-            </li>
-            {{/each}}
-        </ol>
-    </details>
-    {{/if}}
     {{/if}}
 
 </div>

@@ -98,11 +98,10 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             canRollActions: rollable.length > 0,
             // The GM's Enemy Tactics button on an enemy ship.
             showTactics: layout === "npc" && Boolean(tacticsCombatFor(this.actor)),
-            upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : { installed: [], all: [] },
+            upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : { rows: [], showSection: false },
             onceButtons: layout === "pc" ? this._onceButtonRows(narrative.upgrades) : [],
             crewActions: layout === "pc" ? this._crewActionRows(skills) : [],
-            tactics: layout === "npc" ? this._tacticRows(enemyTacticButtons(this.actor)?.buttons) : [],
-            upgradePickerOpen: Boolean(this._upgradePickerOpen)
+            tactics: layout === "npc" ? this._tacticRows(enemyTacticButtons(this.actor)?.buttons) : []
         };
 
         data.enrichedSpecialAbilities = await foundry.applications.ux.TextEditor.enrichHTML(narrative.specialAbilities ?? "", {
@@ -114,7 +113,7 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         return data;
     }
 
-    /** The installed upgrades and the ones left to add, with each upgrade's name and effect text. */
+    /** Every upgrade with a checkbox for editors; only the installed ones for other viewers. */
     _upgradeRows(upgrades) {
         const named = row => ({
             ...row,
@@ -123,13 +122,8 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         });
         const { all, installed } = upgradeRows(upgrades);
         // Viewers who can't edit the ship see only what is installed, and no section at all when nothing is.
-        const showAdd = this.isEditable;
-        return {
-            installed: installed.map(named),
-            all: all.map(named),
-            showAdd,
-            showSection: installed.length > 0 || showAdd
-        };
+        const rows = (this.isEditable ? all : installed).map(named);
+        return { rows, showSection: rows.length > 0 };
     }
 
     /**
@@ -248,10 +242,6 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         html.find(".narrative-hp-pip").click(this._onHPPipClick.bind(this));
         html.find(".narrative-skill-add").click(this._onSkillModifierAdd.bind(this));
         html.find(".narrative-skill-remove").click(this._onSkillModifierRemove.bind(this));
-        html.find(".narrative-upgrade-picker").on("toggle", event => {
-            this._upgradePickerOpen = event.currentTarget.open;
-        });
-        html.find(".narrative-upgrade-remove").click(this._onUpgradeRemove.bind(this));
         html.find(".narrative-standard-toggle").click(this._onStandardSheetToggle.bind(this));
         html.find(".narrative-tactics-open").click(this._onOpenTactics.bind(this));
         html.find(".narrative-crew-remove").click(this._onCrewRemove.bind(this));
@@ -415,25 +405,15 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
     }
 
     /**
-     * Installs or removes the upgrade whose box was checked or cleared in the upgrade picker.
+     * Installs or removes the upgrade whose box was checked or cleared.
      * @param {HTMLInputElement} input
      */
     async _onUpgradePick(input) {
-        const key = input.dataset.upgrade;
+        const key = input.closest(".narrative-upgrade").dataset.upgrade;
         const update = input.checked
             ? { [`system.narrative.upgrades.${key}`]: 1 }
             : { [`system.narrative.upgrades.-=${key}`]: null };
         await this.actor.update(update);
-    }
-
-    /**
-     * Removes an installed upgrade.
-     * @param {Event} event The click event
-     */
-    async _onUpgradeRemove(event) {
-        event.preventDefault();
-        const key = event.currentTarget.closest(".narrative-upgrade").dataset.upgrade;
-        await this.actor.update({ [`system.narrative.upgrades.-=${key}`]: null });
     }
 
     /**
@@ -523,7 +503,7 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
      */
     async _onChangeInput(event) {
         if (event.target.closest(".narrative-skill-new")) return;
-        if (event.target.closest(".narrative-upgrade-picker")) return this._onUpgradePick(event.target);
+        if (event.target.classList.contains("narrative-upgrade-check")) return this._onUpgradePick(event.target);
         // An upgrade count saves itself, so 0 removes the key instead of saving 0.
         if (event.target.closest(".narrative-upgrade")) return this._onUpgradeChange(event.target);
         return super._onChangeInput(event);

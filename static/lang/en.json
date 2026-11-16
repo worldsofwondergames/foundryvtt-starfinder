@@ -2791,7 +2791,6 @@
         "NarrativeStarship": {
             "Act": "Act",
             "AddSkillModifier": "Add a skill modifier",
-            "AddUpgrade": "Choose upgrades",
             "AverageDC": "Average DC",
             "Card": {
                 "Failure": "Failure: {total} against DC {dc}.",
@@ -2996,7 +2995,6 @@
             "PickCrewTitle": "Who rolls?",
             "RemoveCrew": "Remove from the crew",
             "RemoveSkillModifier": "Remove this skill modifier",
-            "RemoveUpgrade": "Remove this upgrade",
             "Resolve": {
                 "EndCombat": "End Combat",
                 "Fled": "{ship} flees the battle.",
