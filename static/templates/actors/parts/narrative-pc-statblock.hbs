@@ -56,17 +56,22 @@
             {{/if}}
         </li>
         {{/each}}
-        {{#if narrative.upgrades.showAdd}}
-        <li class="narrative-upgrade-new flexrow">
-            <select class="narrative-upgrade-select">
-                {{#each narrative.upgrades.available as |row|}}
-                <option value="{{row.key}}" title="{{row.effect}}">{{row.label}}</option>
-                {{/each}}
-            </select>
-            <a class="narrative-upgrade-add" data-tooltip="{{localize "SFRPG.NarrativeStarship.AddUpgrade"}}"><i class="fas fa-plus"></i></a>
-        </li>
-        {{/if}}
     </ol>
+    {{#if narrative.upgrades.showAdd}}
+    <details class="narrative-upgrade-picker" {{#if narrative.upgradePickerOpen}}open{{/if}}>
+        <summary>{{localize "SFRPG.NarrativeStarship.AddUpgrade"}}</summary>
+        <ol>
+            {{#each narrative.upgrades.all as |row|}}
+            <li>
+                <label class="checkbox" data-tooltip="{{row.effect}}">
+                    <input type="checkbox" data-upgrade="{{row.key}}" {{#if row.count}}checked{{/if}} />
+                    {{row.label}}
+                </label>
+            </li>
+            {{/each}}
+        </ol>
+    </details>
+    {{/if}}
     {{/if}}
 
 </div>
@@ -83,8 +88,7 @@
                 <button type="button" class="narrative-action-roll" data-action-key="{{action.key}}"><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Dialog.Roll"}}</button>
                 {{/if}}
             </div>
-            <div class="narrative-action-skills">{{action.skillText}}{{#if action.hardAlways}}.
-                {{#if action.hardDCs.length}}{{#each action.hardDCs as |entry|}}{{#unless @first}}, {{/unless}}<strong>{{localize "SFRPG.NarrativeStarship.Tabs.DC" dc=entry.dc}}</strong>{{#if entry.name}} ({{entry.name}}){{/if}}{{/each}}{{else}}<strong>{{localize "SFRPG.NarrativeStarship.Tabs.HardAlways"}}</strong>{{/if}}{{/if}}</div>
+            <div class="narrative-action-skills">{{action.skillText}}:{{#each action.dcGroups as |group|}}{{#if @first}} {{else}}; {{/if}}{{#if group.label}}{{group.label}} {{/if}}{{#if group.fallback}}<strong>{{group.fallback}}</strong>{{/if}}{{#each group.dcs as |entry|}}{{#unless @first}}, {{/unless}}<strong>{{entry.text}}</strong>{{#if entry.name}} ({{entry.name}}){{/if}}{{/each}}{{/each}}</div>
             <div class="narrative-action-effect">{{action.effect}}</div>
         </li>
         {{/each}}

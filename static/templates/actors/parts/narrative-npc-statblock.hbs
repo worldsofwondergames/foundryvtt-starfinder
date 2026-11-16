@@ -25,6 +25,9 @@
                 </span>
                 {{/if}}
             </div>
+            {{#if tactic.dcGroups.length}}
+            <div class="narrative-action-skills">{{localize "SFRPG.NarrativeStarship.Tabs.CheckAgainst"}}{{#each tactic.dcGroups as |group|}}{{#if @first}} {{else}}; {{/if}}{{#if group.label}}{{group.label}} {{/if}}{{#if group.fallback}}<strong>{{group.fallback}}</strong>{{/if}}{{#each group.dcs as |entry|}}{{#unless @first}}, {{/unless}}<strong>{{entry.text}}</strong>{{#if entry.name}} ({{entry.name}}){{/if}}{{/each}}{{/each}}</div>
+            {{/if}}
             <div class="narrative-action-effect">{{tactic.effect}}</div>
         </li>
         {{/each}}

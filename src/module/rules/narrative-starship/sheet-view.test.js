@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
     addCrewMember,
     crewActionGroups,
-    hardDCDisplay,
+    crewActionDCGroups,
+    dcNumbers,
+    tacticDCGroups,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
@@ -241,24 +243,64 @@ describe("tacticPrompt", () => {
     });
 });
 
-describe("hardDCDisplay", () => {
-    const enemies = [{ name: "Bow", hard: 24 }, { name: "Stern", hard: 24 }];
-
-    it("shows this ship's Hard DC for an action that uses your ship's DC", () => {
-        expect(hardDCDisplay("own", 25, enemies)).toEqual([{ dc: 25, name: null }]);
+describe("dcNumbers", () => {
+    it("gives one number when every ship shares the DC", () => {
+        const ships = [{ name: "Bow", average: 19, hard: 24 }, { name: "Stern", average: 19, hard: 24 }];
+        expect(dcNumbers("hard", ships)).toEqual([{ dc: 24, name: null }]);
+        expect(dcNumbers("average", ships)).toEqual([{ dc: 19, name: null }]);
     });
 
-    it("shows one Hard DC when every enemy ship shares it", () => {
-        expect(hardDCDisplay("target", 25, enemies)).toEqual([{ dc: 24, name: null }]);
+    it("names each ship when their DCs differ", () => {
+        const ships = [{ name: "Bow", average: 19, hard: 24 }, { name: "Stern", average: 21, hard: 26 }];
+        expect(dcNumbers("hard", ships)).toEqual([{ dc: 24, name: "Bow" }, { dc: 26, name: "Stern" }]);
     });
 
-    it("names each enemy ship when their Hard DCs differ", () => {
-        const mixed = [{ name: "Bow", hard: 24 }, { name: "Stern", hard: 26 }];
-        expect(hardDCDisplay("target", 25, mixed)).toEqual([{ dc: 24, name: "Bow" }, { dc: 26, name: "Stern" }]);
+    it("gives nothing when no DC is known", () => {
+        expect(dcNumbers("hard", [])).toEqual([]);
+        expect(dcNumbers("hard", [{ name: "Bow", average: 19 }])).toEqual([]);
+    });
+});
+
+describe("crewActionDCGroups", () => {
+    const own = { name: "Kestra", average: 20, hard: 25 };
+    const enemies = [{ name: "Bow", average: 19, hard: 24 }];
+    const dcs = groups => groups.map(g => [g.label, g.dcs[0]?.dc]);
+
+    it("gives the Average DC for preferred skills and the Hard DC for other skills", () => {
+        const action = { preferred: ["pil"], hardAlways: false, dcOf: "target" };
+        expect(dcs(crewActionDCGroups(action, own, enemies))).toEqual([[null, 19], ["otherSkills", 24]]);
     });
 
-    it("shows nothing when the DC is not known", () => {
-        expect(hardDCDisplay("target", 25, [])).toEqual([]);
-        expect(hardDCDisplay("own", undefined, enemies)).toEqual([]);
+    it("gives only the Hard DC for an action that always uses it", () => {
+        const action = { preferred: "any", hardAlways: true, dcOf: "target" };
+        expect(dcs(crewActionDCGroups(action, own, enemies))).toEqual([[null, 24]]);
+    });
+
+    it("gives only the Average DC when every skill is preferred", () => {
+        const action = { preferred: "any", hardAlways: false, dcOf: "target" };
+        expect(dcs(crewActionDCGroups(action, own, enemies))).toEqual([[null, 19]]);
+    });
+
+    it("uses this ship's DC for an action that uses your ship's DC", () => {
+        const action = { preferred: "any", hardAlways: true, dcOf: "own" };
+        expect(dcs(crewActionDCGroups(action, own, enemies))).toEqual([[null, 25]]);
+    });
+});
+
+describe("tacticDCGroups", () => {
+    const pcShips = [{ name: "Kestra", average: 20, hard: 25 }];
+    const dcs = groups => groups.map(g => [g.label, g.dcs[0]?.dc]);
+
+    it("gives the PC ship's DC of the tactic's category", () => {
+        expect(dcs(tacticDCGroups({ dc: "average" }, pcShips))).toEqual([[null, 20]]);
+        expect(dcs(tacticDCGroups({ dc: "hard" }, pcShips))).toEqual([[null, 25]]);
+    });
+
+    it("gives both DCs when the GM chooses", () => {
+        expect(dcs(tacticDCGroups({ dc: "choice" }, pcShips))).toEqual([["average", 20], ["hard", 25]]);
+    });
+
+    it("gives nothing for a tactic with no check", () => {
+        expect(tacticDCGroups({ dc: null }, pcShips)).toEqual([]);
     });
 });

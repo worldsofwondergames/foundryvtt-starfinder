@@ -2791,7 +2791,7 @@
         "NarrativeStarship": {
             "Act": "Act",
             "AddSkillModifier": "Add a skill modifier",
-            "AddUpgrade": "Add this upgrade",
+            "AddUpgrade": "Choose upgrades",
             "AverageDC": "Average DC",
             "Card": {
                 "Failure": "Failure: {total} against DC {dc}.",
@@ -3047,11 +3047,16 @@
             },
             "SpecialAbilities": "Special Abilities",
             "Tabs": {
+                "Average": "Average",
+                "AverageDC": "Average DC",
+                "CheckAgainst": "Check against",
                 "Crew": "Crew",
                 "CrewActions": "Crew Actions",
                 "DC": "DC {dc}",
                 "EnemyActions": "Enemy Actions",
-                "HardAlways": "Target's Hard DC",
+                "Hard": "Hard",
+                "HardDC": "Hard DC",
+                "OtherSkills": "other skills",
                 "PreferredSkills": "Preferred skills: {skills}",
                 "Stats": "Stats",
                 "Upgrades": "Upgrades"

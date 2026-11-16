@@ -4,22 +4,49 @@ import { showStandardSheetToggle } from "../../rules/narrative-starship/mode.js"
 import { NARRATIVE_TACTICS } from "../../rules/narrative-starship/tactics.js";
 import {
     addCrewMember,
+    crewActionDCGroups,
     crewActionGroups,
-    hardDCDisplay,
     hpFromPipClick,
     hpPips,
     narrativeLayout,
     narrativeStatRows,
     normalizeNarrativeFormData,
     skillModifierView,
+    tacticDCGroups,
     tacticPrompt
 } from "../../rules/narrative-starship/sheet-view.js";
 import { clampUpgradeCount, onceButtons, upgradeRows } from "../../rules/narrative-starship/upgrades.js";
 import { NARRATIVE_ROLES } from "../../rules/narrative-starship/crew-actions.js";
 import {
-    actableCrew, enemyTacticButtons, narrativeCombatFor, requestUpgradeUse, runEnemyTactic, shipActor, tacticsCombatFor, upgradeButtonsCombatFor
+    actableCrew, enemyTacticButtons, narrativeCombatFor, NARRATIVE_COMBAT_TYPE, requestUpgradeUse, runEnemyTactic, shipActor, tacticsCombatFor, upgradeButtonsCombatFor
 } from "../../system/narrative-starship-combat.js";
 import { ActorSheetSFRPGStarship } from "./starship.js";
+
+/**
+ * A ship's name and narrative DCs.
+ * @param {Actor} actor
+ */
+function shipDCs(actor) {
+    const derived = actor.system.narrative?.derived ?? {};
+    return { name: actor.name, average: derived.averageDC, hard: derived.hardDC };
+}
+
+const DC_GROUP_LABELS = { otherSkills: "OtherSkills", average: "Average", hard: "Hard" };
+const DC_CATEGORY_NAMES = { average: "AverageDC", hard: "HardDC" };
+
+/**
+ * Labels for DC groups. A group with no known DC, such as a target's DC before any enemy is in a combat with this
+ * ship, shows its category name instead of a number.
+ * @param {Array<{label: string|null, category: string, dcs: Array<{dc: number, name: string|null}>}>} groups
+ */
+function dcGroupView(groups) {
+    const i18n = key => game.i18n.localize(`SFRPG.NarrativeStarship.Tabs.${key}`);
+    return groups.map(group => ({
+        label: group.label ? i18n(DC_GROUP_LABELS[group.label]) : "",
+        dcs: group.dcs.map(entry => ({ text: game.i18n.format("SFRPG.NarrativeStarship.Tabs.DC", { dc: entry.dc }), name: entry.name })),
+        fallback: group.dcs.length ? "" : i18n(DC_CATEGORY_NAMES[group.category])
+    }));
+}
 
 /** Actor types that can be dropped on a PC ship's narrative crew list. */
 const CREW_ACTOR_TYPES = ["character", "drone", "npc", "npc2"];
@@ -71,10 +98,11 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             canRollActions: rollable.length > 0,
             // The GM's Enemy Tactics button on an enemy ship.
             showTactics: layout === "npc" && Boolean(tacticsCombatFor(this.actor)),
-            upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : { installed: [], available: [] },
+            upgrades: layout === "pc" ? this._upgradeRows(narrative.upgrades) : { installed: [], all: [] },
             onceButtons: layout === "pc" ? this._onceButtonRows(narrative.upgrades) : [],
-            crewActions: layout === "pc" ? this._crewActionRows(skills, derived.hardDC) : [],
-            tactics: layout === "npc" ? this._tacticRows(enemyTacticButtons(this.actor)?.buttons) : []
+            crewActions: layout === "pc" ? this._crewActionRows(skills) : [],
+            tactics: layout === "npc" ? this._tacticRows(enemyTacticButtons(this.actor)?.buttons) : [],
+            upgradePickerOpen: Boolean(this._upgradePickerOpen)
         };
 
         data.enrichedSpecialAbilities = await foundry.applications.ux.TextEditor.enrichHTML(narrative.specialAbilities ?? "", {
@@ -93,54 +121,62 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             label: game.i18n.localize(`SFRPG.NarrativeStarship.Upgrades.${row.key}.Name`),
             effect: game.i18n.localize(`SFRPG.NarrativeStarship.Upgrades.${row.key}.Effect`)
         });
-        const { installed, available } = upgradeRows(upgrades);
+        const { all, installed } = upgradeRows(upgrades);
         // Viewers who can't edit the ship see only what is installed, and no section at all when nothing is.
-        const showAdd = this.isEditable && available.length > 0;
+        const showAdd = this.isEditable;
         return {
             installed: installed.map(named),
-            available: available.map(named),
+            all: all.map(named),
             showAdd,
             showSection: installed.length > 0 || showAdd
         };
     }
 
     /**
-     * The Crew Actions tab: every crew action by role, with its skills and effect, and the Hard DC for actions that
-     * always use it.
+     * The Crew Actions tab: every crew action by role, with its skills, effect, and the DC numbers of the DC
+     * categories the rules give it.
      * @param {Object<string, string>} skills
-     * @param {number|undefined} ownHard This ship's Hard DC.
      */
-    _crewActionRows(skills, ownHard) {
+    _crewActionRows(skills) {
         const label = key => game.i18n.localize(key);
         const names = { ...skills, rangedAttack: label("SFRPG.NarrativeStarship.RangedAttack") };
-        const enemies = this._enemyHardDCs();
+        const own = shipDCs(this.actor);
+        const opponents = this._opponentDCs();
         return crewActionGroups(CONFIG.SFRPG.narrativeCrewActions, NARRATIVE_ROLES, names).map(group => ({
             label: label(`SFRPG.NarrativeStarship.Roles.${group.role}`),
-            actions: group.actions.map(action => {
-                const skillText = action.anySkill
+            actions: group.actions.map(action => ({
+                key: action.key,
+                label: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Name`),
+                effect: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Effect`),
+                skillText: action.anySkill
                     ? label("SFRPG.NarrativeStarship.Dialog.AnySkill")
-                    : game.i18n.format("SFRPG.NarrativeStarship.Tabs.PreferredSkills", { skills: action.skills });
-                return {
-                    key: action.key,
-                    label: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Name`),
-                    effect: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Effect`),
-                    skillText,
-                    hardAlways: action.hardAlways,
-                    hardDCs: action.hardAlways ? hardDCDisplay(action.dcOf, ownHard, enemies) : []
-                };
-            })
+                    : game.i18n.format("SFRPG.NarrativeStarship.Tabs.PreferredSkills", { skills: action.skills }),
+                dcGroups: dcGroupView(crewActionDCGroups(action, own, opponents))
+            }))
         }));
     }
 
-    /** The name and Hard DC of each enemy ship in this ship's narrative combat. Empty outside combat. */
-    _enemyHardDCs() {
-        const combat = narrativeCombatFor(this.actor.id);
-        const ships = combat?.getFlag("sfrpg", "narrative")?.ships ?? {};
-        return Object.entries(ships)
-            .filter(([, ship]) => ship.side === "enemy")
-            .map(([id]) => shipActor(combat, id))
-            .filter(Boolean)
-            .map(actor => ({ name: actor.name, hard: actor.system.narrative?.derived?.hardDC }));
+    /**
+     * The name and DCs of each ship on the other side of this ship's narrative combat. The combat need not be
+     * started, so the DCs show while the GM sets it up. Empty when the ship is in no narrative combat.
+     */
+    _opponentDCs() {
+        const combat = narrativeCombatFor(this.actor.id)
+            ?? game.combats?.find(c => c.getCombatType?.() === NARRATIVE_COMBAT_TYPE
+                && c.combatants.some(cb => cb.actorId === this.actor.id))
+            ?? null;
+        if (!combat) return [];
+        const npc = actor => Boolean(actor.system.crew?.useNPCCrew);
+        const mine = npc(this.actor);
+        const seen = new Set();
+        const ships = [];
+        for (const combatant of combat.combatants) {
+            const actor = combatant.actor;
+            if (actor?.type !== "starship" || seen.has(combatant.actorId) || npc(actor) === mine) continue;
+            seen.add(combatant.actorId);
+            ships.push(shipDCs(actor));
+        }
+        return ships;
     }
 
     /**
@@ -166,12 +202,14 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
      * @param {Record<string, {disabled: boolean, reason: string|null}>|undefined} buttons
      */
     _tacticRows(buttons) {
+        const opponents = this._opponentDCs();
         return Object.keys(CONFIG.SFRPG.narrativeTactics).map(key => {
             const button = buttons?.[key];
             return {
                 key,
                 label: game.i18n.localize(`${LABEL}Tactics.${key}.Name`),
                 effect: game.i18n.localize(`${LABEL}Tactics.${key}.Effect`),
+                dcGroups: dcGroupView(tacticDCGroups(CONFIG.SFRPG.narrativeTactics[key], opponents)),
                 roll: button
                     ? { disabled: button.disabled, hint: button.reason ? game.i18n.localize(`${LABEL}TacticRejected.${button.reason}`) : "" }
                     : null
@@ -210,7 +248,9 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         html.find(".narrative-hp-pip").click(this._onHPPipClick.bind(this));
         html.find(".narrative-skill-add").click(this._onSkillModifierAdd.bind(this));
         html.find(".narrative-skill-remove").click(this._onSkillModifierRemove.bind(this));
-        html.find(".narrative-upgrade-add").click(this._onUpgradeAdd.bind(this));
+        html.find(".narrative-upgrade-picker").on("toggle", event => {
+            this._upgradePickerOpen = event.currentTarget.open;
+        });
         html.find(".narrative-upgrade-remove").click(this._onUpgradeRemove.bind(this));
         html.find(".narrative-standard-toggle").click(this._onStandardSheetToggle.bind(this));
         html.find(".narrative-tactics-open").click(this._onOpenTactics.bind(this));
@@ -375,15 +415,15 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
     }
 
     /**
-     * Installs the upgrade chosen in the add row.
-     * @param {Event} event The click event
+     * Installs or removes the upgrade whose box was checked or cleared in the upgrade picker.
+     * @param {HTMLInputElement} input
      */
-    async _onUpgradeAdd(event) {
-        event.preventDefault();
-        const row = event.currentTarget.closest(".narrative-upgrade-new");
-        const key = row.querySelector(".narrative-upgrade-select").value;
-        if (!key) return;
-        await this.actor.update({ [`system.narrative.upgrades.${key}`]: 1 });
+    async _onUpgradePick(input) {
+        const key = input.dataset.upgrade;
+        const update = input.checked
+            ? { [`system.narrative.upgrades.${key}`]: 1 }
+            : { [`system.narrative.upgrades.-=${key}`]: null };
+        await this.actor.update(update);
     }
 
     /**
@@ -482,7 +522,8 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
      * @param {Event} event The change event
      */
     async _onChangeInput(event) {
-        if (event.target.closest(".narrative-skill-new, .narrative-upgrade-new")) return;
+        if (event.target.closest(".narrative-skill-new")) return;
+        if (event.target.closest(".narrative-upgrade-picker")) return this._onUpgradePick(event.target);
         // An upgrade count saves itself, so 0 removes the key instead of saving 0.
         if (event.target.closest(".narrative-upgrade")) return this._onUpgradeChange(event.target);
         return super._onChangeInput(event);

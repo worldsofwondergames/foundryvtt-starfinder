@@ -35,20 +35,20 @@ describe("clampUpgradeCount", () => {
 });
 
 describe("upgradeRows", () => {
-    it("lists installed upgrades as rows and the rest as choices to add", () => {
-        const { installed, available } = upgradeRows({ driftEngineUpgrade: 2, tractorBeam: 1, mineLayer: 0 });
+    it("lists installed upgrades as rows and every upgrade for the picker", () => {
+        const { installed, all } = upgradeRows({ driftEngineUpgrade: 2, tractorBeam: 1, mineLayer: 0 });
         expect(installed.map(r => r.key)).toEqual(["driftEngineUpgrade", "tractorBeam"]);
         expect(installed[0]).toMatchObject({ numeric: true, count: 2, max: 4 });
         expect(installed[1]).toMatchObject({ numeric: false, count: 1 });
-        expect(available.map(r => r.key)).toContain("mineLayer");
-        expect(available.map(r => r.key)).not.toContain("tractorBeam");
-        expect(installed.length + available.length).toBe(10);
+        expect(all.find(r => r.key === "mineLayer").count).toBe(0);
+        expect(all.find(r => r.key === "tractorBeam").count).toBe(1);
+        expect(all.length).toBe(10);
     });
 
     it("offers every upgrade when none is installed", () => {
-        const { installed, available } = upgradeRows(undefined);
+        const { installed, all } = upgradeRows(undefined);
         expect(installed).toEqual([]);
-        expect(available.find(r => r.key === "expansionBay")).toMatchObject({ numeric: true, max: null });
+        expect(all.find(r => r.key === "expansionBay")).toMatchObject({ numeric: true, max: null });
     });
 });
 

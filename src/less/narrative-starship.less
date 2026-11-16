@@ -164,7 +164,6 @@
 
     .narrative-stat,
     .narrative-upgrade,
-    .narrative-upgrade-new,
     .narrative-skill-row,
     .narrative-skill-new {
         align-items: center;
@@ -238,10 +237,8 @@
         }
     }
 
-    .narrative-upgrade,
-    .narrative-upgrade-new {
-        .narrative-upgrade-name,
-        .narrative-upgrade-select {
+    .narrative-upgrade {
+        .narrative-upgrade-name {
             flex: 1;
         }
 
@@ -252,6 +249,28 @@
         a {
             flex: 0 0 20px;
             text-align: center;
+        }
+    }
+
+    .narrative-upgrade-picker {
+        margin-top: 4px;
+
+        summary {
+            cursor: pointer;
+        }
+
+        ol {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 0 8px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        label.checkbox {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
     }
 

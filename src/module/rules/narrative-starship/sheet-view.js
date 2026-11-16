@@ -103,7 +103,7 @@ export function skillModifierView(skillModifiers, skills) {
  * @param {string[]} roles Role keys in display order.
  * @param {Object<string, string>} skills Skill key to label. Keys missing from it are shown as the key.
  * @returns {Array<{role: string, actions: Array<{key: string, anySkill: boolean, skills: string, hardAlways: boolean,
- *     dcOf: string}>}>}
+ *     dcOf: string, preferred: string[]|"any"}>}>}
  */
 export function crewActionGroups(actions, roles, skills) {
     return roles
@@ -116,28 +116,54 @@ export function crewActionGroups(actions, roles, skills) {
                     anySkill: action.preferred === "any",
                     skills: action.preferred === "any" ? "" : action.preferred.map(k => skills[k] ?? k).join(", "),
                     hardAlways: action.hardAlways,
-                    dcOf: action.dcOf
+                    dcOf: action.dcOf,
+                    preferred: action.preferred
                 }))
         }))
         .filter(group => group.actions.length > 0);
 }
 
 /**
- * The Hard DC to show beside an action that always uses the Hard DC.
- * An action that uses your ship's DC shows your ship's Hard DC. An action that uses the target's DC shows the enemy
- * ships' Hard DC in this ship's narrative combat: one number when they all share it, or one per enemy ship.
- * @param {"own"|"target"} dcOf
- * @param {number|undefined} ownHard This ship's Hard DC.
- * @param {Array<{name: string, hard: number|undefined}>} enemies The enemy ships in this ship's combat.
- * @returns {Array<{dc: number, name: string|null}>} Empty when the DC is not known, such as outside combat.
+ * The DC numbers of one DC category for a set of ships: one number when they all share it, or one per ship.
+ * @param {"average"|"hard"} category
+ * @param {Array<{name: string, average: number|undefined, hard: number|undefined}>} ships
+ * @returns {Array<{dc: number, name: string|null}>} Empty when no ship's DC is known.
  */
-export function hardDCDisplay(dcOf, ownHard, enemies) {
-    const known = value => typeof value === "number" && Number.isFinite(value);
-    if (dcOf === "own") return known(ownHard) ? [{ dc: ownHard, name: null }] : [];
-    const ships = enemies.filter(ship => known(ship.hard));
-    if (ships.length === 0) return [];
-    if (ships.every(ship => ship.hard === ships[0].hard)) return [{ dc: ships[0].hard, name: null }];
-    return ships.map(ship => ({ dc: ship.hard, name: ship.name }));
+export function dcNumbers(category, ships) {
+    const known = ships.filter(ship => Number.isFinite(ship?.[category]));
+    if (known.length === 0) return [];
+    if (known.every(ship => ship[category] === known[0][category])) return [{ dc: known[0][category], name: null }];
+    return known.map(ship => ({ dc: ship[category], name: ship.name }));
+}
+
+/**
+ * The DCs to show beside a crew action, by the DC category the rules give it. A preferred skill uses the Average
+ * DC and any other skill the Hard DC; an action that always uses the Hard DC has only that one.
+ * @param {{preferred: string[]|"any", hardAlways: boolean, dcOf: "own"|"target"}} action
+ * @param {{name: string, average: number|undefined, hard: number|undefined}} own This ship.
+ * @param {Array<{name: string, average: number|undefined, hard: number|undefined}>} opponents The enemy ships.
+ * @returns {Array<{label: "otherSkills"|null, category: "average"|"hard", dcs: Array<{dc: number, name: string|null}>}>}
+ */
+export function crewActionDCGroups(action, own, opponents) {
+    const ships = action.dcOf === "own" ? [own] : opponents;
+    const group = (label, category) => ({ label, category, dcs: dcNumbers(category, ships) });
+    if (action.hardAlways) return [group(null, "hard")];
+    if (action.preferred === "any") return [group(null, "average")];
+    return [group(null, "average"), group("otherSkills", "hard")];
+}
+
+/**
+ * The DCs to show beside an enemy tactic: the PC ships' DC of the category the tactic's check uses. Cruel Taunt
+ * shows both, since the GM picks one.
+ * @param {{dc: "average"|"hard"|"choice"|null}} tactic
+ * @param {Array<{name: string, average: number|undefined, hard: number|undefined}>} pcShips
+ * @returns {Array<{label: "average"|"hard"|null, category: "average"|"hard", dcs: Array<{dc: number, name: string|null}>}>}
+ */
+export function tacticDCGroups(tactic, pcShips) {
+    const group = (label, category) => ({ label, category, dcs: dcNumbers(category, pcShips) });
+    if (tactic.dc === "choice") return [group("average", "average"), group("hard", "hard")];
+    if (tactic.dc === "average" || tactic.dc === "hard") return [group(null, tactic.dc)];
+    return [];
 }
 
 function blank(value) {
