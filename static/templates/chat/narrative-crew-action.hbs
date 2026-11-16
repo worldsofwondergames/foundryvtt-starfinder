@@ -1,0 +1,31 @@
+<div class="sfrpg chat-card narrative-crew-action-card">
+    <header class="card-header flexrow">
+        <h3 class="action-name">{{actionName}}</h3>
+    </header>
+    <div class="card-content">
+        <p>{{localize "SFRPG.NarrativeStarship.Card.Who" name=actorName skill=skill}}</p>
+        {{#if targetName}}
+        <p>{{localize "SFRPG.NarrativeStarship.Card.Target" ship=targetName}}</p>
+        {{/if}}
+        {{#if free}}
+        <p>{{localize "SFRPG.NarrativeStarship.Card.Free"}}</p>
+        {{/if}}
+        {{{rollHTML}}}
+        <p class="narrative-crew-action-result {{#if success}}success{{else}}failure{{/if}}">
+            {{#if success}}
+            {{localize "SFRPG.NarrativeStarship.Card.Success" total=total dc=dc}}
+            {{else}}
+            {{localize "SFRPG.NarrativeStarship.Card.Failure" total=total dc=dc}}
+            {{/if}}
+        </p>
+        {{#if successes}}
+        <p>{{localize "SFRPG.NarrativeStarship.Card.Successes" count=successes}}</p>
+        {{/if}}
+        {{#if effectText}}
+        <p>{{effectText}}</p>
+        {{/if}}
+        {{#each lines as |line|}}
+        <p>{{line}}</p>
+        {{/each}}
+    </div>
+</div>
