@@ -1,5 +1,6 @@
 import { DiceSFRPG } from "../dice.js";
 import { ItemSFRPG } from "../item/item.js";
+import { chatCardItem } from "./card-item.js";
 
 /**
  * Helper class to handle the display of chatBox
@@ -48,26 +49,21 @@ export default class SFRPGCustomChatMessage {
             return false;
         }
 
-        let item = data.rollContext.allContexts['item'] ? data.rollContext.allContexts['item'].entity : mainContext?.entity;
-        if (!item) {
-            item = data.rollContext.allContexts['weapon'] ? data.rollContext.allContexts['weapon'].entity : mainContext?.entity;
-            if (!item) {
-                return false;
-            }
-        }
+        const item = chatCardItem(data.rollContext);
 
         const hasCapacity = item instanceof ItemSFRPG ? item.hasCapacity() : null;
         const currentCapacity = item instanceof ItemSFRPG ? item.getCurrentCapacity() : null;
         const options = {
             item: item,
-            labels: item.labels || {},
-            hasDamage: data.rollType !== "damage" && (item.hasDamage || false),
-            hasSave: item.hasSave || false,
-            hasSkill: item.hasSkill || false,
-            hasArea: item.hasArea || false,
+            labels: item?.labels || {},
+            hasDamage: data.rollType !== "damage" && (item?.hasDamage || false),
+            hasSave: item?.hasSave || false,
+            hasSkill: item?.hasSkill || false,
+            hasArea: item?.hasArea || false,
             hasCapacity: hasCapacity,
             ammoLeft: currentCapacity,
             title: data.title ? data.title : 'Roll',
+            flavor: data.title,
             rawTitle: data.speaker.alias,
             dataRoll: roll,
             rollType: data.rollType,
