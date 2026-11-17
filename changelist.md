@@ -1,3 +1,11 @@
+# Version 14.1.10
+
+## New Features
+- Narrative effect text that names a ship's DC shows the number, such as "use its Hard DC (DC 24) this round"
+
+## Bugfixes
+- Removed the "Set the tier to the party's Average Party Level" hint from the Narrative Starship sheet
+
 # Version 14.1.9
 
 ## New Features
