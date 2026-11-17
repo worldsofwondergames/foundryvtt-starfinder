@@ -591,6 +591,27 @@ export default class SFRPGItemBase extends SFRPGDocumentBase {
                 initial: "halfTier",
                 blank: true,
                 label: "SFRPG.MechSheet.Action.SaveDCScaling"
+            }),
+            // An ability that heals a mech's Hit Points, such as Nanite Swarm
+            // Repair's "1d6 x the mech's tier", written "1d6 * @tier".
+            healFormula: new fields.StringField({
+                initial: "",
+                blank: true,
+                label: "SFRPG.MechSheet.Action.HealFormula"
+            }),
+            // "self" heals the mech using the ability, "target" the mech the user targets.
+            healTarget: new fields.StringField({
+                initial: "",
+                blank: true,
+                label: "SFRPG.MechSheet.Action.HealTarget"
+            }),
+            // How far away, in feet, a targeted heal reaches.
+            healRange: new fields.NumberField({
+                initial: null,
+                min: 0,
+                integer: true,
+                nullable: true,
+                label: "SFRPG.MechSheet.Action.HealRange"
             })
         };
     }

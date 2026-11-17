@@ -10,13 +10,19 @@
         "name": "Reconstruction",
         "actionType": "standard",
         "description": "As a standard action, the mech repairs its hull, healing an amount of Hit Points equal to 1d6 × the mech's tier. Once a mech has been repaired in this way, it can't benefit from this ability again for 24 hours.",
-        "ppCost": 3
+        "ppCost": 3,
+        "healFormula": "1d6 * @tier",
+        "healTarget": "self",
+        "healRange": null
       },
       {
         "name": "Builder Swarm",
         "actionType": "standard",
         "description": "As a standard action, the mech repairs the hull of a mech within 100 feet, healing an amount of Hit Points equal to 1d6 × the mech's tier. Once a mech has been repaired, it can't benefit from this ability again for 24 hours.",
-        "ppCost": 4
+        "ppCost": 4,
+        "healFormula": "1d6 * @tier",
+        "healTarget": "target",
+        "healRange": 100
       }
     ],
     "canBeActivated": true,

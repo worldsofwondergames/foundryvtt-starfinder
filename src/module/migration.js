@@ -2,6 +2,7 @@ import SFRPGModifier from "./modifiers/modifier.js";
 import { SFRPGEffectType, SFRPGModifierType, SFRPGModifierTypes } from "./modifiers/types.js";
 import { weaponCoreItemUpdate, weaponCoreTemplate } from "./rules/weapon-core.js";
 import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mech-limb-hp.js";
+import { naniteSwarmUpdate } from "./rules/mech-heal.js";
 import { compendiumMpCosts, correctedMpCost } from "./rules/mech-points.js";
 
 const SFRPGMigrationSchemas = Object.freeze({
@@ -16,7 +17,8 @@ const SFRPGMigrationSchemas = Object.freeze({
     MECH_ACTIONS_SYNC: 0.010, // Sync mech component actions from compendium to actor items that were imported before actions were added.
     WEAPON_CORE_ENERGY_TYPES: 0.011, // Mark Weapon Core as choosing two energy types, reading them from names such as "Weapon Core (Cold, Fire)".
     TOUGH_ARMS_HP: 0.012, // Give every Tough Arms the compendium's +1 Hit Point per tier in place of a flat +1.
-    MECH_MP_COSTS: 0.013 // Give copies of auxiliary systems, power cores and upgrades the compendium's Mech Point cost.
+    MECH_MP_COSTS: 0.013, // Give copies of auxiliary systems, power cores and upgrades the compendium's Mech Point cost.
+    NANITE_SWARM_HEAL: 0.014 // Give copies of Nanite Swarm Repair the heals its actions roll from the chat card.
 });
 
 /** The compendium's Mech Point costs, read once when a world migrates past MECH_MP_COSTS. */
@@ -147,6 +149,7 @@ const migrateItem = async function(item, schema) {
     if (schema < SFRPGMigrationSchemas.WEAPON_CORE_ENERGY_TYPES) _migrateWeaponCore(item, updateData);
     if (schema < SFRPGMigrationSchemas.TOUGH_ARMS_HP) _migrateToughArms(item, updateData);
     if (schema < SFRPGMigrationSchemas.MECH_MP_COSTS && mechMpCosts) _migrateMechMpCost(item, updateData);
+    if (schema < SFRPGMigrationSchemas.NANITE_SWARM_HEAL) Object.assign(updateData, naniteSwarmUpdate(item));
 
     return updateData;
 };
