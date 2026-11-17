@@ -1,9 +1,34 @@
-# Version 14.1.9
+# Version 14.2.0
 
 ## New Features
 
 ## Bugfixes
 - About 8,500 strings in the German, Spanish, French, Italian, Japanese and Brazilian Portuguese translations were still in English, among them the mech, condition and chat card text and many older strings such as language names and starship terms. Each language now has them translated, with the terms its file already used where it had one
+
+# Version 14.1.10
+
+## New Features
+- Narrative effect text that names a ship's DC shows the number, such as "use its Hard DC (DC 24) this round"
+
+## Bugfixes
+- Removed the "Set the tier to the party's Average Party Level" hint from the Narrative Starship sheet
+
+# Version 14.1.9
+
+## New Features
+- Narrative starship combat from Starfinder Enhanced pp. 176-184, an optional way to run starship fights as skill checks
+- A Starship Combat Mode world setting (Standard, Narrative, or Both), and a Narrative Alternate DCs setting that uses the DC table on p. 184
+- A Narrative Starship sheet. Enemy ships show Average and Hard DC, HP, threshold, skill bonus, and special abilities, worked out from the ship, and the GM can override any of them. Player ships have Stats, Upgrades, Crew Actions, and Crew tabs
+- Player ships have one crew list with no roles, and anyone on it can take any of the 30 crew actions. Drop a character, drone, or NPC on the sheet to add it
+- Crew actions and enemy tactics show their DCs and have Roll buttons during their phases
+- A Narrative Starship Combat type in the combat tracker, with Enemy Tactics, Crew Actions, and Resolve phases. Resolve turns successes into hits, marks ships that are out, and names the winner
+- An Enemy Tactics dialog where the GM picks and rolls each enemy ship's tactic, then continues to Crew Actions
+- The 10 player starship upgrades from p. 183, with buttons for the once-per-combat ones
+- Three sample narrative ships in the starships compendium, and a "Using Class Abilities" page in the narrative combat rules journal
+
+## Bugfixes
+- A player's client could send the GM a request that claimed to come from another user. The GM now takes the sender from the server
+- The Scale Tokens to Grid setting showed translation keys instead of its name and description
 
 # Version 14.1.8
 

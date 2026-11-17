@@ -11,8 +11,10 @@ export class RPC {
 
     _initialize() {
         if (!this.initialized) {
-            game.socket.on('system.sfrpg', (data) => {
-                RPC.rpc._handleMessage(data);
+            // The server passes the id of the user whose socket sent the message. That id, not the
+            // sender written into the message, says who sent it.
+            game.socket.on('system.sfrpg', (data, senderId) => {
+                RPC.rpc._handleMessage(data, senderId);
             });
             this.initialized = true;
 
@@ -64,7 +66,7 @@ export class RPC {
          * active GM may run would otherwise never see it from a second GM.
          */
         if (recipient === "gm" && game.user.isGM) {
-            this._handleMessage(messageData);
+            this._handleMessage(messageData, game.user.id);
             if (this.initialized && game.users.some(user => user.isGM && user.active && !user.isSelf)) {
                 game.socket.emit('system.sfrpg', messageData);
             }
@@ -73,7 +75,7 @@ export class RPC {
 
         /** Sending to self, send to self always succeeds. */
         if (recipient === game.user.id) {
-            this._handleMessage(messageData);
+            this._handleMessage(messageData, game.user.id);
             return 'successMessageHandled';
         }
 
@@ -148,7 +150,14 @@ export class RPC {
         }
     }
 
-    async _handleMessage(data) {
+    /**
+     * @param {object} data The message.
+     * @param {string} senderId The id of the user who sent it, from the server or from this client.
+     *   A message without one is dropped.
+     */
+    async _handleMessage(data, senderId) {
+        if (!senderId) return false;
+        data = { ...data, sender: senderId };
         // console.log(`Received a message (${data.eventName}), recipient is ${data.recipient}`);
         if (data.recipient) {
             if (data.recipient === "gm") {

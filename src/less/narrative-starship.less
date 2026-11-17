@@ -1,0 +1,429 @@
+@import "./variables.less";
+
+.sfrpg.sheet.actor.starship.narrative-starship {
+    min-width: 520px;
+
+    .sheet-header {
+        div.image-container {
+            flex: 0 0 100px;
+            height: 100px;
+
+            img.profile {
+                flex: 0 0 100px;
+                height: 100px;
+            }
+        }
+
+        .header-details {
+            gap: 4px;
+            padding-right: 8px;
+        }
+
+        .narrative-tier {
+            align-items: center;
+            gap: 6px;
+            flex: 0 0 auto;
+
+            label {
+                flex: 0 0 auto;
+                font-weight: bold;
+            }
+
+            input {
+                flex: 0 0 60px;
+            }
+        }
+
+        .narrative-header-controls {
+            align-items: center;
+            flex: 0 0 auto;
+            font-size: var(--font-size-12);
+            gap: 8px;
+
+            label.checkbox {
+                flex: 0 0 auto;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin: 0;
+            }
+
+            .narrative-standard-toggle {
+                flex: 0 0 auto;
+                margin-left: auto;
+            }
+        }
+    }
+
+    .narrative-tabs {
+        flex: 0 0 auto;
+        margin: 4px 0;
+    }
+
+    .narrative-body {
+        padding: 4px 8px;
+        overflow-y: auto;
+    }
+
+    .narrative-action-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .narrative-action {
+        padding: 4px 0;
+        border-bottom: 1px solid @colorFaint;
+
+        .narrative-action-head {
+            align-items: center;
+            gap: 6px;
+
+            .narrative-action-name {
+                flex: 1;
+            }
+
+            button {
+                flex: 0 0 auto;
+                width: auto;
+                line-height: 20px;
+                padding: 0 6px;
+                font-size: var(--font-size-12);
+            }
+        }
+
+        .narrative-action-name {
+            font-weight: bold;
+        }
+
+        .narrative-action-skills {
+            font-size: var(--font-size-12);
+            font-style: italic;
+        }
+
+        .narrative-action-effect {
+            font-size: var(--font-size-12);
+        }
+    }
+
+    .narrative-empty {
+        font-style: italic;
+    }
+
+    .narrative-crew-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .narrative-crew-member {
+        align-items: center;
+        gap: 6px;
+        padding: 2px 0;
+        border-bottom: 1px solid @colorFaint;
+
+        .narrative-crew-image {
+            flex: 0 0 32px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            object-fit: cover;
+        }
+
+        .narrative-crew-name {
+            flex: 1;
+        }
+
+        .narrative-act,
+        .narrative-crew-remove {
+            flex: 0 0 auto;
+        }
+    }
+
+    .form-header {
+        .exo2();
+        color: @colorOlive;
+        border-bottom: @borderGroove;
+    }
+
+    .narrative-stats,
+    .narrative-skill-list,
+    .narrative-upgrade-list,
+    .narrative-upgrade-buttons {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .narrative-stat,
+    .narrative-upgrade,
+    .narrative-skill-row,
+    .narrative-skill-new {
+        align-items: center;
+        gap: 6px;
+        padding: 2px 0;
+        border-bottom: 1px solid @colorFaint;
+    }
+
+    .narrative-stat {
+        .narrative-stat-label {
+            flex: 0 0 110px;
+            font-weight: bold;
+        }
+
+        .narrative-stat-value {
+            flex: 0 0 50px;
+            font-size: var(--font-size-18);
+            text-align: center;
+        }
+
+        .narrative-guessed {
+            font-size: var(--font-size-12);
+            color: #c60;
+        }
+
+        .narrative-hp-pips {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .narrative-override {
+            flex: 0 0 80px;
+            margin-left: auto;
+        }
+    }
+
+    .narrative-hp-pip {
+        width: 14px;
+        height: 14px;
+        border: 2px solid @colorOlive;
+        border-radius: 50%;
+
+        &.filled {
+            background: @colorCrimson;
+        }
+    }
+
+    .narrative-skill-row,
+    .narrative-skill-new {
+        .narrative-skill-name,
+        .narrative-skill-select {
+            flex: 1;
+        }
+
+        input {
+            flex: 0 0 60px;
+        }
+
+        a {
+            flex: 0 0 20px;
+            text-align: center;
+        }
+    }
+
+    .narrative-special-abilities {
+        min-height: 120px;
+
+        .editor {
+            min-height: 120px;
+        }
+    }
+
+    .narrative-upgrade {
+        .narrative-upgrade-name {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        input[type="number"] {
+            flex: 0 0 60px;
+        }
+
+        a {
+            flex: 0 0 20px;
+            text-align: center;
+        }
+    }
+
+    .narrative-upgrade-use.used {
+        opacity: 0.5;
+    }
+
+    // The Act control holds an icon and a word, so it takes the width it needs and stays on one line.
+    .crew-list .crew-controls {
+        flex: 0 0 auto;
+        min-width: 44px;
+        flex-wrap: nowrap;
+        gap: 4px;
+        align-items: center;
+
+        a.narrative-act {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+    }
+}
+
+// The GM's Enemy Tactics dialog. It uses the light theme so the system's dark text stays readable.
+.sfrpg.narrative-tactics {
+    // The window header stays dark, so its buttons need light icons. The system's button style would also give
+    // them its text font and a border, which hides the icon glyphs.
+    .window-header .header-control {
+        font: var(--fa-font-solid);
+        color: #f0f0e0;
+        background: transparent;
+        border: none;
+    }
+
+    .window-content {
+        padding: 8px 10px;
+        background: var(--color-light-1, #f5f5f0);
+        color: @colorDark;
+    }
+
+    .narrative-tactics-header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin: 0 0 6px;
+
+        .narrative-tactics-round {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .narrative-tactics-hint {
+            font-size: var(--font-size-12);
+            color: #4b4a44;
+        }
+    }
+
+    .narrative-tactics-notice {
+        margin: 0 0 6px;
+        padding: 6px 8px;
+        border-left: 3px solid #b8860b;
+        background: rgba(184, 134, 11, 0.12);
+    }
+
+    .narrative-tactic-row {
+        margin: 0 0 8px;
+        padding: 6px 8px;
+        border: 1px solid #b5b3a4;
+        border-radius: 4px;
+        background: #fff;
+    }
+
+    .narrative-tactic-ship {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        img {
+            flex: 0 0 28px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            object-fit: contain;
+        }
+
+        h3 {
+            flex: 1;
+            margin: 0;
+            padding: 0;
+            border: none;
+            font-size: var(--font-size-16);
+            line-height: 1.2;
+        }
+
+        .narrative-tactic-chosen {
+            font-size: var(--font-size-12);
+            color: #2e6b2e;
+        }
+    }
+
+    .narrative-tactic-group {
+        margin-top: 6px;
+    }
+
+    .narrative-tactic-note {
+        margin: 0 0 4px;
+        font-size: var(--font-size-12);
+        font-style: italic;
+    }
+
+    .narrative-tactic-fields {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    .narrative-tactic-field {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+
+        &.narrative-tactic-field-wide {
+            flex-grow: 1.4;
+        }
+
+        span {
+            font-size: var(--font-size-11);
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #4b4a44;
+        }
+
+        select {
+            width: 100%;
+            height: 28px;
+            color: @colorDark;
+            background: #fff;
+        }
+
+        select:disabled {
+            color: #6b6a64;
+        }
+    }
+
+    .narrative-tactic-button {
+        flex: 0 0 auto;
+        height: 28px;
+        line-height: 26px;
+        padding: 0 12px;
+        white-space: nowrap;
+        color: #fff;
+        background: #2c5d8a;
+        border: 1px solid #1f4566;
+
+        &:hover {
+            background: #1f4566;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+        }
+    }
+
+    .narrative-tactics-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        padding-top: 6px;
+        border-top: 1px solid #b5b3a4;
+    }
+
+    .narrative-tactic-effect {
+        margin: 4px 0 0;
+        font-size: var(--font-size-12);
+
+        .narrative-tactic-dc:empty {
+            display: none;
+        }
+    }
+}

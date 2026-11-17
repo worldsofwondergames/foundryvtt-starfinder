@@ -1,0 +1,110 @@
+<div class="narrative-tactics-body">
+    <header class="narrative-tactics-header">
+        <span class="narrative-tactics-round">{{localize "SFRPG.NarrativeStarship.TacticsDialog.Round" round=round}}</span>
+        <span class="narrative-tactics-hint">{{localize "SFRPG.NarrativeStarship.TacticsDialog.DialogHint"}}</span>
+    </header>
+    {{#unless canRoll}}
+    <p class="narrative-tactics-notice">{{localize "SFRPG.NarrativeStarship.TacticsDialog.NotTacticsPhase"}}</p>
+    {{/unless}}
+
+    {{#each rows as |row|}}
+    <section class="narrative-tactic-row" data-enemy-id="{{row.id}}">
+        <header class="narrative-tactic-ship">
+            <img src="{{row.img}}" alt="" />
+            <h3>{{row.name}}</h3>
+            {{#if row.chosen}}
+            <span class="narrative-tactic-chosen">
+                <i class="fas fa-check"></i>
+                {{#if row.chosenTarget}}
+                {{localize "SFRPG.NarrativeStarship.TacticsDialog.ChosenTarget" tactic=row.chosen ship=row.chosenTarget}}
+                {{else}}
+                {{localize "SFRPG.NarrativeStarship.TacticsDialog.Chosen" tactic=row.chosen}}
+                {{/if}}
+            </span>
+            {{/if}}
+        </header>
+
+        {{#if row.chosen}}
+        {{else if (and @root.canRoll row.mines)}}
+        <div class="narrative-tactic-group">
+            <p class="narrative-tactic-note">{{localize "SFRPG.NarrativeStarship.TacticsDialog.MinesHint" dc=row.mines.dc}}</p>
+            <div class="narrative-tactic-fields">
+                <button type="button" class="narrative-tactic-button" data-action="mines"><i class="fas fa-bomb"></i> {{localize "SFRPG.NarrativeStarship.TacticsDialog.Mines"}}</button>
+            </div>
+        </div>
+        {{else if @root.canRoll}}
+        <div class="narrative-tactic-group" data-group="now">
+            {{#if row.forced}}
+            <p class="narrative-tactic-note">{{localize "SFRPG.NarrativeStarship.TacticsDialog.Forced"}}</p>
+            {{/if}}
+            <div class="narrative-tactic-fields">
+                <label class="narrative-tactic-field narrative-tactic-field-wide">
+                    <span>{{localize "SFRPG.NarrativeStarship.TacticsDialog.Tactic"}}</span>
+                    <select data-field="tactic">
+                        {{#each row.tactics as |option|}}
+                        <option value="{{option.value}}" data-pc-target="{{option.pcTarget}}" data-dc="{{option.dc}}" data-effect="{{option.effect}}" title="{{option.title}}" {{#if option.disabled}}disabled{{/if}} {{#if option.selected}}selected{{/if}}>{{option.label}}{{#if option.disabled}} ({{option.title}}){{/if}}</option>
+                        {{/each}}
+                    </select>
+                </label>
+                <label class="narrative-tactic-field" data-part="target">
+                    <span>{{localize "SFRPG.NarrativeStarship.TacticsDialog.Target"}}</span>
+                    <select data-field="target" {{#if row.targetLocked}}disabled{{/if}}>
+                        {{#each row.targets as |ship|}}
+                        <option value="{{ship.id}}" data-average="{{ship.average}}" data-hard="{{ship.hard}}" {{#if ship.selected}}selected{{/if}}>{{ship.name}}</option>
+                        {{/each}}
+                    </select>
+                </label>
+                <label class="narrative-tactic-field" data-part="choice">
+                    <span>{{localize "SFRPG.NarrativeStarship.TacticsDialog.DC"}}</span>
+                    <select data-field="choice">
+                        <option value="average">{{localize "SFRPG.NarrativeStarship.AverageDC"}}</option>
+                        <option value="hard">{{localize "SFRPG.NarrativeStarship.HardDC"}}</option>
+                    </select>
+                </label>
+                <button type="button" class="narrative-tactic-button" data-action="roll"><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Dialog.Roll"}}</button>
+            </div>
+            <p class="narrative-tactic-effect"><strong class="narrative-tactic-dc"></strong> <span class="narrative-tactic-effect-text"></span></p>
+        </div>
+        {{/if}}
+
+        {{#if row.reveal}}
+        <div class="narrative-tactic-group" data-group="next">
+            <p class="narrative-tactic-note">{{localize "SFRPG.NarrativeStarship.TacticsDialog.RevealHint"}}</p>
+            <div class="narrative-tactic-fields">
+                <label class="narrative-tactic-field narrative-tactic-field-wide">
+                    <span>{{localize "SFRPG.NarrativeStarship.TacticsDialog.NextTactic"}}</span>
+                    <select data-field="tactic">
+                        {{#each row.reveal.tactics as |option|}}
+                        <option value="{{option.value}}" data-pc-target="{{option.pcTarget}}" data-effect="{{option.effect}}" title="{{option.title}}" {{#if option.disabled}}disabled{{/if}} {{#if option.selected}}selected{{/if}}>{{option.label}}{{#if option.disabled}} ({{option.title}}){{/if}}</option>
+                        {{/each}}
+                    </select>
+                </label>
+                <label class="narrative-tactic-field" data-part="target">
+                    <span>{{localize "SFRPG.NarrativeStarship.TacticsDialog.Target"}}</span>
+                    <select data-field="target">
+                        {{#each row.reveal.targets as |ship|}}
+                        <option value="{{ship.id}}">{{ship.name}}</option>
+                        {{/each}}
+                    </select>
+                </label>
+                <button type="button" class="narrative-tactic-button" data-action="preset"><i class="fas fa-lock"></i> {{localize "SFRPG.NarrativeStarship.TacticsDialog.SetNext"}}</button>
+            </div>
+            <p class="narrative-tactic-effect"><strong class="narrative-tactic-dc"></strong> <span class="narrative-tactic-effect-text"></span></p>
+        </div>
+        {{/if}}
+    </section>
+    {{else}}
+    <p class="narrative-tactics-notice">{{localize "SFRPG.NarrativeStarship.TacticsDialog.NoEnemies"}}</p>
+    {{/each}}
+
+    {{#if canRoll}}
+    <footer class="narrative-tactics-footer">
+        {{#unless allChosen}}
+        <span class="narrative-tactics-hint">{{localize "SFRPG.NarrativeStarship.TacticsDialog.ContinueHint"}}</span>
+        {{/unless}}
+        <button type="button" class="narrative-tactic-button" data-action="continue" {{#unless allChosen}}disabled{{/unless}}>
+            {{localize "SFRPG.NarrativeStarship.TacticsDialog.Continue"}} <i class="fas fa-arrow-right"></i>
+        </button>
+    </footer>
+    {{/if}}
+</div>

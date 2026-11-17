@@ -388,6 +388,44 @@
         "controls": true,
         "volume": 0.5
       }
+    },
+    {
+      "_id": "kQ3vXn7LpR2sTa9Z",
+      "name": "Using Class Abilities",
+      "type": "text",
+      "_stats": {
+        "compendiumSource": null,
+        "coreVersion": "13.351",
+        "createdTime": 1699501200000,
+        "duplicateSource": null,
+        "exportSource": null,
+        "lastModifiedBy": "Ze895EIq7nm5kMrK",
+        "modifiedTime": 1699501200000,
+        "systemId": "sfrpg",
+        "systemVersion": "0.25.2"
+      },
+      "category": null,
+      "flags": {},
+      "image": {},
+      "ownership": {
+        "Ze895EIq7nm5kMrK": 3,
+        "default": -1
+      },
+      "sort": 1000000,
+      "src": null,
+      "system": {},
+      "text": {
+        "content": "<p><strong>Source</strong>: EN, p. 183</p><p>A few classes grant abilities that can improve a character’s skill check, such as the envoy’s expertise and the solarian’s sidereal influence. Such abilities can be used in narrative starship combat, unless the ability states that it can’t be used in combat. If the ability takes an action to activate (such as a standard or move action), a PC can do so at the beginning of a round instead of changing roles; a spellcaster can use this opportunity to cast a spell that grants a bonus to skill checks, for instance, but they can’t target anyone on another ship (or a starship itself). If the ability has a duration, assume that a round of narrative starship combat takes about 1 minute.</p>",
+        "format": 1
+      },
+      "title": {
+        "level": 1,
+        "show": true
+      },
+      "video": {
+        "controls": true,
+        "volume": 0.5
+      }
     }
   ]
 }

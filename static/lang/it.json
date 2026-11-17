@@ -617,6 +617,23 @@
                 "HistoryLimitedStartOfEncounter": "Hai iniziato un incontro, non possiamo tornare indietro nella cronologia. <br/> <br/>Clicca per chiudere.",
                 "MissingInitiative": "La fase in corso ha ripristinato Iniziativa, riavvia Iniziativa su tutti i combattenti prima di continuare. <br/> <br/> Clicca per chiudere."
             },
+            "NarrativeStarship": {
+                "Name": "Narrative Starship Combat",
+                "Phases": {
+                    "1": {
+                        "Description": "The GM chooses a tactic for each enemy ship.",
+                        "Name": "Enemy Tactics"
+                    },
+                    "2": {
+                        "Description": "Each crew member takes one action, in any order.",
+                        "Name": "Crew Actions"
+                    },
+                    "3": {
+                        "Description": "Successes turn into hits and the round ends.",
+                        "Name": "Resolve"
+                    }
+                }
+            },
             "Normal": {
                 "Name": "Combattimento Normale",
                 "Phases": {
@@ -2775,6 +2792,449 @@
                 "Inventory": "Inventario"
             }
         },
+        "NarrativeStarship": {
+            "Act": "Act",
+            "AddSkillModifier": "Add a skill modifier",
+            "AverageDC": "Average DC",
+            "Card": {
+                "Failure": "Failure: {total} against DC {dc}.",
+                "Free": "Free action from Improve Countermeasures.",
+                "Healed": "{ship} regains {value} HP.",
+                "Hit": "{ship} loses {value} HP.",
+                "RegainedResolve": "{name} regains 1 Resolve Point.",
+                "SpentResolve": "{name} spends 1 Resolve Point.",
+                "Success": "Success: {total} against DC {dc}.",
+                "Successes": "Successes gained: {count}",
+                "Target": "Target: {ship}",
+                "Who": "{name} rolls {skill}."
+            },
+            "CrewActions": {
+                "accessMaintenancePanels": {
+                    "Effect": "The ally rolls their next check twice and keeps the better result.",
+                    "Name": "Access Maintenance Panels"
+                },
+                "channelEldritchEnergy": {
+                    "Effect": "Counts as 1 success against the target. Beating the DC by 5 or more lowers its threshold by 1 next round.",
+                    "Name": "Channel Eldritch Energy"
+                },
+                "clearTakeCover": {
+                    "Effect": "The special Piloting check from the Take Cover tactic, against the enemy ship's Hard DC. On a success, the crew can target that ship again this round. It doesn't count as a success toward its threshold.",
+                    "Name": "Negate Take Cover"
+                },
+                "derideEnemyShip": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Deride Enemy Ship"
+                },
+                "drawFire": {
+                    "Effect": "The target must use Open Fire against this ship next round.",
+                    "Name": "Draw Fire"
+                },
+                "empowerCrew": {
+                    "Effect": "Each other crew member who has not acted this round gets +1 on their checks this round.",
+                    "Name": "Empower Crew"
+                },
+                "enactCunningStratagem": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Enact Cunning Stratagem"
+                },
+                "encourageCrewMember": {
+                    "Effect": "The ally regains 1 Resolve Point.",
+                    "Name": "Encourage Crew Member"
+                },
+                "engageExperimentalPrototype": {
+                    "Effect": "The next time this round an ally succeeds at the chosen action, it gives twice as many successes.",
+                    "Name": "Engage Experimental Prototype"
+                },
+                "engageFullThrusters": {
+                    "Effect": "Next round the target uses this ship's Hard DC for its tactics and takes a -1 penalty to its checks.",
+                    "Name": "Engage Full Thrusters"
+                },
+                "fireAtWill": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Fire at Will"
+                },
+                "giveOrders": {
+                    "Effect": "The ally can take a second action this round.",
+                    "Name": "Give Orders"
+                },
+                "harryEnemy": {
+                    "Effect": "The target takes a -2 penalty to skill checks next round.",
+                    "Name": "Harry Enemy"
+                },
+                "holdSteady": {
+                    "Effect": "The ally gets +3 on actions that give successes against the target this round.",
+                    "Name": "Hold Steady"
+                },
+                "improveCountermeasures": {
+                    "Effect": "This ship uses its Hard DC against enemy tactics next round.",
+                    "Name": "Improve Countermeasures"
+                },
+                "maximizeCrewEfficiency": {
+                    "Effect": "The ally's next action this round that gives successes gives twice as many.",
+                    "Name": "Maximize Crew Efficiency"
+                },
+                "outmaneuver": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Outmaneuver"
+                },
+                "overpowerSystems": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Overpower Systems"
+                },
+                "patchHull": {
+                    "Effect": "The ship regains 1 HP.",
+                    "Name": "Patch Hull"
+                },
+                "performAudaciousStunt": {
+                    "Effect": "Counts as 2 successes against the target.",
+                    "Name": "Perform Audacious Stunt"
+                },
+                "prognosticate": {
+                    "Effect": "The GM picks the target's tactic for next round now. The first action against it next round gets +2.",
+                    "Name": "Prognosticate"
+                },
+                "provideAid": {
+                    "Effect": "The ally gets +2 on their check this round, or +3 if this check beat the DC by 5 or more.",
+                    "Name": "Provide Aid"
+                },
+                "realignTargetingSystems": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Realign Targeting Systems"
+                },
+                "scanEnemy": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Scan Enemy"
+                },
+                "scryOnEnemy": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Scry on Enemy"
+                },
+                "searchDatabase": {
+                    "Effect": "Checks against the target's DC get +1 this round.",
+                    "Name": "Search Database"
+                },
+                "targetSystem": {
+                    "Effect": "If the target takes at least 1 hit this round, it takes 1 more.",
+                    "Name": "Target System"
+                },
+                "targetWeakSpot": {
+                    "Effect": "Counts as 1 success against the target. Beating the DC by 10 or more also deals 1 hit.",
+                    "Name": "Target Weak Spot"
+                },
+                "tauntEnemy": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Taunt Enemy"
+                },
+                "ventThrusterWaste": {
+                    "Effect": "Counts as 1 success against the target, or 2 if the check beat the DC by 5 or more.",
+                    "Name": "Vent Thruster Waste"
+                }
+            },
+            "CrewDropHint": "Drag a character, drone, or NPC onto this sheet to add it to the crew. Any crew member can take any crew action.",
+            "CrewDropInvalid": "Only a character, drone, or NPC from the Actors sidebar can join the crew.",
+            "Dialog": {
+                "Action": "Action",
+                "Ally": "Ally",
+                "AnySkill": "Any skill",
+                "FreePatchHull": "Patch Hull (free, -2)",
+                "LastSkill": "Used last round, so not available now: {skill}",
+                "LayMines": "Lay mines with this action (Mine Layer)",
+                "Preferred": "Preferred skills: {skills}. Other skills use the Hard DC.",
+                "Roll": "Roll",
+                "RollTitle": "{action}: {skill}",
+                "SecondAlly": "Second ally",
+                "SecondTarget": "Second target",
+                "Skill": "Skill",
+                "SpendResolve": "Spend 1 Resolve Point ({value} left)",
+                "Target": "Target",
+                "TargetAction": "Action to boost",
+                "Title": "Crew Action: {name}",
+                "TrackingAsk": "The check failed: {total} against DC {dc}. Use Tracking Weapons to reroll it? It can be used once per combat.",
+                "TrackingReroll": "Reroll (Tracking Weapons)",
+                "UseNavScram": "Activate the Nav-Scram Module with this action"
+            },
+            "HP": "HP",
+            "HPPipsHint": "Click a pip to set the ship's current HP",
+            "HardDC": "Hard DC",
+            "MissingCrew": "Missing actor ({id})",
+            "NoCrew": "No crew yet.",
+            "NoUpgrades": "No upgrades installed.",
+            "Override": "Override",
+            "OverrideHint": "Leave empty to use the derived value",
+            "PickCrew": "Crew member",
+            "PickCrewTitle": "Who rolls?",
+            "RangedAttack": "Ranged attack",
+            "Rejected": {
+                "aidUsed": "This ship's Virtual Intelligence has already given aid this round.",
+                "alreadyActed": "That crew member has already acted this round.",
+                "badAction": "Choose an action that gives successes.",
+                "badAlly": "That ally can't be chosen for this action.",
+                "badRoll": "The roll could not be read.",
+                "badSkill": "That crew member can't use that skill.",
+                "badTarget": "Choose an enemy ship that is still in the fight.",
+                "mantlePhase": "The Displacement Mantle can only be activated during the Enemy Tactics phase, before the tactics against the ship are rolled.",
+                "noAverageDC": "This ship has no Average DC, so Mine Layer can't set the DC of its mines.",
+                "noCombat": "There is no narrative starship combat running.",
+                "noEnemyAction": "Mine Layer and the Nav-Scram Module need an action that targets an enemy ship, other than Negate Take Cover.",
+                "noFreeAction": "This crew member has no free Patch Hull to use.",
+                "noGM": "No GM is connected to apply the action.",
+                "noResolve": "You have no Resolve Points to spend.",
+                "noResolveRider": "This action can't spend Resolve.",
+                "noSkill": "Choose a skill.",
+                "noTrackingWeapons": "Tracking Weapons only rerolls the check of a gunner action that targets an enemy ship.",
+                "noUpgrade": "This ship doesn't have that upgrade.",
+                "notCrew": "That actor isn't on this ship's crew list.",
+                "notGunner": "A ranged attack can only be used for a gunner action.",
+                "notOwner": "You don't own that crew member.",
+                "notTakingCover": "That ship is not taking cover.",
+                "pilotingOnly": "Negate Take Cover is a Piloting check.",
+                "sameSkill": "Pick a different skill than the one used last round.",
+                "shipOut": "This ship is out of the fight, so its crew can't act.",
+                "takeCover": "That ship is taking cover. Only a Negate Take Cover check can target it this round.",
+                "unknownAction": "That action isn't known.",
+                "upgradeElsewhere": "This upgrade is used from the crew action dialog or the enemy's tactic roll, not from the sheet.",
+                "upgradeUsed": "This ship has already used that upgrade in this combat.",
+                "wrongPhase": "Crew actions can only be taken during the Crew Actions phase.",
+                "wrongSide": "Only crew on a player ship can take crew actions."
+            },
+            "RemoveCrew": "Remove from the crew",
+            "RemoveSkillModifier": "Remove this skill modifier",
+            "Resolve": {
+                "EndCombat": "End Combat",
+                "Fled": "{ship} flees the battle.",
+                "Hits": "{ship}: hits taken {hits}, HP left {hp}.",
+                "NoHits": "No ship takes a hit this round.",
+                "Out": "{ship} is out of the fight.",
+                "Title": "Round {round} resolved",
+                "TractorCheck": "Tractor Beam: {ship} tries to flee against DC {dc}.",
+                "TractorHeld": "{ship} fails to escape the tractor beam and stays in the fight.",
+                "fled": "No enemy ship is left in the fight. The combat is over.",
+                "pcLoss": "The player ships are out. The enemy wins.",
+                "pcWin": "Every enemy ship is out. The player ships win."
+            },
+            "Roles": {
+                "any": "Any Crew Member",
+                "captain": "Captain",
+                "chiefMate": "Chief Mate",
+                "engineer": "Engineer",
+                "gunner": "Gunner",
+                "magicOfficer": "Magic Officer",
+                "pilot": "Pilot",
+                "scienceOfficer": "Science Officer"
+            },
+            "RollParts": {
+                "FreePatchHull": "Free Patch Hull",
+                "RangedAttack": "Gunner ranged attack",
+                "Ship": "Ship skill modifier",
+                "allyVsTarget": "Hold Steady",
+                "crewSkill": "Crew modifier",
+                "firstVsTarget": "Prognosticate",
+                "nextCheck": "Ally help",
+                "skill": "Empower Crew",
+                "skillVsTarget": "Search Database"
+            },
+            "SharedActorWhisper": "{ship} has more than one token in this combat. Narrative starship combat keeps ships by actor, so these tokens count as one ship.",
+            "SheetLabel": "Narrative Starship",
+            "SkillBonus": "Skill Bonus",
+            "SkillBonusGuessed": "This ship has no crew skills to read, so the skill bonus is a guess. Replace it with the stat block's value.",
+            "SkillModifiers": "Skill Modifiers",
+            "Source": {
+                "ArmorMark": "From the ship's tier, adjusted for armor and defense marks",
+                "CrewSkills": "From the crew's skill modifiers",
+                "Guessed": "Guessed from the ship's tier, replace it if you know better",
+                "Override": "Set by the GM",
+                "Shields": "From the shield category",
+                "Size": "From the ship's size",
+                "Tier": "From the ship's tier"
+            },
+            "SpecialAbilities": "Special Abilities",
+            "Tabs": {
+                "Average": "Average",
+                "AverageDC": "Average DC",
+                "CheckAgainst": "Check against",
+                "Crew": "Crew",
+                "CrewActions": "Crew Actions",
+                "DC": "DC {dc}",
+                "DCFor": "DC {dc} for {ship}",
+                "EnemyActions": "Enemy Actions",
+                "Hard": "Hard",
+                "HardDC": "Hard DC",
+                "OtherSkills": "other skills",
+                "PreferredSkills": "Preferred skills: {skills}",
+                "Stats": "Stats",
+                "Upgrades": "Upgrades"
+            },
+            "TacticRejected": {
+                "alreadyChosen": "This enemy ship already used a tactic this round.",
+                "badRoll": "The roll is missing or not a number.",
+                "badTarget": "Choose a player ship as the target.",
+                "forced": "This ship must use the tactic that was forced on it.",
+                "forcedTarget": "This ship must target the player ship that forced its tactic.",
+                "locked": "No enemy ship can use All-Out Attack again until after the next round.",
+                "minesFirst": "This ship must roll its Mine Layer check before it chooses a tactic.",
+                "noChoice": "Choose the Average or Hard DC for Cruel Taunt.",
+                "noCombat": "There is no started narrative starship combat.",
+                "noMantleRoll": "The Displacement Mantle roll is missing.",
+                "noMines": "No mines are waiting for this ship this round.",
+                "noReveal": "Prognosticate did not succeed against this ship this round.",
+                "notEnemy": "Only enemy ships use tactics.",
+                "shipOut": "This ship is out of the fight and can't use a tactic.",
+                "taken": "Another enemy ship already has this tactic.",
+                "unknownTactic": "Unknown tactic.",
+                "wrongPhase": "Enemy tactics are rolled in the Enemy Tactics phase."
+            },
+            "Tactics": {
+                "allOutAttack": {
+                    "Effect": "Two checks against the PC ship's Hard DC. If both succeed, the PC ship takes 2 hits. No enemy can choose this tactic again until after the next round.",
+                    "Name": "All-Out Attack"
+                },
+                "cruelTaunt": {
+                    "Effect": "A check against the PC ship's Average or Hard DC, chosen by the GM. On a success, the crew of that ship take -1 to all skill checks this round, or -2 if the check was against the Hard DC.",
+                    "Name": "Cruel Taunt"
+                },
+                "evasiveManeuvers": {
+                    "Effect": "Ranged attacks and Piloting checks against this enemy ship use its Hard DC this round.",
+                    "Name": "Evasive Maneuvers"
+                },
+                "flee": {
+                    "Effect": "If this enemy ship has more than 0 HP at the end of the round, it flees the battle.",
+                    "Name": "Flee"
+                },
+                "flybyStunt": {
+                    "Effect": "Acrobatics and Athletics checks by the crew of the chosen PC ship use the Hard DC this round.",
+                    "Name": "Flyby Stunt"
+                },
+                "makeRepairs": {
+                    "Effect": "This enemy ship regains 1 HP, but its threshold is 1 lower (minimum 1) this round.",
+                    "Name": "Make Repairs"
+                },
+                "openFire": {
+                    "Effect": "A check against the PC ship's Average DC. On a success, the PC ship takes 1 hit.",
+                    "Name": "Open Fire"
+                },
+                "raiseShields": {
+                    "Effect": "This enemy ship's threshold is 1 higher this round.",
+                    "Name": "Raise Shields"
+                },
+                "ram": {
+                    "Effect": "A check against the PC ship's Average DC. On a success, both ships take 1 hit and the crew of the PC ship take -1 to all skill checks this round.",
+                    "Name": "Ram"
+                },
+                "signalJam": {
+                    "Effect": "Computers and Mysticism checks by the crew of the chosen PC ship use the Hard DC this round.",
+                    "Name": "Signal Jam"
+                },
+                "takeCover": {
+                    "Effect": "PC skill checks can't target this enemy ship this round. A crew member can try a Piloting check against its Hard DC to end this, which doesn't count as a success toward its threshold.",
+                    "Name": "Take Cover"
+                },
+                "useSpecialAbility": {
+                    "Effect": "The enemy uses one of the special abilities in its stat block. The GM applies it by hand.",
+                    "Name": "Use a Special Ability"
+                }
+            },
+            "TacticsDialog": {
+                "CardFailure": "Failure against DC {dc}.",
+                "CardManual": "The GM applies this special ability by hand.",
+                "CardNoAbilities": "This ship has no special abilities in its stat block.",
+                "CardShip": "{ship} uses this tactic.",
+                "CardSuccess": "Success against DC {dc}.",
+                "Chosen": "Tactic this round: {tactic}",
+                "ChosenTarget": "Tactic this round: {tactic}, against {ship}",
+                "Continue": "Continue to Crew Actions",
+                "ContinueHint": "Roll a tactic for each enemy ship to continue.",
+                "DC": "DC",
+                "DialogHint": "Pick one tactic for each enemy ship. Two enemy ships can't use the same tactic in a round.",
+                "DialogTitle": "Enemy Tactics",
+                "Forced": "Draw Fire or Prognosticate set this ship's tactic for this round.",
+                "Mines": "Roll the Mine Layer check",
+                "MinesHint": "Mines were laid in this ship's path. Before it chooses a tactic, it rolls a skill check against DC {dc} or takes 1 hit.",
+                "NextTactic": "Next round's tactic",
+                "NoEnemies": "No enemy ship is in the fight.",
+                "NotTacticsPhase": "Tactics are rolled during the Enemy Tactics phase. Move the combat to that phase to roll.",
+                "Open": "Enemy Tactics",
+                "RevealHint": "Prognosticate succeeded against this ship. Pick its tactic for next round now.",
+                "RevealWhisper": "Prognosticate succeeded against {ship}. Pick its tactic for next round now in the Enemy Tactics dialog.",
+                "Round": "Round {round}",
+                "SetNext": "Set next round's tactic",
+                "Tactic": "Tactic",
+                "Target": "Target"
+            },
+            "Threshold": "Threshold",
+            "UnlinkedShipWhisper": "{ship}'s token in this combat is not linked to its actor, so the ship's HP and upgrades are tracked on the token, not on the ship's sheet. To track them on the sheet, link the token: turn on Link Actor Data in the token's settings, and in the ship's Prototype Token for new tokens.",
+            "UpgradeButtons": {
+                "Header": "Once-per-Combat Upgrades",
+                "Used": "Used in this combat.",
+                "UsedLabel": "used",
+                "displacementMantle": "Click during the Enemy Tactics phase. For the rest of the round, each tactic that targets this ship fails on a d100 roll of 20 or less.",
+                "mineLayer": "Use it from the crew action dialog with an action that targets an enemy ship.",
+                "navScramModule": "Use it from the crew action dialog with an action that targets an enemy ship.",
+                "quantumDefender": "The GM is asked whether to use it when an enemy tactic would hit this ship.",
+                "trackingWeapons": "A crew member who fails the check of a gunner action against an enemy ship is asked whether to use it."
+            },
+            "UpgradeCard": {
+                "AblativeAbsorbed": "Ablative Plating: {ship} ignores 1 hit. The plating is used up for this combat.",
+                "AidButton": "Provide Aid (Virtual Intelligence)",
+                "AidFailure": "Virtual Intelligence fails to aid {ally} against DC {dc}.",
+                "AidPrompt": "{ship}'s Virtual Intelligence can attempt Provide Aid for a crew member who hasn't acted this round.",
+                "AidSuccess": "Virtual Intelligence aids {ally} against DC {dc}: +{value} on their next check this round.",
+                "MantleBlocked": "Displacement Mantle: rolled {roll}. The tactic fails.",
+                "MantleMissed": "Displacement Mantle: rolled {roll}. The tactic is not stopped.",
+                "MantleOn": "{ship} activates its Displacement Mantle. For the rest of the round, each tactic that targets it fails on a d100 roll of 20 or less.",
+                "MineLayer": "Mine Layer: mines are laid in the path of {ship}. It rolls against them next round before it chooses a tactic.",
+                "MinesAvoided": "{ship} gets through the mines (DC {dc}).",
+                "MinesHit": "{ship} fails to avoid the mines (DC {dc}) and takes 1 hit.",
+                "NavScram": "Nav-Scram Module: {ship} takes a -2 penalty to its skill checks for {rounds} rounds, counting this one.",
+                "NavScramOne": "Nav-Scram Module: {ship} takes a -2 penalty to its skill checks for this round only.",
+                "QuantumAsk": "{enemy}'s check would hit {ship}. Use {ship}'s Quantum Defender to make {enemy} reroll the check and take the new result?",
+                "QuantumUsed": "Quantum Defender: {ship} makes the enemy reroll the check.",
+                "TrackingWeapons": "Tracking Weapons: the failed check was rerolled."
+            },
+            "Upgrades": {
+                "ablativePlating": {
+                    "Effect": "The ship ignores the first hit it takes in a narrative starship combat.",
+                    "Name": "Ablative Plating"
+                },
+                "displacementMantle": {
+                    "Effect": "Once per combat, when an enemy ship targets this ship with a tactic, any crew member can activate it. For the rest of the round, each tactic that targets the ship has a 20% chance to fail, whatever the check result.",
+                    "Name": "Displacement Mantle"
+                },
+                "driftEngineUpgrade": {
+                    "Effect": "The ship's Drift engine rating improves by 1. It can be installed up to four times.",
+                    "Name": "Drift Engine Upgrade"
+                },
+                "expansionBay": {
+                    "Effect": "The crew can install a standard expansion bay option. It can be installed more than once.",
+                    "Name": "Expansion Bay"
+                },
+                "mineLayer": {
+                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew lays mines. Next round, before it chooses a tactic, that ship must succeed at a skill check against this ship's Average DC or take 1 hit.",
+                    "Name": "Mine Layer"
+                },
+                "navScramModule": {
+                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew activates the module. That ship takes a -2 penalty to its skill checks for 1d4 rounds.",
+                    "Name": "Nav-Scram Module"
+                },
+                "quantumDefender": {
+                    "Effect": "Once per combat, when an enemy ship succeeds at a check that would cause a hit, the crew can activate it. The enemy ship must reroll the check and take the new result.",
+                    "Name": "Quantum Defender"
+                },
+                "trackingWeapons": {
+                    "Effect": "Once per combat, a crew member can reroll a failed check of a gunner action that targets an enemy ship.",
+                    "Name": "Tracking Weapons"
+                },
+                "tractorBeam": {
+                    "Effect": "An enemy ship that uses Flee must first succeed at a skill check against this ship's Hard DC, or it fails to escape at the end of the round.",
+                    "Name": "Tractor Beam"
+                },
+                "virtualIntelligence": {
+                    "Effect": "Each round it takes the Provide Aid crew action for a PC the crew chooses, with a bonus equal to the ship's tier + 3.",
+                    "Name": "Virtual Intelligence"
+                }
+            },
+            "UpgradesHeader": "Upgrades",
+            "UseStandardSheet": "Use the standard sheet"
+        },
         "Necrograft": "Necroinnesti",
         "None": "Nessuno",
         "Notes": "Note",
@@ -3055,6 +3515,8 @@
                 "Name": "Chiudi automaticamente i riepiloghi degli oggetti"
             },
             "CombatCards": {
+                "NarrativeStarshipHint": "Change which combat chat cards should be displayed during narrative starship combat.",
+                "NarrativeStarshipName": "Narrative starship combat",
                 "NormalHint": "Modifica le schede di chat di battaglia che dovrebbero essere visualizzate durante le normali battaglie.",
                 "NormalName": "Combattimento Normale",
                 "StarshipHint": "Modifica le schede di chat di battaglia che dovrebbero essere visualizzate durante le battaglie tra astronavi.",
@@ -3153,6 +3615,21 @@
                 "Hint": "Se attivato, abilita per impostazione predefinita Blocca rotazione dell'immagine sugli attori in scala personaggio (Personaggi/PNG/Droni/Pericoli). Può essere ignorato dalle impostazioni del token prototipo dell'attore.",
                 "Name": "Blocca la rotazione dell'immagine per impostazione predefinita"
             },
+            "NarrativeStarship": {
+                "AlternateDCs": {
+                    "Hint": "Uses the skill DC table from Starfinder Enhanced pg. 184 for narrative starship DCs.",
+                    "Name": "Narrative Starship Alternate DCs"
+                },
+                "CombatMode": {
+                    "Hint": "Standard: only standard starship combat is available. Narrative: the narrative sheet is the default for starships, and the combat tracker offers narrative combat instead of standard. Both: both combat types are available and the standard sheet stays the default.",
+                    "Name": "Starship Combat Mode",
+                    "Values": {
+                        "Both": "Both",
+                        "Narrative": "Narrative",
+                        "Standard": "Standard"
+                    }
+                }
+            },
             "NotificationSchema": {
                 "Hint": "NON MODIFICARE A MENO CHE TU NON SAPPIA COSA STAI FACENDO.\nControlla se e quali messaggi di aggiornamento del sistema devono essere mostrati.",
                 "Name": "Schema delle notifiche di aggiornamento"
@@ -3160,6 +3637,10 @@
             "SFRPGTheme": {
                 "Hint": "When enabled, a few minor tweaks to Foundry's colours will be made to match Starfinder's colour scheme.",
                 "Name": "Tema SFRPG personalizzato"
+            },
+            "ScaleTokensToGrid": {
+                "Hint": "When enabled, a token dropped onto a scene is sized to that scene's grid scale, so a Large creature covers 10 ft whether a square is 5 ft or 10 ft. Mechs follow the Tech Revolution rule and never shrink below one square.",
+                "Name": "Scale Tokens to Grid"
             },
             "ScalingCantrips": {
                 "Hint": "Attiva la regola variante dei Trucchetti scalabili da Galactic Magic pag. 88. Modificare questa impostazione altererà le formule di tutti gli incantesimi interessati su tutti gli attori, quindi può richiedere un po' di tempo se ne hai molti.",

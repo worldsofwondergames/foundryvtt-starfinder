@@ -5,9 +5,15 @@ import RollContext from "../rolls/rollcontext.js";
 import { postRoundEndCheckCards } from "../system/condition-end-check.js";
 import { postTurnStartFailures } from "../system/mech-failure-link.js";
 import { postsPhaseCard } from "../rules/combat-cards.js";
+import { nextCombatType, starshipCombatTypeForMode } from "../rules/narrative-starship/mode.js";
 import { resolveEventData } from "./combat-event-data.js";
 import { applyMechTurnChanges } from "./mech-turn-changes.js";
 import { runTurnEvent } from "./turn-event.js";
+import { openNarrativeTacticsDialog } from "../apps/narrative-tactics-dialog.js";
+import { missedResolveRound } from "../rules/narrative-starship/round-end.js";
+import {
+    CREW_ACTIONS_PHASE, RESOLVE_PHASE, TACTICS_PHASE, postVirtualIntelligenceCards, resolveNarrativePhase
+} from "../system/narrative-starship-combat.js";
 /**  @import Combatant from "@client/documents/combatant.mjs" */
 /*
 The following hooks were added:
@@ -73,13 +79,16 @@ export class CombatSFRPG extends foundry.documents.Combat {
     async startCombat() {
         this._playCombatSound("startEncounter");
 
+        // Adding a combatant changes the combat type without waiting for the save, so a combat started right
+        // after its first combatant was added could start as the old type and skip its start steps.
+        await this._combatTypeUpdate;
         const combatType = this.getCombatType();
         const update = {
             "flags.sfrpg.startTime": game.time.worldTime,
             "flags.sfrpg.combatType": combatType,
             "flags.sfrpg.phase": 0,
             "round": 1,
-            "turn": combatType === "starship" ? null : 0
+            "turn": (combatType === "starship" || combatType === "narrativeStarship") ? null : 0
         };
         Hooks.callAll("combatStart", this, update);
         // Work that belongs to the start of the combat, such as resetting mechs,
@@ -121,6 +130,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
         this._handleTimedEffects(eventData);
         await this._notifyAfterUpdate(eventData);
         await this._postTurnStartFailures(eventData);
+        // A narrative combat starts in Enemy Tactics, so the GM picks each enemy's tactic right away.
+        if (game.user.isGM && combatType === "narrativeStarship") openNarrativeTacticsDialog(this);
     }
 
     async delete(options = {}) {
@@ -136,6 +147,7 @@ export class CombatSFRPG extends foundry.documents.Combat {
         const sortMethod = {
             "normal": CombatSFRPG.normalCombat.initiativeSorting,
             "starship": CombatSFRPG.starshipCombat.initiativeSorting,
+            "narrativeStarship": CombatSFRPG.narrativeStarship.initiativeSorting,
             "vehicleChase": CombatSFRPG.vehicleChase.initiativeSorting
         }[this.getCombatType()] || "desc";
 
@@ -370,6 +382,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
             newRound: nextRound,
             oldPhase: currentPhase,
             newPhase: newPhase,
+            oldPhaseIndex: this.flags.sfrpg.phase,
+            newPhaseIndex: nextPhase,
             oldCombatant: currentPhase.iterateTurns ? this.turns[this.turn] : null,
             newCombatant: newPhase.iterateTurns ? this.turns[nextTurn] : null,
             direction: updateOptions.direction || nextRound - this.round || nextTurn - this.turn
@@ -434,6 +448,32 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 await this._printChatCards(eventData);
                 if (eventData.direction > 0) await this._postTurnStartFailures(eventData);
                 await applyMechTurnChanges(eventData);
+                // Moving forward into a narrative combat's Resolve phase turns successes into hits.
+                const narrative = this.getCombatType() === "narrativeStarship";
+                if (narrative && eventData.isNewPhase && eventData.direction > 0
+                    && this.flags.sfrpg.phase === RESOLVE_PHASE) {
+                    await resolveNarrativePhase(this);
+                }
+                // Moving to a new round from Enemy Tactics or Crew Actions skips the Resolve phase, so run it once here.
+                const missed = missedResolveRound({
+                    combatType: this.getCombatType(),
+                    isNewRound: eventData.isNewRound,
+                    direction: eventData.direction,
+                    oldPhaseIndex: eventData.oldPhaseIndex,
+                    oldRound: eventData.oldRound,
+                    resolvedRound: this.getFlag("sfrpg", "narrativeResolvedRound")
+                });
+                if (missed !== null) await resolveNarrativePhase(this, missed);
+                // The GM picks each enemy's tactic when Enemy Tactics starts. Not waited for: it is a window.
+                if (narrative && eventData.isNewPhase && eventData.direction > 0
+                    && this.flags.sfrpg.phase === TACTICS_PHASE) {
+                    openNarrativeTacticsDialog(this);
+                }
+                // Virtual Intelligence offers its Provide Aid roll to the GM when Crew Actions starts.
+                if (narrative && eventData.isNewPhase && eventData.direction > 0
+                    && this.flags.sfrpg.phase === CREW_ACTIONS_PHASE) {
+                    await postVirtualIntelligenceCards(this);
+                }
             });
         }
     }
@@ -630,6 +670,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 return game.i18n.format(CombatSFRPG.normalCombat.name);
             case "starship":
                 return game.i18n.format(CombatSFRPG.starshipCombat.name);
+            case "narrativeStarship":
+                return game.i18n.format(CombatSFRPG.narrativeStarship.name);
             case "vehicleChase":
                 return game.i18n.format(CombatSFRPG.vehicleChase.name);
         }
@@ -642,6 +684,8 @@ export class CombatSFRPG extends foundry.documents.Combat {
                 return CombatSFRPG.normalCombat.phases;
             case "starship":
                 return CombatSFRPG.starshipCombat.phases;
+            case "narrativeStarship":
+                return CombatSFRPG.narrativeStarship.phases;
             case "vehicleChase":
                 return CombatSFRPG.vehicleChase.phases;
         }
@@ -995,29 +1039,30 @@ export class CombatSFRPG extends foundry.documents.Combat {
      */
     _onEnter(combatant) {
         if (game.user.isGM && combatant.actor && !this.started) {
+            let combatType;
             switch (combatant.actor.type) {
                 case "starship":
-                    this.update({"flags.sfrpg.combatType": "starship"});
+                    combatType = starshipCombatTypeForMode(game.settings.get("sfrpg", "starshipCombatMode"));
                     break;
                 case "vehicle":
-                    this.update({"flags.sfrpg.combatType": "vehicleChase"});
+                    combatType = "vehicleChase";
                     break;
                 default:
-                    this.update({"flags.sfrpg.combatType": "normal"});
+                    combatType = "normal";
                     break;
             }
+            // startCombat waits for this save.
+            this._combatTypeUpdate = this.update({"flags.sfrpg.combatType": combatType});
         }
     }
 }
 
 async function onConfigClicked(combat, direction) {
     const combatType = combat.flags?.sfrpg?.combatType || "normal";
-    const types = ["normal", "starship", "vehicleChase"];
-    const indexOf = types.indexOf(combatType);
-    const wrappedIndex = (types.length + indexOf + direction) % types.length;
+    const mode = game.settings.get("sfrpg", "starshipCombatMode");
 
     const update = {
-        "flags.sfrpg.combatType": types[wrappedIndex]
+        "flags.sfrpg.combatType": nextCombatType(combatType, direction, mode)
     };
     await combat.update(update);
 }
@@ -1059,7 +1104,7 @@ Hooks.on('renderCombatTracker', (app, html, data) => {
     }
 
     // Perform difficulty calculations, and display if appropriate
-    if (game.user.isGM && combatType !== "vehicleChase") {
+    if (game.user.isGM && combatType !== "vehicleChase" && combatType !== "narrativeStarship") {
         const diffDisplay = game.settings.get("sfrpg", "difficultyDisplay");
         if (!diffDisplay) return;
 
@@ -1139,6 +1184,17 @@ CombatSFRPG.starshipCombat = {
             resetInitiative: false
         }
     ]
+};
+
+CombatSFRPG.narrativeStarship = {
+    name: "SFRPG.Combat.NarrativeStarship.Name",
+    initiativeSorting: "desc",
+    phases: [1, 2, 3].map(number => ({
+        name: `SFRPG.Combat.NarrativeStarship.Phases.${number}.Name`,
+        description: `SFRPG.Combat.NarrativeStarship.Phases.${number}.Description`,
+        iterateTurns: false,
+        resetInitiative: false
+    }))
 };
 
 CombatSFRPG.vehicleChase = {

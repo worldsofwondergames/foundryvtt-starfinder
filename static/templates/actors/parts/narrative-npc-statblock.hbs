@@ -1,0 +1,35 @@
+<div class="tab narrative-statblock narrative-npc" data-group="primary" data-tab="stats">
+    {{> "systems/sfrpg/templates/actors/parts/narrative-stats.hbs"}}
+
+    <h3 class="form-header">{{localize "SFRPG.NarrativeStarship.SpecialAbilities"}}</h3>
+    <div class="narrative-special-abilities">
+        {{editor
+            enrichedSpecialAbilities
+            target="system.narrative.specialAbilities"
+            button=true
+            editable=editable
+            engine="prosemirror"
+        }}
+    </div>
+</div>
+
+<div class="tab narrative-actions" data-group="primary" data-tab="actions">
+    <ol class="narrative-action-list">
+        {{#each narrative.tactics as |tactic|}}
+        <li class="narrative-action" data-tactic="{{tactic.key}}">
+            <div class="narrative-action-head flexrow">
+                <div class="narrative-action-name">{{tactic.label}}</div>
+                {{#if tactic.roll}}
+                <span class="narrative-tactic-roll-wrap" {{#if tactic.roll.hint}}data-tooltip="{{tactic.roll.hint}}"{{/if}}>
+                    <button type="button" class="narrative-tactic-roll" data-tactic="{{tactic.key}}" {{#if tactic.roll.disabled}}disabled{{/if}}><i class="fas fa-dice-d20"></i> {{localize "SFRPG.NarrativeStarship.Dialog.Roll"}}</button>
+                </span>
+                {{/if}}
+            </div>
+            {{#if tactic.dcGroups.length}}
+            <div class="narrative-action-skills">{{localize "SFRPG.NarrativeStarship.Tabs.CheckAgainst"}}{{#each tactic.dcGroups as |group|}}{{#if @first}} {{else}}; {{/if}}{{#if group.label}}{{group.label}} {{/if}}{{#if group.fallback}}<strong>{{group.fallback}}</strong>{{/if}}{{#each group.dcs as |entry|}}{{#unless @first}}, {{/unless}}<strong>{{entry.text}}</strong>{{#if entry.name}} ({{entry.name}}){{/if}}{{/each}}{{/each}}</div>
+            {{/if}}
+            <div class="narrative-action-effect">{{tactic.effect}}</div>
+        </li>
+        {{/each}}
+    </ol>
+</div>

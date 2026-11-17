@@ -19,6 +19,10 @@ export const preloadHandlebarsTemplates = async function() {
         "systems/sfrpg/templates/actors/parts/actor-traits.hbs",
         "systems/sfrpg/templates/actors/parts/actor-vehicle-system-item.hbs",
         "systems/sfrpg/templates/actors/parts/actor-vehicle-systems.hbs",
+        "systems/sfrpg/templates/actors/parts/narrative-npc-statblock.hbs",
+        "systems/sfrpg/templates/actors/parts/narrative-pc-statblock.hbs",
+        "systems/sfrpg/templates/actors/parts/narrative-stats.hbs",
+        "systems/sfrpg/templates/actors/parts/starship-crew-roster.hbs",
 
         // Item Sheet Partials
         "systems/sfrpg/templates/items/parts/item-action.hbs",

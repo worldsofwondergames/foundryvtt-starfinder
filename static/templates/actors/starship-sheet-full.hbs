@@ -551,24 +551,7 @@
             </div>
 
             {{#unless system.crew.useNPCCrew}}
-            <ol class="crew-list">
-                {{#each crew as |role|}}
-                <li class="flexrow crew-header {{role.cssClass}}" {{#each role.dataset as |v k|}}data-{{k}}="{{v}}"{{/each}}>{{role.label}}</li>
-                <ol class="crew-item-list">
-                    {{#each role.actors as |actor a|}}
-                    <li class="crew flexrow draggable" data-actor-id="{{actor.id}}">
-                        <div class="crew-name flexrow">
-                            <div class="crew-image" style="background-image: url({{actor.img}})"></div>
-                            <a class="crew-view"><h4>{{actor.name}}</h4></a>
-                        </div>
-                        <div class="crew-controls">
-                            <a class="crew-control crew-delete" title="{{localize "SFRPG.StarshipSheet.Crew.RemoveCrewMember"}}"><i class="fas fa-trash"></i></a>
-                        </div>
-                    </li>
-                    {{/each}}
-                </ol>
-                {{/each}}
-            </ol>
+            {{> "systems/sfrpg/templates/actors/parts/starship-crew-roster.hbs" crew=crew}}
             {{else}}
             <ol class="crew-list">
                 {{#each system.crew.npcData as |role roleId|}}
