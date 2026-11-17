@@ -2,6 +2,7 @@ import FloatingNumberMenu from "../classes/floating-number-menu.js";
 import { SFRPG } from "../config.js";
 import { ItemSFRPG } from "../item/item.js";
 import { rerenderApps } from "../utils/utilities.js";
+import { registerHouseRuleSettings } from "./house-rules.js";
 
 export const registerSystemSettings = function() {
     game.settings.register("sfrpg", "chatNotificationDuration", {
@@ -409,4 +410,7 @@ export const registerSystemSettings = function() {
         default: 0,
         type: Number
     });
+
+    // Last, so they are listed together under the House Rules heading.
+    registerHouseRuleSettings();
 };

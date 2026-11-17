@@ -1,6 +1,7 @@
 # Version 14.2.0
 
 ## New Features
+- A House Rules section at the end of the system's settings, with a setting that limits a mech to half its tier in upgrades, rounded down. With it on, the Upgrades list shows the count against the limit and hides its add button at the limit, and a dropped upgrade over the limit is refused. Upgrades a mission pod adds don't count (#166)
 - Nanite Swarm Repair's 1d6 on the Reconstruction and Builder Swarm cards rolls 1d6 times the mech's tier and heals the mech. Reconstruction heals the mech using it. Builder Swarm heals the one mech you target, and refuses a mech more than 100 feet away. A mech repaired either way can't be repaired again for 24 in-world hours. Existing copies of Nanite Swarm Repair get the heals when the world migrates (#152)
 
 ## Bugfixes
