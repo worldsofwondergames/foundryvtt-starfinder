@@ -20,7 +20,8 @@ import {
 } from "../rules/mech-condition-modifiers.js";
 import { levelRefusal, maxWeaponLevel, updatedWeaponLevel } from "../actor/sheet/mech-weapon-slots.js";
 import { applyPerDieBonus, overrideAppliesTo, resolveDamageLevel } from "../rules/mech-damage-level.js";
-import { canThrow, thrownRange } from "../rules/mech-thrown.js";
+import { canThrow, thrownRange, thrownRangeInUse } from "../rules/mech-thrown.js";
+import { thrownHouseFeet } from "../system/house-rules.js";
 import { Mix } from "../utils/custom-mixer.js";
 import { ItemActivationMixin } from "./mixins/item-activation.js";
 import { ItemCapacityMixin } from "./mixins/item-capacity.js";
@@ -1357,7 +1358,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
         if (thrown) {
             tags.push({
                 tag: "thrown",
-                text: game.i18n.format("SFRPG.MechSheet.Weapon.ThrownTag", { range: thrownRange(this.system.special) })
+                text: game.i18n.format("SFRPG.MechSheet.Weapon.ThrownTag", { range: thrownRangeInUse(thrownRange(this.system.special, this.system.range), thrownHouseFeet()) })
             });
         }
 

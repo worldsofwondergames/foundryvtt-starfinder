@@ -1,10 +1,13 @@
 # Version 14.2.0
 
 ## New Features
+- A "Thrown mech weapon range" house rule setting, blank by default. Set to a number of feet, every mech weapon with the thrown property and every object thrown with Hurl uses that range, and the Thrown tag, throw tooltip, and Hurl card show it (#154)
 - A House Rules section at the end of the system's settings, with a setting that limits a mech to half its tier in upgrades, rounded down. With it on, the Upgrades list shows the count against the limit and hides its add button at the limit, and a dropped upgrade over the limit is refused. Upgrades a mission pod adds don't count (#166)
 - Nanite Swarm Repair's 1d6 on the Reconstruction and Builder Swarm cards rolls 1d6 times the mech's tier and heals the mech. Reconstruction heals the mech using it. Builder Swarm heals the one mech you target, and refuses a mech more than 100 feet away. A mech repaired either way can't be repaired again for 24 in-world hours. Existing copies of Nanite Swarm Repair get the heals when the world migrates (#152)
 
 ## Bugfixes
+- The Autospear had no thrown attack. Its compendium entry was marked ranged with "reach, thrown, projectile mode (1 PP)" and a 40 ft. range. It is now melee with "reach, thrown (40 ft.), projectile mode (1 PP)", as Archives of Nethys gives it, and existing copies are fixed when the world migrates. A hand-entered weapon that says only "thrown" uses its range field (#154)
+- The throw tooltip read "range 40 ft..". It now reads "Thrown attack (40 ft.)"
 - Autotarget's Accurate Strikes spent 1 PP and changed nothing. For 1 round it now uses each operator's level in place of their Piloting ranks in the mech's attack bonus, and the attack card says so. Outside combat it lasts for one attack. The Actions tab shows it while it applies, with a Cancel button that refunds the PP. Existing copies of Autotarget get the change when the world migrates (#153)
 - With custom chat cards on, save, skill, and ability check cards showed the actor's portrait beside its token, labeled with the actor's name as if it were an item. They now show the token and the roll's title, such as "Save - Fortitude" (#151)
 - A player who clicked Damage, Attack, or another button on a chat card posted by someone else got no roll and no message. Owners of the card's actor can now use its buttons, and anyone else sees a warning that says who can (#155)

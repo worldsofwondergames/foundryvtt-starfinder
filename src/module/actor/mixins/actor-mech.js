@@ -11,7 +11,9 @@ import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effec
 import { systemResetUpdate } from "../../rules/mech-system-failure.js";
 import { auxiliarySystemUsable, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
 import { clearSystemFlag } from "../../utils/flags.js";
-import { HURL_DAMAGE_LEVELS, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
+import { thrownRangeInUse } from "../../rules/mech-thrown.js";
+import { thrownHouseFeet } from "../../system/house-rules.js";
+import { HURL_DAMAGE_LEVELS, HURL_RANGE, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
 import { actionUsesEnergyType } from "../../rules/weapon-core.js";
 import { energyTypesFor, energyTypesLabel } from "../../system/weapon-core.js";
 
@@ -99,7 +101,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             if (action.grantsHurl) {
                 const granted = await this._grantHurlAttack();
                 if (!granted) return null;
-                description = `${description} ${game.i18n.format(`SFRPG.MechSheet.Hurl.Thrown.${granted.damageLevel}`, { size: granted.sizeLabel })}`;
+                description = `${description} ${game.i18n.format(`SFRPG.MechSheet.Hurl.Thrown.${granted.damageLevel}`, { size: granted.sizeLabel, range: thrownRangeInUse(HURL_RANGE, thrownHouseFeet()) })}`;
             }
         } else if (category === "gear") {
             const item = this.items.get(itemId);
