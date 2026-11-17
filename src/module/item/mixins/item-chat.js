@@ -1,5 +1,6 @@
 import AbilityTemplate from "../../canvas/ability-template.js";
 import {ItemSFRPG} from "../item.js";
+import { chatCardBlockReason } from "../chat-card-access.js";
 
 /**
  * @import { ActorSFRPG } from "../../actor/actor.js"
@@ -23,19 +24,33 @@ export const ItemChatMixin = (superclass) => class extends superclass {
         const action = button.dataset.action;
         const dc = button.dataset.dc ? Number(button.dataset.dc) : undefined;
 
-        // Validate permission to proceed with the roll
         const isTargetted = ["save", "skill"].includes(action);
-        if (!(isTargetted || game.user.isGM || message.isAuthor)) return;
 
         // Get the Actor from a synthetic Token
         const chatCardActor = this._getChatCardActor(card);
         if (!chatCardActor) {
-            ui.notifications.error("SFRPG.ChatCard.ItemAction.NoActor");
+            ui.notifications.error(game.i18n.localize("SFRPG.ChatCard.ItemAction.NoActor"));
+            return;
+        }
+
+        // Validate permission to proceed with the roll
+        const blockReason = chatCardBlockReason({
+            action,
+            isGM: game.user.isGM,
+            isAuthor: message.isAuthor,
+            ownsActor: chatCardActor.isOwner
+        });
+        if (blockReason) {
+            ui.notifications.warn(game.i18n.format(`SFRPG.ChatCard.ItemAction.${blockReason}`, {actor: chatCardActor.name}));
             return;
         }
 
         // Get the Item
         let item = chatCardActor.items.get(card.dataset.itemId);
+        if (!item) {
+            ui.notifications.error(game.i18n.format("SFRPG.ChatCard.ItemAction.NoItem", {actor: chatCardActor.name}));
+            return;
+        }
 
         // Adjust item to level, if required
         if (Object.keys(message.flags?.sfrpg ?? {}).length !== 0 && message.flags?.sfrpg?.level && message.flags?.sfrpg?.level !== item.system.level) {
