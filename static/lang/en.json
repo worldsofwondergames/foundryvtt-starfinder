@@ -516,7 +516,9 @@
             },
             "ItemAction": {
                 "Check": "Check",
-                "NoActor": "You must have an actor selected or assigned to your user."
+                "NoActor": "You must have an actor selected or assigned to your user.",
+                "NoItem": "{actor} no longer has the item this card was posted for.",
+                "NotAllowed": "Only the GM, the person who posted this card, or an owner of {actor} can use this button."
             },
             "ItemActivation": {
                 "Activates": "Activates",

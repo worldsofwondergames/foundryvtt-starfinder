@@ -3,6 +3,7 @@
 ## New Features
 
 ## Bugfixes
+- A player who clicked Damage, Attack, or another button on a chat card posted by someone else got no roll and no message. Owners of the card's actor can now use its buttons, and anyone else sees a warning that says who can (#155)
 - About 8,500 strings in the German, Spanish, French, Italian, Japanese and Brazilian Portuguese translations were still in English, among them the mech, condition and chat card text and many older strings such as language names and starship terms. Each language now has them translated, with the terms its file already used where it had one
 
 # Version 14.1.10
