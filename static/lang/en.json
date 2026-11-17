@@ -2334,6 +2334,7 @@
                 "LowerLimbs": "Lower Limbs ({current})",
                 "PowerCores": "Power Cores ({current})",
                 "Upgrades": "Upgrades",
+                "UpgradesLimited": "Upgrades ({current}/{max})",
                 "UpperLimbs": "Upper Limbs ({current})",
                 "Weapons": "Weapons"
             },
@@ -2570,6 +2571,7 @@
                 "HpAdvancementBonus": "HP Advancement Bonus",
                 "KacBonus": "KAC Bonus",
                 "MpCost": "MP Cost",
+                "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
                 "ReflexBonus": "Reflex Bonus",
                 "SpBonusPerTier": "SP Bonus per Tier",
                 "SpeedBonus": "Speed Bonus"
@@ -3616,6 +3618,13 @@
             "HideHostileStarshipCrit": {
                 "Hint": "When posting notifications about starship criticals or thresholds, only post to GM if the ship is a Hostile Token.",
                 "Name": "Hide Hostile Starship Critical Message"
+            },
+            "HouseRules": {
+                "Heading": "House Rules",
+                "MechUpgradeLimit": {
+                    "Hint": "A mech can have as many upgrades as half its tier, rounded down. Upgrades a mission pod adds don't count.",
+                    "Name": "Limit mech upgrades to half the tier"
+                }
             },
             "LockArtworkRotationDefault": {
                 "ConfirmationText": "Apply one time update to all Character/NPC/Drone/Hazard prototype token settings?</p>This will not affect placed tokens.</p>",

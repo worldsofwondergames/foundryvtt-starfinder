@@ -55,6 +55,7 @@ import { RPC } from "./module/rpc.js";
 import { mechShieldRefills } from "./module/rules/mech-shield-reset.js";
 import registerSystemRules from "./module/rules.js";
 import { registerSystemSettings } from "./module/system/settings.js";
+import { addHouseRulesHeading } from "./module/system/house-rules.js";
 import { narrativeSheetIsDefault } from "./module/rules/narrative-starship/mode.js";
 import TooltipManagerSFRPG from "./module/tooltip.js";
 import { generateUUID, rerenderApps } from "./module/utils/utilities.js";
@@ -358,6 +359,7 @@ Hooks.once('init', async function() {
 
     console.log("Starfinder | [INIT] Registering system settings");
     registerSystemSettings();
+    Hooks.on("renderSettingsConfig", addHouseRulesHeading);
 
     if (game.settings.get("sfrpg", "sfrpgTheme")) {
         const bod = document.body;

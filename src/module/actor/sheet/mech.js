@@ -4,6 +4,7 @@ import { COMPONENT_LABELS, damageState, systemHint } from "../../rules/mech-syst
 import { effectiveSystems, overcomeActions, weaponUsable } from "../../rules/mech-system-effects.js";
 import { canThrow, thrownRange } from "../../rules/mech-thrown.js";
 import { ActorSheetSFRPG } from "./base.js";
+import { countedMechUpgrades, maxMechUpgrades, upgradeLimitRefusal } from "../../rules/mech-upgrade-limit.js";
 import { LOCKER_SLOT, SLOT_COMPONENT_TYPES, droppedSlot, maxWeaponLevel, mountRefusal, weaponDropPlacement } from "./mech-weapon-slots.js";
 import { hasEnergyTypes, showsEnergyTypeLabel } from "../../rules/weapon-core.js";
 import { allowedEnergyTypes, energyTypesLabel, promptEnergyTypes } from "../../system/weapon-core.js";
@@ -262,13 +263,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 dataset: { type: "mechAuxiliary" },
                 allowAdd: auxiliarySystems.length < Math.min(4, actorData.attributes?.slots?.auxiliary || 0)
             },
-            upgrades: {
-                category: game.i18n.format("SFRPG.MechSheet.Features.Upgrades"),
-                items: upgrades,
-                hasActions: false,
-                dataset: { type: "mechUpgrade" },
-                allowAdd: true
-            }
+            upgrades: this._upgradesFeature(upgrades, actorData.details?.tier)
         };
 
         data.featuresTop = [features.frame];
@@ -644,6 +639,55 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         return super._updateObject(event, formData);
     }
 
+    /**
+     * The Upgrades list. Under the upgrade limit house rule it shows the count
+     * against the limit and hides its add button at the limit.
+     *
+     * @param {Item[]} upgrades The mech's upgrades.
+     * @param {number} tier The mech's tier.
+     * @returns {object}
+     */
+    _upgradesFeature(upgrades, tier) {
+        const feature = {
+            category: game.i18n.format("SFRPG.MechSheet.Features.Upgrades"),
+            items: upgrades,
+            hasActions: false,
+            dataset: { type: "mechUpgrade" },
+            allowAdd: true
+        };
+        if (!game.settings.get("sfrpg", "houseRuleMechUpgradeLimit")) return feature;
+
+        const current = countedMechUpgrades(this.actor.items);
+        const max = maxMechUpgrades(tier);
+        feature.category = game.i18n.format("SFRPG.MechSheet.Features.UpgradesLimited", { current, max });
+        feature.allowAdd = current < max;
+        return feature;
+    }
+
+    /**
+     * Refuse an upgrade that would break the upgrade limit house rule.
+     *
+     * @returns {boolean} True when the upgrade was refused.
+     */
+    _refuseUpgradeOverLimit() {
+        const tier = this.actor.system.details?.tier;
+        const refusal = upgradeLimitRefusal({
+            enabled: game.settings.get("sfrpg", "houseRuleMechUpgradeLimit"),
+            tier,
+            current: countedMechUpgrades(this.actor.items)
+        });
+        if (!refusal) return false;
+
+        ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.Upgrade.OverLimit", { name: this.actor.name, max: refusal.max, tier }));
+        return true;
+    }
+
+    /** @override */
+    async _onItemCreate(event) {
+        if (event.currentTarget?.dataset?.type === "mechUpgrade" && this._refuseUpgradeOverLimit()) return null;
+        return super._onItemCreate(event);
+    }
+
     /** @override */
     async _onDrop(event) {
         event.preventDefault();
@@ -675,6 +719,8 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             }
 
             if (CONFIG.SFRPG.mechDefinitionItemTypes.includes(rawItemData.type)) {
+                if (rawItemData.type === "mechUpgrade" && this._refuseUpgradeOverLimit()) return false;
+
                 // Only allow one frame per mech
                 if (rawItemData.type === "mechFrame") {
                     const existingFrame = this.actor.items.find(i => i.type === "mechFrame");
