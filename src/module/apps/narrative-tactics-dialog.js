@@ -1,13 +1,19 @@
 import { NARRATIVE_TACTICS, availableNextTactics, availableTactics, revealPending, tacticDC } from "../rules/narrative-starship/tactics.js";
 import { pendingMines } from "../rules/narrative-starship/upgrades.js";
-import { TACTICS_PHASE, presetEnemyTactic, rollEnemyMines, runEnemyTactic, shipActor } from "../system/narrative-starship-combat.js";
+import { TACTICS_PHASE, effectWithDCs, presetEnemyTactic, rollEnemyMines, runEnemyTactic, shipActor } from "../system/narrative-starship-combat.js";
 
 const LABEL = "SFRPG.NarrativeStarship.";
 
 /** The open dialog for each combat id. */
 const openDialogs = new Map();
 
-function tacticOptions(statuses, selected) {
+/**
+ * @param {object[]} statuses
+ * @param {string|null} selected
+ * @param {Actor[]} own The enemy ship, for the DCs its effect text names.
+ * @param {Actor[]} targets The PC ships.
+ */
+function tacticOptions(statuses, selected, own, targets) {
     return statuses.map(status => ({
         value: status.key,
         label: game.i18n.localize(`${LABEL}Tactics.${status.key}.Name`),
@@ -16,7 +22,7 @@ function tacticOptions(statuses, selected) {
         selected: status.key === selected,
         pcTarget: NARRATIVE_TACTICS[status.key].pcTarget,
         dc: NARRATIVE_TACTICS[status.key].dc ?? "",
-        effect: game.i18n.localize(`${LABEL}Tactics.${status.key}.Effect`)
+        effect: effectWithDCs(`${LABEL}Tactics.${status.key}.Effect`, own, targets)
     }));
 }
 
@@ -86,6 +92,7 @@ function tacticsAppClass() {
             const pcs = Object.entries(state.ships)
                 .filter(([, ship]) => ship.side === "pc" && !ship.flags.includes("out"))
                 .map(([id]) => ({ id, name: name(id) }));
+            const pcActors = pcs.map(pc => shipActor(combat, pc.id));
             // Each target's DC for an Average and a Hard tactic, after the effects that make tactics use the Hard DC.
             const targetsFor = (forced, enemyId) => pcs.map(pc => {
                 const derived = shipActor(combat, pc.id)?.system.narrative?.derived ?? {};
@@ -105,7 +112,7 @@ function tacticsAppClass() {
                         img: shipActor(combat, id)?.img ?? "",
                         chosen: ship.tactic ? game.i18n.localize(`${LABEL}Tactics.${ship.tactic}.Name`) : "",
                         chosenTarget: ship.tacticTarget ? name(ship.tacticTarget) : "",
-                        tactics: tacticOptions(statuses, forced?.tactic ?? firstOpen(statuses)),
+                        tactics: tacticOptions(statuses, forced?.tactic ?? firstOpen(statuses), [shipActor(combat, id)], pcActors),
                         targets: targetsFor(forced?.targetShip, id),
                         targetLocked: Boolean(forced?.targetShip),
                         forced: Boolean(forced),
@@ -114,7 +121,7 @@ function tacticsAppClass() {
                     };
                     if (revealPending(state, id, round)) {
                         const next = availableNextTactics(state, id, round);
-                        row.reveal = { tactics: tacticOptions(next, firstOpen(next)), targets: targetsFor(null, id) };
+                        row.reveal = { tactics: tacticOptions(next, firstOpen(next), [shipActor(combat, id)], pcActors), targets: targetsFor(null, id) };
                     }
                     return row;
                 });

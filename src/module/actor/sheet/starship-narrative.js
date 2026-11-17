@@ -18,18 +18,10 @@ import {
 import { clampUpgradeCount, onceButtons, upgradeRows } from "../../rules/narrative-starship/upgrades.js";
 import { NARRATIVE_ROLES } from "../../rules/narrative-starship/crew-actions.js";
 import {
-    actableCrew, enemyTacticButtons, narrativeCombatFor, NARRATIVE_COMBAT_TYPE, requestUpgradeUse, runEnemyTactic, shipActor, tacticsCombatFor, upgradeButtonsCombatFor
+    actableCrew, effectWithDCs, enemyTacticButtons, narrativeCombatFor, NARRATIVE_COMBAT_TYPE, requestUpgradeUse, runEnemyTactic,
+    shipActor, shipDCs, tacticsCombatFor, upgradeButtonsCombatFor
 } from "../../system/narrative-starship-combat.js";
 import { ActorSheetSFRPGStarship } from "./starship.js";
-
-/**
- * A ship's name and narrative DCs.
- * @param {Actor} actor
- */
-function shipDCs(actor) {
-    const derived = actor.system.narrative?.derived ?? {};
-    return { name: actor.name, average: derived.averageDC, hard: derived.hardDC };
-}
 
 const DC_GROUP_LABELS = { otherSkills: "OtherSkills", average: "Average", hard: "Hard" };
 const DC_CATEGORY_NAMES = { average: "AverageDC", hard: "HardDC" };
@@ -118,7 +110,7 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         const named = row => ({
             ...row,
             label: game.i18n.localize(`SFRPG.NarrativeStarship.Upgrades.${row.key}.Name`),
-            effect: game.i18n.localize(`SFRPG.NarrativeStarship.Upgrades.${row.key}.Effect`)
+            effect: effectWithDCs(`SFRPG.NarrativeStarship.Upgrades.${row.key}.Effect`, [this.actor], [])
         });
         const { all, installed } = upgradeRows(upgrades);
         // Viewers who can't edit the ship see only what is installed, and no section at all when nothing is.
@@ -135,26 +127,27 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
         const label = key => game.i18n.localize(key);
         const names = { ...skills, rangedAttack: label("SFRPG.NarrativeStarship.RangedAttack") };
         const own = shipDCs(this.actor);
-        const opponents = this._opponentDCs();
+        const opponents = this._opponents();
         return crewActionGroups(CONFIG.SFRPG.narrativeCrewActions, NARRATIVE_ROLES, names).map(group => ({
             label: label(`SFRPG.NarrativeStarship.Roles.${group.role}`),
             actions: group.actions.map(action => ({
                 key: action.key,
                 label: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Name`),
-                effect: label(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Effect`),
+                effect: effectWithDCs(`SFRPG.NarrativeStarship.CrewActions.${action.key}.Effect`, [this.actor], opponents),
                 skillText: action.anySkill
                     ? label("SFRPG.NarrativeStarship.Dialog.AnySkill")
                     : game.i18n.format("SFRPG.NarrativeStarship.Tabs.PreferredSkills", { skills: action.skills }),
-                dcGroups: dcGroupView(crewActionDCGroups(action, own, opponents))
+                dcGroups: dcGroupView(crewActionDCGroups(action, own, opponents.map(shipDCs)))
             }))
         }));
     }
 
     /**
-     * The name and DCs of each ship on the other side of this ship's narrative combat. The combat need not be
-     * started, so the DCs show while the GM sets it up. Empty when the ship is in no narrative combat.
+     * The ships on the other side of this ship's narrative combat. The combat need not be started, so their DCs show
+     * while the GM sets it up. Empty when the ship is in no narrative combat.
+     * @returns {Actor[]}
      */
-    _opponentDCs() {
+    _opponents() {
         const combat = narrativeCombatFor(this.actor.id)
             ?? game.combats?.find(c => c.getCombatType?.() === NARRATIVE_COMBAT_TYPE
                 && c.combatants.some(cb => cb.actorId === this.actor.id))
@@ -168,7 +161,7 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
             const actor = combatant.actor;
             if (actor?.type !== "starship" || seen.has(combatant.actorId) || npc(actor) === mine) continue;
             seen.add(combatant.actorId);
-            ships.push(shipDCs(actor));
+            ships.push(actor);
         }
         return ships;
     }
@@ -196,14 +189,14 @@ export class ActorSheetSFRPGStarshipNarrative extends ActorSheetSFRPGStarship {
      * @param {Record<string, {disabled: boolean, reason: string|null}>|undefined} buttons
      */
     _tacticRows(buttons) {
-        const opponents = this._opponentDCs();
+        const opponents = this._opponents();
         return Object.keys(CONFIG.SFRPG.narrativeTactics).map(key => {
             const button = buttons?.[key];
             return {
                 key,
                 label: game.i18n.localize(`${LABEL}Tactics.${key}.Name`),
-                effect: game.i18n.localize(`${LABEL}Tactics.${key}.Effect`),
-                dcGroups: dcGroupView(tacticDCGroups(CONFIG.SFRPG.narrativeTactics[key], opponents)),
+                effect: effectWithDCs(`${LABEL}Tactics.${key}.Effect`, [this.actor], opponents),
+                dcGroups: dcGroupView(tacticDCGroups(CONFIG.SFRPG.narrativeTactics[key], opponents.map(shipDCs))),
                 roll: button
                     ? { disabled: button.disabled, hint: button.reason ? game.i18n.localize(`${LABEL}TacticRejected.${button.reason}`) : "" }
                     : null

@@ -2810,7 +2810,7 @@
                     "Name": "Channel Eldritch Energy"
                 },
                 "clearTakeCover": {
-                    "Effect": "The special Piloting check from the Take Cover tactic, against the enemy ship's Hard DC. On a success, the crew can target that ship again this round. It doesn't count as a success toward its threshold.",
+                    "Effect": "The special Piloting check from the Take Cover tactic, against the enemy ship's Hard DC{targetHard}. On a success, the crew can target that ship again this round. It doesn't count as a success toward its threshold.",
                     "Name": "Negate Take Cover"
                 },
                 "derideEnemyShip": {
@@ -2838,7 +2838,7 @@
                     "Name": "Engage Experimental Prototype"
                 },
                 "engageFullThrusters": {
-                    "Effect": "Next round the target uses this ship's Hard DC for its tactics and takes a -1 penalty to its checks.",
+                    "Effect": "Next round the target uses this ship's Hard DC{ownHard} for its tactics and takes a -1 penalty to its checks.",
                     "Name": "Engage Full Thrusters"
                 },
                 "fireAtWill": {
@@ -2858,7 +2858,7 @@
                     "Name": "Hold Steady"
                 },
                 "improveCountermeasures": {
-                    "Effect": "This ship uses its Hard DC against enemy tactics next round.",
+                    "Effect": "This ship uses its Hard DC{ownHard} against enemy tactics next round.",
                     "Name": "Improve Countermeasures"
                 },
                 "maximizeCrewEfficiency": {
@@ -3047,6 +3047,7 @@
                 "Crew": "Crew",
                 "CrewActions": "Crew Actions",
                 "DC": "DC {dc}",
+                "DCFor": "DC {dc} for {ship}",
                 "EnemyActions": "Enemy Actions",
                 "Hard": "Hard",
                 "HardDC": "Hard DC",
@@ -3076,15 +3077,15 @@
             },
             "Tactics": {
                 "allOutAttack": {
-                    "Effect": "Two checks against the PC ship's Hard DC. If both succeed, the PC ship takes 2 hits. No enemy can choose this tactic again until after the next round.",
+                    "Effect": "Two checks against the PC ship's Hard DC{targetHard}. If both succeed, the PC ship takes 2 hits. No enemy can choose this tactic again until after the next round.",
                     "Name": "All-Out Attack"
                 },
                 "cruelTaunt": {
-                    "Effect": "A check against the PC ship's Average or Hard DC, chosen by the GM. On a success, the crew of that ship take -1 to all skill checks this round, or -2 if the check was against the Hard DC.",
+                    "Effect": "A check against the PC ship's Average DC{targetAverage} or Hard DC{targetHard}, chosen by the GM. On a success, the crew of that ship take -1 to all skill checks this round, or -2 if the check was against the Hard DC.",
                     "Name": "Cruel Taunt"
                 },
                 "evasiveManeuvers": {
-                    "Effect": "Ranged attacks and Piloting checks against this enemy ship use its Hard DC this round.",
+                    "Effect": "Ranged attacks and Piloting checks against this enemy ship use its Hard DC{ownHard} this round.",
                     "Name": "Evasive Maneuvers"
                 },
                 "flee": {
@@ -3100,7 +3101,7 @@
                     "Name": "Make Repairs"
                 },
                 "openFire": {
-                    "Effect": "A check against the PC ship's Average DC. On a success, the PC ship takes 1 hit.",
+                    "Effect": "A check against the PC ship's Average DC{targetAverage}. On a success, the PC ship takes 1 hit.",
                     "Name": "Open Fire"
                 },
                 "raiseShields": {
@@ -3108,7 +3109,7 @@
                     "Name": "Raise Shields"
                 },
                 "ram": {
-                    "Effect": "A check against the PC ship's Average DC. On a success, both ships take 1 hit and the crew of the PC ship take -1 to all skill checks this round.",
+                    "Effect": "A check against the PC ship's Average DC{targetAverage}. On a success, both ships take 1 hit and the crew of the PC ship take -1 to all skill checks this round.",
                     "Name": "Ram"
                 },
                 "signalJam": {
@@ -3116,7 +3117,7 @@
                     "Name": "Signal Jam"
                 },
                 "takeCover": {
-                    "Effect": "PC skill checks can't target this enemy ship this round. A crew member can try a Piloting check against its Hard DC to end this, which doesn't count as a success toward its threshold.",
+                    "Effect": "PC skill checks can't target this enemy ship this round. A crew member can try a Piloting check against its Hard DC{ownHard} to end this, which doesn't count as a success toward its threshold.",
                     "Name": "Take Cover"
                 },
                 "useSpecialAbility": {
@@ -3152,7 +3153,6 @@
                 "Target": "Target"
             },
             "Threshold": "Threshold",
-            "TierHint": "Set the tier to the party's Average Party Level",
             "UnlinkedShipWhisper": "{ship}'s token in this combat is not linked to its actor, so the ship's HP and upgrades are tracked on the token, not on the ship's sheet. To track them on the sheet, link the token: turn on Link Actor Data in the token's settings, and in the ship's Prototype Token for new tokens.",
             "UpgradeButtons": {
                 "Header": "Once-per-Combat Upgrades",
@@ -3200,7 +3200,7 @@
                     "Name": "Expansion Bay"
                 },
                 "mineLayer": {
-                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew lays mines. Next round, before it chooses a tactic, that ship must succeed at a skill check against this ship's Average DC or take 1 hit.",
+                    "Effect": "Once per combat, with an action that targets an enemy ship, the crew lays mines. Next round, before it chooses a tactic, that ship must succeed at a skill check against this ship's Average DC{ownAverage} or take 1 hit.",
                     "Name": "Mine Layer"
                 },
                 "navScramModule": {
@@ -3216,7 +3216,7 @@
                     "Name": "Tracking Weapons"
                 },
                 "tractorBeam": {
-                    "Effect": "An enemy ship that uses Flee must first succeed at a skill check against this ship's Hard DC, or it fails to escape at the end of the round.",
+                    "Effect": "An enemy ship that uses Flee must first succeed at a skill check against this ship's Hard DC{ownHard}, or it fails to escape at the end of the round.",
                     "Name": "Tractor Beam"
                 },
                 "virtualIntelligence": {
