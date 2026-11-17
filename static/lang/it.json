@@ -3055,6 +3055,7 @@
                 "Crew": "Crew",
                 "CrewActions": "Crew Actions",
                 "DC": "DC {dc}",
+                "DCFor": "DC {dc} for {ship}",
                 "EnemyActions": "Enemy Actions",
                 "Hard": "Hard",
                 "HardDC": "Hard DC",
