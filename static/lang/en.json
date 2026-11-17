@@ -2395,8 +2395,8 @@
                 "SizeSmall": "Smaller",
                 "SizeTitle": "Hurl",
                 "Thrown": {
-                    "low": "It picks up a {size} object, which deals light damage, and can throw it until the end of its turn.",
-                    "medium": "It picks up a {size} object, which deals medium damage, and can throw it until the end of its turn."
+                    "low": "It picks up a {size} object, which deals light damage, and can throw it with a range of {range} until the end of its turn.",
+                    "medium": "It picks up a {size} object, which deals medium damage, and can throw it with a range of {range} until the end of its turn."
                 }
             },
             "Initiative": {
@@ -2630,7 +2630,7 @@
                 "SlotsUsed": "Slots Used",
                 "Special": "Special Properties",
                 "Throw": "Throw",
-                "ThrowTooltip": "Thrown attack, range {range}. Uses the melee attack bonus, and damage adds Strength.",
+                "ThrowTooltip": "Thrown attack ({range}). Uses the melee attack bonus, and damage adds Strength.",
                 "ThrownTag": "Thrown ({range})",
                 "Type": "Weapon Type",
                 "TypeMelee": "Melee",
@@ -3631,6 +3631,10 @@
                 "MechUpgradeLimit": {
                     "Hint": "A mech can have as many upgrades as half its tier, rounded down. Upgrades a mission pod adds don't count.",
                     "Name": "Limit mech upgrades to half the tier"
+                },
+                "ThrownMechRange": {
+                    "Hint": "In feet. Every mech weapon with the thrown property, and every object thrown with Hurl, is thrown this far. Leave blank to use each weapon's own range.",
+                    "Name": "Thrown mech weapon range"
                 }
             },
             "LockArtworkRotationDefault": {

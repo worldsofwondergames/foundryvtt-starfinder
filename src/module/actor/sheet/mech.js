@@ -2,7 +2,8 @@ import { ActorSFRPG } from "../actor.js";
 import { armedOverrideBanners } from "../../rules/mech-attack-bonus.js";
 import { COMPONENT_LABELS, damageState, systemHint } from "../../rules/mech-system-failure.js";
 import { effectiveSystems, overcomeActions, weaponUsable } from "../../rules/mech-system-effects.js";
-import { canThrow, thrownRange } from "../../rules/mech-thrown.js";
+import { canThrow, thrownRange, thrownRangeInUse } from "../../rules/mech-thrown.js";
+import { thrownHouseFeet } from "../../system/house-rules.js";
 import { ActorSheetSFRPG } from "./base.js";
 import { countedMechUpgrades, maxMechUpgrades, upgradeLimitRefusal } from "../../rules/mech-upgrade-limit.js";
 import { LOCKER_SLOT, SLOT_COMPONENT_TYPES, droppedSlot, maxWeaponLevel, mountRefusal, weaponDropPlacement } from "./mech-weapon-slots.js";
@@ -310,7 +311,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
 
             if (canThrow(weapon.system)) {
                 weapon.config.throwTooltip = game.i18n.format("SFRPG.MechSheet.Weapon.ThrowTooltip", {
-                    range: thrownRange(weapon.system.special)
+                    range: thrownRangeInUse(thrownRange(weapon.system.special, weapon.system.range), thrownHouseFeet())
                 });
             }
         }
@@ -327,7 +328,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 attackString: view.config.attackString,
                 attackTooltip: view.config.attackTooltip,
                 damageString: `${hurl.system.damage.parts[0].formula} + ${actorData.attributes?.damageModifier?.melee || 0} B`,
-                throwTooltip: game.i18n.format("SFRPG.MechSheet.Weapon.ThrowTooltip", { range: hurl.system.range }),
+                throwTooltip: game.i18n.format("SFRPG.MechSheet.Weapon.ThrowTooltip", { range: thrownRangeInUse(hurl.system.range, thrownHouseFeet()) }),
                 sizeLabel: this.actor.getFlag("sfrpg", "hurlAttack")?.sizeLabel
                     ?? game.i18n.localize(`SFRPG.MechSheet.Hurl.Level.${hurl.system.damageLevel}`)
             };
