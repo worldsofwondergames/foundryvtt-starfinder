@@ -2168,6 +2168,7 @@
                 "ActionType": "Action Type",
                 "Actions": "Special Actions",
                 "AddAction": "Add Action",
+                "ArmsPilotingRanks": "Uses Operator Level as Piloting Ranks",
                 "DamageLevel": "Fires At Damage Level",
                 "DamageLevelNone": "Weapon's own",
                 "Description": "Description",
@@ -2448,6 +2449,12 @@
             },
             "OperatorBonus": "Operator",
             "OperatorBonusAtRollTime": "+ Operator's BAB or Piloting (at roll time)",
+            "PilotingRanksOverride": {
+                "AlreadyArmed": "{source} is already in effect.",
+                "Armed": "{source}: operators count their level as their Piloting ranks for this mech's attacks for 1 round.",
+                "Cancelled": "{source} canceled, {amount} PP refunded.",
+                "Tag": "{source}: operator level used as Piloting ranks"
+            },
             "PowerCore": {
                 "MpCost": "MP Cost",
                 "OnlyOne": "A mech can only have one power core.",

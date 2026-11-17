@@ -68,6 +68,11 @@ describe("armedOverrideBanners", () => {
     test("returns nothing rather than reading through missing flags", () => {
         expect(armedOverrideBanners()).toEqual([]);
     });
+
+    test("reports Accurate Strikes while it applies", () => {
+        expect(armedOverrideBanners({ pilotingRanksOverride: { source: "Accurate Strikes (Autotarget)", ppSpent: 1 } }))
+            .toEqual([{ kind: "piloting", source: "Accurate Strikes (Autotarget)", ppSpent: 1, value: null }]);
+    });
 });
 
 describe("actionSaveBonus", () => {
