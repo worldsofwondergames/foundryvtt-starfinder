@@ -2171,6 +2171,9 @@
                 "DamageLevel": "Fires At Damage Level",
                 "DamageLevelNone": "Weapon's own",
                 "Description": "Description",
+                "HealFormula": "Heal Formula",
+                "HealRange": "Heal Range (ft.)",
+                "HealTarget": "Heals",
                 "Name": "Action Name",
                 "PpCost": "PP Cost",
                 "RemoveAction": "Remove Action",
@@ -2359,6 +2362,19 @@
                 "NameTooltip": "Enter the mech's name here.",
                 "Tier": "Tier",
                 "TierPlaceholder": "1"
+            },
+            "Heal": {
+                "Cooldown": "{name} was repaired less than 24 hours ago and can't benefit from this again for another {left} hours.",
+                "LinkTooltip": "Roll {formula} and heal {target} that many Hit Points.",
+                "Message": "{source}: {name} heals {amount} HP ({current}/{max})",
+                "NoMech": "The mech this action was used by is no longer available.",
+                "NoTarget": "Target one mech to repair.",
+                "NoToken": "Place {name} on the scene to measure the distance to its target.",
+                "NotMech": "{name} is not a mech.",
+                "NotOwner": "You do not have permission to use this mech's abilities.",
+                "OutOfRange": "{name} is {distance} feet away. {source} reaches {range} feet.",
+                "TargetSelf": "this mech",
+                "TargetTargeted": "the targeted mech"
             },
             "Hurl": {
                 "Choice": "{size} ({damage})",

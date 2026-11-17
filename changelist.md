@@ -1,6 +1,7 @@
 # Version 14.2.0
 
 ## New Features
+- Nanite Swarm Repair's 1d6 on the Reconstruction and Builder Swarm cards rolls 1d6 times the mech's tier and heals the mech. Reconstruction heals the mech using it. Builder Swarm heals the one mech you target, and refuses a mech more than 100 feet away. A mech repaired either way can't be repaired again for 24 in-world hours. Existing copies of Nanite Swarm Repair get the heals when the world migrates (#152)
 
 ## Bugfixes
 - With custom chat cards on, save, skill, and ability check cards showed the actor's portrait beside its token, labeled with the actor's name as if it were an item. They now show the token and the roll's title, such as "Save - Fortitude" (#151)

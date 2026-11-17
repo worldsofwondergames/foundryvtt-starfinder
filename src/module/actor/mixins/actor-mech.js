@@ -3,6 +3,8 @@ import { actionAttackBonus, actionSaveBonus, saveBonusActive, saveBonusTurn } fr
 import { actionDamageOverride } from "../../rules/mech-damage-level.js";
 import { promoteDiceLinkToBonus, promoteDiceLinkToSaveBonus } from "../../system/mech-bonus-link.js";
 import { promoteDiceLinkToReplenish } from "../../system/mech-replenish-link.js";
+import { promoteDiceLinkToHeal } from "../../system/mech-heal-link.js";
+import { actionHeal, healDice, healFormula } from "../../rules/mech-heal.js";
 import { replenishFormula } from "../../rules/mech-replenish.js";
 import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effects.js";
 import { systemResetUpdate } from "../../rules/mech-system-failure.js";
@@ -63,7 +65,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      *                                      action could not be performed
      */
     async useMechAction(category, index, { itemId = null, itemActionIndex = null } = {}) {
-        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, armsSaveBonus, restoresShields, energyTypes;
+        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, armsSaveBonus, restoresShields, energyTypes, heal;
         // Set for gear actions so the override they arm is spent by the weapon it
         // is printed on and not by whatever the mech fires next.
         let overrideItemId = null;
@@ -126,6 +128,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             img = item.img;
             armsOverride = actionDamageOverride(action);
             armsAttackBonus = actionAttackBonus(action);
+            heal = actionHeal(action);
             if (armsOverride) overrideItemId = item.id;
         } else {
             return null;
@@ -222,6 +225,28 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 source: name,
                 tooltip: game.i18n.format("SFRPG.MechSheet.Replenish.LinkTooltip", { formula })
             });
+
+            if (promoted) descriptionHTML = wrapper.innerHTML;
+        }
+
+        // A heal's dice are rolled from the card too. The text reads "1d6 x the
+        // mech's tier", so the link keeps "1d6" and rolls the whole formula -
+        // see onMechHealClick.
+        if (heal) {
+            const formula = healFormula(heal.formula, this.system.details.tier);
+            const enriched = await foundry.applications.ux.TextEditor.implementation.enrichHTML(description);
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = enriched;
+
+            const promoted = promoteDiceLinkToHeal(wrapper, healDice(formula), {
+                formula,
+                target: heal.target,
+                range: heal.range,
+                source: name
+            }, game.i18n.format("SFRPG.MechSheet.Heal.LinkTooltip", {
+                formula,
+                target: game.i18n.localize(heal.target === "target" ? "SFRPG.MechSheet.Heal.TargetTargeted" : "SFRPG.MechSheet.Heal.TargetSelf")
+            }));
 
             if (promoted) descriptionHTML = wrapper.innerHTML;
         }
