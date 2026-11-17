@@ -428,13 +428,15 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         const banners = armedOverrideBanners({
             damageLevelOverride: this.actor.getFlag("sfrpg", "damageLevelOverride"),
             attackBonusOverride: this.actor.getFlag("sfrpg", "attackBonusOverride"),
-            saveBonusOverride: this.actor.activeSaveBonus()
+            saveBonusOverride: this.actor.activeSaveBonus(),
+            pilotingRanksOverride: this.actor.activePilotingRanks()
         });
         actionsTab.armedOverrides = banners.map(banner => ({
             ...banner,
             label: {
                 attack: () => game.i18n.format("SFRPG.MechSheet.AttackBonusOverride.Armed", { source: banner.source, value: banner.value }),
                 save: () => game.i18n.format("SFRPG.MechSheet.SaveBonusOverride.Armed", { source: banner.source, value: banner.value }),
+                piloting: () => game.i18n.format("SFRPG.MechSheet.PilotingRanksOverride.Armed", { source: banner.source }),
                 damage: () => game.i18n.format("SFRPG.MechSheet.DamageLevelOverride.Armed", { source: banner.source })
             }[banner.kind]()
         }));
@@ -589,6 +591,9 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
         }
         if (event.currentTarget.dataset.overrideKind === "save") {
             return this.actor.cancelMechSaveBonus();
+        }
+        if (event.currentTarget.dataset.overrideKind === "piloting") {
+            return this.actor.cancelMechPilotingRanks();
         }
 
         return this.actor.cancelMechDamageOverride();

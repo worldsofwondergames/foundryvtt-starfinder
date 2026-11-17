@@ -133,7 +133,7 @@ export async function onMechSaveBonusClick(event) {
 }
 
 /**
- * Clear Resist bonuses that ran out when a combat's turn changed or the combat
+ * Clear Resist bonuses and Accurate Strikes that ran out when a combat's turn changed or the combat
  * ended. Runs for the active GM. A bonus that has run out is never added to a
  * save, so this only keeps its banner and flag from staying behind.
  *
@@ -149,7 +149,14 @@ export async function clearExpiredSaveBonuses(combat) {
     ]);
     for (const actor of actors) {
         const armed = actor?.getFlag("sfrpg", "saveBonusOverride");
-        if (armed?.turn?.combatId !== combat.id || actor.activeSaveBonus()) continue;
-        await clearSystemFlag(actor, "saveBonusOverride");
+        if (armed?.turn?.combatId === combat.id && !actor.activeSaveBonus()) {
+            await clearSystemFlag(actor, "saveBonusOverride");
+        }
+
+        // Accurate Strikes runs out the same way, a round after it was used.
+        const strikes = actor?.getFlag("sfrpg", "pilotingRanksOverride");
+        if (strikes?.turn?.combatId === combat.id && !actor.activePilotingRanks()) {
+            await clearSystemFlag(actor, "pilotingRanksOverride");
+        }
     }
 }

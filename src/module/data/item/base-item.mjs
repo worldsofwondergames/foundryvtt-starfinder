@@ -612,6 +612,14 @@ export default class SFRPGItemBase extends SFRPGDocumentBase {
                 integer: true,
                 nullable: true,
                 label: "SFRPG.MechSheet.Action.HealRange"
+            }),
+            // An ability that, for 1 round, uses each operator's level as their
+            // Piloting ranks for the mech's attack bonus, such as Autotarget's
+            // Accurate Strikes.
+            armsPilotingRanks: new fields.BooleanField({
+                initial: false,
+                required: true,
+                label: "SFRPG.MechSheet.Action.ArmsPilotingRanks"
             })
         };
     }

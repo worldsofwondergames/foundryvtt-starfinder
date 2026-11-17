@@ -5,6 +5,7 @@ import { promoteDiceLinkToBonus, promoteDiceLinkToSaveBonus } from "../../system
 import { promoteDiceLinkToReplenish } from "../../system/mech-replenish-link.js";
 import { promoteDiceLinkToHeal } from "../../system/mech-heal-link.js";
 import { actionHeal, healDice, healFormula } from "../../rules/mech-heal.js";
+import { pilotingRanksActive, pilotingRanksTurn } from "../../rules/mech-piloting-ranks.js";
 import { replenishFormula } from "../../rules/mech-replenish.js";
 import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effects.js";
 import { systemResetUpdate } from "../../rules/mech-system-failure.js";
@@ -65,7 +66,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      *                                      action could not be performed
      */
     async useMechAction(category, index, { itemId = null, itemActionIndex = null } = {}) {
-        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, armsSaveBonus, restoresShields, energyTypes, heal;
+        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, armsSaveBonus, restoresShields, energyTypes, heal, armsPilotingRanks;
         // Set for gear actions so the override they arm is spent by the weapon it
         // is printed on and not by whatever the mech fires next.
         let overrideItemId = null;
@@ -129,6 +130,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             armsOverride = actionDamageOverride(action);
             armsAttackBonus = actionAttackBonus(action);
             heal = actionHeal(action);
+            armsPilotingRanks = action.armsPilotingRanks === true;
             if (armsOverride) overrideItemId = item.id;
         } else {
             return null;
@@ -137,6 +139,15 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         const actionTypeLabels = Object.fromEntries(
             Object.entries(SFRPG.mechActionTypes).map(([key, label]) => [key, game.i18n.localize(label)])
         );
+
+        // Accurate Strikes already running would be paid for twice and change nothing.
+        if (armsPilotingRanks) {
+            const active = this.activePilotingRanks();
+            if (active) {
+                ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.PilotingRanksOverride.AlreadyArmed", { source: active.source }));
+                return null;
+            }
+        }
 
         // Deduct PP if this action has a cost
         if (ppCost !== null && ppCost !== undefined && ppCost > 0) {
@@ -170,6 +181,17 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 source: name,
                 ppSpent: ppCost || 0,
                 itemId: overrideItemId
+            });
+        }
+
+        // Accurate Strikes lasts 1 round in combat, so it records where in the
+        // combat it was used. Outside combat the next attack spends it.
+        if (armsPilotingRanks) {
+            const combat = game.combats.find(c => c.started && c.combatants.some(combatant => combatant.actor?.uuid === this.uuid));
+            await this.setFlag("sfrpg", "pilotingRanksOverride", {
+                source: name,
+                ppSpent: ppCost || 0,
+                turn: pilotingRanksTurn(combat ?? null)
             });
         }
 
@@ -636,6 +658,28 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      */
     async cancelMechSaveBonus() {
         return this._cancelMechOverride("saveBonusOverride", "SFRPG.MechSheet.SaveBonusOverride.Cancelled");
+    }
+
+    /**
+     * Accurate Strikes on this mech, if it still applies.
+     *
+     * @returns {{source: string, ppSpent: number, turn: object|null}|null}
+     */
+    activePilotingRanks() {
+        const armed = this.getFlag("sfrpg", "pilotingRanksOverride");
+        if (!armed) return null;
+
+        const combat = armed.turn ? game.combats.get(armed.turn.combatId) ?? null : null;
+        return pilotingRanksActive(armed, combat) ? armed : null;
+    }
+
+    /**
+     * Cancel Accurate Strikes, refunding the Power Points that armed it.
+     *
+     * @returns {Promise<number|null>} The Power Points refunded, or null if it was not armed
+     */
+    async cancelMechPilotingRanks() {
+        return this._cancelMechOverride("pilotingRanksOverride", "SFRPG.MechSheet.PilotingRanksOverride.Cancelled");
     }
 
     /**
