@@ -66,6 +66,38 @@ export default class SFRPGItemMechUpgrade extends SFRPGItemBase {
                 integer: true,
                 nullable: false,
                 label: "SFRPG.MechSheet.Upgrade.SpBonusPerTier"
+            }),
+            repeatable: new fields.BooleanField({
+                initial: true,
+                label: "SFRPG.MechSheet.Upgrade.Repeatable"
+            }),
+            repeatCostStep: new fields.NumberField({
+                initial: 1,
+                min: 0,
+                nullable: false,
+                label: "SFRPG.MechSheet.Upgrade.RepeatCostStep"
+            }),
+            coreTemplate: new fields.BooleanField({
+                initial: false,
+                label: "SFRPG.MechSheet.Upgrade.CoreTemplate"
+            }),
+            ppRegenBonus: new fields.NumberField({
+                initial: 0,
+                integer: true,
+                nullable: false,
+                label: "SFRPG.MechSheet.Upgrade.PpRegenBonus"
+            }),
+            ppInitialBonus: new fields.NumberField({
+                initial: 0,
+                integer: true,
+                nullable: false,
+                label: "SFRPG.MechSheet.Upgrade.PpInitialBonus"
+            }),
+            ppMaxBonus: new fields.NumberField({
+                initial: 0,
+                integer: true,
+                nullable: false,
+                label: "SFRPG.MechSheet.Upgrade.PpMaxBonus"
             })
         });
 

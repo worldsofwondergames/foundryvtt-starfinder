@@ -1,6 +1,12 @@
 # Version 14.3.0
 
 ## New Features
+- Mechs can have a climb speed. A frame or lower limb that lists "climb" sets or raises it, and the sheet shows it under Speed
+- Buying the same upgrade again costs 1 more per tier each time, as Tech Revolution says. Superior Computer costs the same each time. An upgrade can be marked as bought once, and a second copy is refused (#123)
+- Power core templates are upgrades marked Power Core Template. A template changes the core's PP rate, initial PP, and maximum PP, appears with the power core, doesn't count toward the upgrade limit, and a mech can have one (#123)
+
+## Bugfixes
+- The Mech Point cost of auxiliary systems and power cores accepted only whole numbers, though Explosive Self-Destruct costs 2.5 per tier and the Tech Revolution core templates cost 0.5. It now accepts fractions
 
 # Version 14.2.0
 

@@ -6,6 +6,7 @@ import { canThrow, thrownRange, thrownRangeInUse } from "../../rules/mech-thrown
 import { thrownHouseFeet } from "../../system/house-rules.js";
 import { ActorSheetSFRPG } from "./base.js";
 import { countedMechUpgrades, maxMechUpgrades, upgradeLimitRefusal } from "../../rules/mech-upgrade-limit.js";
+import { upgradeRefusal } from "../../rules/mech-upgrade-rules.js";
 import { LOCKER_SLOT, SLOT_COMPONENT_TYPES, droppedSlot, maxWeaponLevel, mountRefusal, weaponDropPlacement } from "./mech-weapon-slots.js";
 import { hasEnergyTypes, showsEnergyTypeLabel } from "../../rules/weapon-core.js";
 import { allowedEnergyTypes, energyTypesLabel, promptEnergyTypes } from "../../system/weapon-core.js";
@@ -166,6 +167,7 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
                 }
                 arr[2].push(item);
             }
+            else if (item.type === "mechUpgrade" && item.system.coreTemplate) arr[4].push(item);
             else if (item.type === "mechUpgrade") arr[3].push(item);
             else if (item.type === "mechPowerCore") arr[4].push(item);
             else if (item.type === "mechLowerLimb") arr[5].push(item);
@@ -725,7 +727,15 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             }
 
             if (CONFIG.SFRPG.mechDefinitionItemTypes.includes(rawItemData.type)) {
-                if (rawItemData.type === "mechUpgrade" && this._refuseUpgradeOverLimit()) return false;
+                if (rawItemData.type === "mechUpgrade") {
+                    const refusal = upgradeRefusal(this.actor.items, rawItemData);
+                    if (refusal) {
+                        const key = refusal === "notRepeatable" ? "NotRepeatable" : "OneCoreTemplate";
+                        ui.notifications.warn(game.i18n.format(`SFRPG.MechSheet.Upgrade.${key}`, { name: rawItemData.name }));
+                        return false;
+                    }
+                    if (!rawItemData.system?.coreTemplate && this._refuseUpgradeOverLimit()) return false;
+                }
 
                 // Only allow one frame per mech
                 if (rawItemData.type === "mechFrame") {
