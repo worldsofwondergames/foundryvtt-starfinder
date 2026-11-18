@@ -1,0 +1,62 @@
+{
+  "_id": "PJW4zOvMAC2heezG",
+  "name": "Harpoon Launcher",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/gyrojet_rifle_tactical.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Reel In",
+        "actionType": "reaction",
+        "description": "As a reaction when this weapon hits, the mech pulls the target up to 30 ft. toward itself unless the target succeeds at a Reflex save (DC 12 + ½ the mech's tier). This movement doesn't provoke attacks of opportunity. Creatures two or more sizes larger than the mech aren't affected.",
+        "ppCost": 1,
+        "saveDCBase": 12,
+        "saveDCScaling": "halfTier",
+        "saveType": "ref"
+      }
+    ],
+    "area": "",
+    "capacity": 4,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "piercing": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "medium",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>From the sclerite harpooner (AA4 p. 59).</p>\n<p>@PPAbility[cost:1]{Reel In} As a reaction when this weapon hits, the mech pulls the target up to 30 ft. toward itself unless the target succeeds at a Reflex save (DC 12 + ½ the mech's tier). This movement doesn't provoke attacks of opportunity. Creatures two or more sizes larger than the mech aren't affected.</p>"
+    },
+    "mpCost": 3,
+    "ppCost": 1,
+    "range": "120 ft.",
+    "save": {
+      "type": "reflex",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "unwieldy",
+    "usage": 1,
+    "validSlots": [
+      "frame",
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

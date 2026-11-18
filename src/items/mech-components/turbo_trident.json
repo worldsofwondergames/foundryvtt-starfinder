@@ -1,0 +1,64 @@
+{
+  "_id": "46ZFRLE0WPHVS2Sq",
+  "name": "Turbo Trident",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/cryopike.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Jetstream Charge",
+        "actionType": "",
+        "description": "The mech can make a charge as a standard action while underwater this turn if it has a swim speed or as a full action at half its highest base frame speed.",
+        "ppCost": 2
+      },
+      {
+        "name": "Jetstream Throw",
+        "actionType": "",
+        "description": "Increase the thrown property to thrown (80 feet) and add the penetrating special property for the next attack with this weapon.",
+        "ppCost": 2
+      }
+    ],
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "piercing": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "medium",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>@PPAbility[cost:2]{Jetstream Charge} The mech can make a charge as a standard action while underwater this turn if it has a swim speed or as a full action at half its highest base frame speed.</p>\n<p>@PPAbility[cost:2]{Jetstream Throw} Increase the thrown property to thrown (80 feet) and add the penetrating special property for the next attack with this weapon.</p>"
+    },
+    "mpCost": 2,
+    "ppCost": 2,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "upperLimb",
+    "slotsUsed": 2,
+    "source": "Homebrew",
+    "special": "underwater, reach, thrown (40 ft.)",
+    "usage": null,
+    "validSlots": [
+      "upperLimb"
+    ],
+    "weaponType": "melee"
+  }
+}

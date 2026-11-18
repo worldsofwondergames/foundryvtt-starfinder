@@ -1,0 +1,59 @@
+{
+  "_id": "UuI3rjhVorZ6Gv9L",
+  "name": "Thumper",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/hammer.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Thump",
+        "actionType": "standard",
+        "description": "As a standard action, the mech drives the thumper into a surface, dealing high damage with a B & So damage type to all creatures and objects within the mech's reach who would feel the vibration.",
+        "ppCost": 2,
+        "damageLevel": "high"
+      }
+    ],
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": "knockdown"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "bludgeoning": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "extreme",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>A massive counterweight is propelled into the end of the thumper's gauntlet as it connects with its target, creating a one-two punch.</p>\n<p>@PPAbility[cost:2]{Thump} As a standard action, the mech drives the thumper into a surface, dealing high damage with a B &amp; So damage type to all creatures and objects within the mech's reach who would feel the vibration.</p>"
+    },
+    "mpCost": 4,
+    "ppCost": 2,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "upperLimb",
+    "slotsUsed": 2,
+    "source": "Homebrew",
+    "special": "penetrating, unbalancing, unwieldy",
+    "usage": null,
+    "validSlots": [
+      "upperLimb"
+    ],
+    "weaponType": "melee"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "_id": "Qt9R3PEZBBfbdbT1",
+  "name": "Holoshroud Camouflage",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/omnidirectional_camera.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>After being stationary for 1 minute, the mech's sensors finish scanning its nearby area and project its image along embedded holoshroud fibers on its exterior. This mimics the effects of an object covered in holoshrouds (AR).</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

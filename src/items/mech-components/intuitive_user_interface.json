@@ -1,0 +1,21 @@
+{
+  "_id": "Y6KgDDnqh8WNfi5A",
+  "name": "Intuitive User Interface",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/comm-unit-personal.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Operators can use their Computers or profession (vidgamer) ranks instead of their Piloting ranks for mech actions.</p>\n<p><strong>Auxiliary Slots:</strong> 2.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

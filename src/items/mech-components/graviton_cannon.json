@@ -1,0 +1,51 @@
+{
+  "_id": "riEnESEHXIZHGHwH",
+  "name": "Graviton Cannon",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/artillery-laser-azimuth.webp",
+  "system": {
+    "area": "explode (20 ft.)",
+    "capacity": 3,
+    "critical": {
+      "effect": "pulse"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "bludgeoning": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "extreme",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The cannon launches a device that detonates into a miniature, short-lived black hole.</p>\n<p><strong>Singularity:</strong> the graviton generator's gravitation special property pulls towards the intersection of the explosion instead of the normal directional choice.</p>\n<p><strong>Graviton Affinity:</strong> a solarian fully attuned to graviton mode can supply one capacity to the Graviton Cannon as part of firing the weapon. They become unattuned afterward.</p>"
+    },
+    "mpCost": 5.5,
+    "ppCost": 0,
+    "range": "60 ft.",
+    "save": {
+      "type": "reflex",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 2,
+    "source": "Homebrew",
+    "special": "explode (20 ft.), force, gravitation, unwieldy",
+    "usage": 1,
+    "validSlots": [
+      "frame",
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

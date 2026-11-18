@@ -5,6 +5,10 @@
 - Buying the same upgrade again costs 1 more per tier each time, as Tech Revolution says. Superior Computer costs the same each time. An upgrade can be marked as bought once, and a second copy is refused (#123)
 - Power core templates are upgrades marked Power Core Template. A template changes the core's PP rate, initial PP, and maximum PP, appears with the power core, doesn't count toward the upgrade limit, and a mech can have one (#123)
 
+- 79 mech components from #123, with "Homebrew" as their source: 10 crawler, deepcore, recon, and transport frames; 9 upgrades; 3 lower limbs; 5 upper limbs; 27 weapons; 23 auxiliary systems; and the Junker and Photosynthesizer core templates. Several are rebalanced from The Mech Garage, and some are adapted from personal gear (#123)
+- The Tech Revolution Aeon, Battle, Corpsegnawer, and Scrapper power core templates (#123)
+- Upper limbs can add frame slots. Turret Arms give 4 frame slots and no upper limb slots (#123)
+
 ## Bugfixes
 - The Mech Point cost of auxiliary systems and power cores accepted only whole numbers, though Explosive Self-Destruct costs 2.5 per tier and the Tech Revolution core templates cost 0.5. It now accepts fractions
 

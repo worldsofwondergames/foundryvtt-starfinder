@@ -1,0 +1,50 @@
+{
+  "_id": "9ndzYKBZARY7hIos",
+  "name": "Gauss Rifle",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/gyrojet_rifle_tactical.webp",
+  "system": {
+    "area": "",
+    "capacity": 4,
+    "critical": {
+      "effect": "severe wound"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "bludgeoning": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "extreme",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The immense range and damage of the gauss rifle compensates for its unwieldy nature and low capacity due to the size of the weapon and ammunition.</p>"
+    },
+    "mpCost": 5,
+    "ppCost": 0,
+    "range": "250 ft.",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "upperLimb",
+    "slotsUsed": 2,
+    "source": "Homebrew",
+    "special": "penetrating, unwieldy, sniper (2,000 ft.)",
+    "usage": 1,
+    "validSlots": [
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

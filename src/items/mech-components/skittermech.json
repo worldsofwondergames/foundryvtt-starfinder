@@ -1,0 +1,32 @@
+{
+  "_id": "kof1V45fi16PQa1p",
+  "name": "Skittermech",
+  "type": "mechFrame",
+  "folder": "8wehW3HvVps7o1In",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "auxSlots": 2,
+    "baseHp": 10,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Huge mech (crawler). Clinging manipulators along the frame let the mech move as fast up a wall as it does across the ground.</p>"
+    },
+    "eac": 2,
+    "fort": 1,
+    "frameSlots": 2,
+    "hardness": 0,
+    "hpAdvancement": 8,
+    "kac": 3,
+    "mpCost": 2.5,
+    "operatorsMax": 2,
+    "operatorsMin": 1,
+    "ref": 1,
+    "size": "huge",
+    "source": "Homebrew",
+    "speed": "40 ft., climb 60 ft.",
+    "strength": 4
+  }
+}

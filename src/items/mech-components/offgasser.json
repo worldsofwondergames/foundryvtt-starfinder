@@ -1,0 +1,41 @@
+{
+  "_id": "ZNhpRPvlxR3qCo3I",
+  "name": "Offgasser",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/emergency_defense_sphere.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Smog",
+        "actionType": "",
+        "description": "The mech expels a miasma of foul gasses. For 1 minute, a space 60 ft. around the mech grants concealment from vision and scent. The smog moves to its current space at the end of each of its turns in that period.",
+        "ppCost": 2
+      },
+      {
+        "name": "Discharge",
+        "actionType": "",
+        "description": "As smog, but it's an instantaneous burst in a 120 ft. cube around the mech that lasts for 1 minute.",
+        "ppCost": 3
+      },
+      {
+        "name": "Medical Mist",
+        "actionType": "full",
+        "description": "A mech with an Offgasser and a Medical Suite can combine the two to deliver any injectable substance to all creatures within 30 ft. as a full action. This takes three usages of a consumable.",
+        "ppCost": 2
+      }
+    ],
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The mech uses a gas filtration system that has unique capabilities.</p>\n<p>@PPAbility[cost:2]{Smog} The mech expels a miasma of foul gasses. For 1 minute, a space 60 ft. around the mech grants concealment from vision and scent. The smog moves to its current space at the end of each of its turns in that period.</p>\n<p>@PPAbility[cost:3]{Discharge} As smog, but it's an instantaneous burst in a 120 ft. cube around the mech that lasts for 1 minute.</p>\n<p>@PPAbility[cost:2]{Medical Mist} A mech with an Offgasser and a Medical Suite can combine the two to deliver any injectable substance to all creatures within 30 ft. as a full action. This takes three usages of a consumable.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 2,
+    "source": "Homebrew"
+  }
+}

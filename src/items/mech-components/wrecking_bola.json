@@ -1,0 +1,51 @@
+{
+  "_id": "QDLgoF3Rhdy8z1PJ",
+  "name": "Wrecking Bola",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/hammer.webp",
+  "system": {
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": "knockdown"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "bludgeoning": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The wrecking bola's entangle property only applies if thrown or the operator chooses to let go of the weapon during a melee attack.</p>"
+    },
+    "mpCost": 3,
+    "ppCost": 0,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "lowerLimb",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "entangle, penetrating, thrown (40 ft.), sunder, trip",
+    "usage": null,
+    "validSlots": [
+      "lowerLimb",
+      "upperLimb"
+    ],
+    "weaponType": "melee"
+  }
+}

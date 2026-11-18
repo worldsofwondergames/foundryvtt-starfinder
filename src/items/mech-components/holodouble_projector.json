@@ -1,0 +1,21 @@
+{
+  "_id": "eCjjgwv6K8cPlshv",
+  "name": "Holodouble Projector",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/omnidirectional_camera.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Adapted from the holodouble module. Once per day, as a standard action, the mech projects one holographic double of itself, as mirror image with one image. The mech spends 1 PP at the start of each of its turns to keep it. The double ends when the mech doesn't pay, when the double is struck, or when the mech ends it as a free action.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

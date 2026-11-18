@@ -1,0 +1,51 @@
+{
+  "_id": "IO8KDoBXdu4a9D7b",
+  "name": "Needler",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/scattergun-impact.webp",
+  "system": {
+    "area": "",
+    "capacity": 12,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "electricity": true,
+            "piercing": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Charged flechettes track their target through the air, piling into the target with high accuracy before they discharge their energy in the vulnerable interior.</p>\n<p><strong>Volley:</strong> while making a full attack with the needler, the mech can make two, three, or four attacks. It takes a −3 penalty for two attacks, −4 for three, and −5 for four.</p>"
+    },
+    "mpCost": 2.5,
+    "ppCost": 0,
+    "range": "100 ft.",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "upperLimb",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "guided, polarize",
+    "usage": 1,
+    "validSlots": [
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

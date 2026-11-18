@@ -1,0 +1,29 @@
+{
+  "_id": "UW3Fby7Wmsu7Dl7f",
+  "name": "Multilegged",
+  "type": "mechLowerLimb",
+  "folder": "kAhhXt15enjibCol",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "baseHp": 4,
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>6 or more legs allow this mech to easily grip onto nearly any surface and use the additional limbs to enhance its threat.</p>"
+    },
+    "eac": 0,
+    "fort": 0,
+    "hpAdvancement": 0,
+    "isActive": false,
+    "kac": 1,
+    "mpCost": 1.5,
+    "ppCost": 0,
+    "ref": 1,
+    "slots": 2,
+    "source": "Homebrew",
+    "speed": "climb +20 ft."
+  }
+}

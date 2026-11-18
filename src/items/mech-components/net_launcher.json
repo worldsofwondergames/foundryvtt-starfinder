@@ -1,0 +1,51 @@
+{
+  "_id": "FqEjzXdHJJneoUI1",
+  "name": "Net Launcher",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/acid_dart_rifle_tactical.webp",
+  "system": {
+    "area": "",
+    "capacity": 2,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "electricity": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>From the net gun (TR p. 61). Attacks target KAC. A creature hit is entangled until it escapes with an Acrobatics check (DC 12 + ½ the mech's tier) or a Strength check (DC 17 + ½ the mech's tier), as a move action.</p>"
+    },
+    "mpCost": 2.5,
+    "ppCost": 0,
+    "range": "60 ft.",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "entangle",
+    "usage": 1,
+    "validSlots": [
+      "frame",
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

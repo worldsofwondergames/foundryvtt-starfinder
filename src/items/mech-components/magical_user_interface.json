@@ -1,0 +1,21 @@
+{
+  "_id": "AjHYwGrRhA5DH4Xk",
+  "name": "Magical User Interface",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/comm-unit-personal.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p><strong>Prerequisite:</strong> the mech must have the magical subtype or an aeon core.</p>\n<p>Operators can use their Mysticism in place of Piloting for any mech action that uses it.</p>\n<p><strong>Auxiliary Slots:</strong> 2.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "_id": "i81CGW5oCfUxcGma",
+  "name": "Battle Core Template",
+  "type": "mechUpgrade",
+  "folder": "mCSahqNlZvTowXgu",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "coreTemplate": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p><strong>Prerequisite:</strong> a core with a rate greater than 1.</p>"
+    },
+    "mpCost": 0.5,
+    "ppInitialBonus": 0,
+    "ppMaxBonus": 1,
+    "ppRegenBonus": -1,
+    "repeatCostStep": 1,
+    "repeatable": false,
+    "source": "Tech Revolution pg. 102"
+  }
+}
