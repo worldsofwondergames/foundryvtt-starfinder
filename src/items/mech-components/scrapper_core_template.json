@@ -1,0 +1,24 @@
+{
+  "_id": "1zlAnFZD5ZXHKVHP",
+  "name": "Scrapper Core Template",
+  "type": "mechUpgrade",
+  "folder": "mCSahqNlZvTowXgu",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "coreTemplate": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>When the mech gains a system failure condition, it gains 1d4 PP. It can exceed its maximum this way, but PP above the maximum that it hasn't spent by the end of its next turn is lost.</p>"
+    },
+    "mpCost": 1,
+    "ppInitialBonus": 0,
+    "ppMaxBonus": 0,
+    "ppRegenBonus": 0,
+    "repeatCostStep": 1,
+    "repeatable": false,
+    "source": "Tech Revolution pg. 102"
+  }
+}

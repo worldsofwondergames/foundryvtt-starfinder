@@ -1,0 +1,38 @@
+{
+  "_id": "QF2EVpfitXKS5Bce",
+  "name": "Medical Suite",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/medkit-advanced.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Scale of 1 to 10",
+        "actionType": "",
+        "description": "The mech attempts to assess the status of each living creature it can perceive. This functions as status (Will 12+½ mech tier save), but the effect is instantaneous.",
+        "ppCost": 1,
+        "saveDCBase": 12,
+        "saveDCScaling": "halfTier",
+        "saveType": "will"
+      },
+      {
+        "name": "Take Your Medicine",
+        "actionType": "standard",
+        "description": "As a standard action, the mech can Treat Deadly Wounds as if it had a medical lab or inject an ally or unconscious creature in reach with any injectable substance supplied by the suite or operator as part of the controlling action. If the mech has an injection weapon, it can activate this ability as part of the attack to gain a +10 attack bonus and deal no damage while injecting a substance if it succeeds at an attack roll.",
+        "ppCost": 1
+      }
+    ],
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>An operator can use the medical suite to perform Medicine checks as if their space was the mech's or cast detect affliction at will using the mech's tier as the caster level. It also includes a dermal stapler, medicinals (10), an advanced medkit, medpatches (10), a radiation sweeper, sprayflesh (5), and a subdermal extractor. Each time the mech resupplies, it refreshes the charges on items that use them and gains a supply of the variable consumable items with individual levels no greater than the mech's tier.</p>\n<p>@PPAbility[cost:1]{Scale of 1 to 10} The mech attempts to assess the status of each living creature it can perceive. This functions as status (Will 12+½ mech tier save), but the effect is instantaneous.</p>\n<p>@PPAbility[cost:1]{Take Your Medicine} As a standard action, the mech can Treat Deadly Wounds as if it had a medical lab or inject an ally or unconscious creature in reach with any injectable substance supplied by the suite or operator as part of the controlling action. If the mech has an injection weapon, it can activate this ability as part of the attack to gain a +10 attack bonus and deal no damage while injecting a substance if it succeeds at an attack roll.</p>\n<p><strong>Auxiliary Slots:</strong> 2.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 1,
+    "source": "Homebrew"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "_id": "Y1FLFc7ofu0imndK",
+  "name": "Vibro Katana",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/curveblade.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Honing",
+        "actionType": "",
+        "description": "For 1 round, the Vibro Katana's penetrating property is replaced by the shattering property.",
+        "ppCost": 2
+      }
+    ],
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": "severe wound"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "slashing": true,
+            "sonic": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "extreme",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>This combination of an alloyed sword and high-frequency motors make an ideal weapon for cutting through hard targets, but it requires more stabilization to handle it.</p>\n<p>@PPAbility[cost:2]{Honing} For 1 round, the Vibro Katana's penetrating property is replaced by the shattering property.</p>"
+    },
+    "mpCost": 4,
+    "ppCost": 2,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "upperLimb",
+    "slotsUsed": 2,
+    "source": "Homebrew",
+    "special": "penetrating, thrown (20 ft.)",
+    "usage": null,
+    "validSlots": [
+      "upperLimb"
+    ],
+    "weaponType": "melee"
+  }
+}

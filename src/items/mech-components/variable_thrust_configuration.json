@@ -1,0 +1,21 @@
+{
+  "_id": "UXgHQb10MjIjBj3D",
+  "name": "Variable Thrust Configuration",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/glider_foils.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Only flight frames can take this auxiliary component. As a full round action, the mech can transform to and from a more maneuverable form. Cut the mech's flight speed in half with this component active, but increase its maneuverability to perfect, it can ascend or turn without additional movement, and it can make Acrobatics checks to Hover as a free action.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

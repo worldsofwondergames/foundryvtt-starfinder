@@ -1,0 +1,59 @@
+{
+  "_id": "BrCZAfyq45A7F2IX",
+  "name": "Clawhook",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/fangblade.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Reel Assist",
+        "actionType": "",
+        "description": "The mech gains a +8 bonus to reposition attempts via an attached clawhook (+10 with the reposition property bonus) and doubles the distance that the target travels. Alternatively, Reel Assist can be activated to recall the weapon to its original weapon slot with no further action needed.",
+        "ppCost": 1
+      }
+    ],
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": "bleed"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "slashing": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Wicked claws have a powerful frame and an attached cable line.</p>\n<p><strong>Grappler:</strong> on any attack with the clawhook, it can also attach to the target if it beats KAC+8. This otherwise functions as an advanced autograppler with 200' of adamantine alloy cable line, except it can move up to Gargantuan creatures or 40 bulk. Two clawhooks can be combined to move Huge creatures or 80 bulk, and four clawhooks can be used to move Colossal creatures or 160 bulk.</p>\n<p>@PPAbility[cost:1]{Reel Assist} The mech gains a +8 bonus to reposition attempts via an attached clawhook (+10 with the reposition property bonus) and doubles the distance that the target travels. Alternatively, Reel Assist can be activated to recall the weapon to its original weapon slot with no further action needed.</p>"
+    },
+    "mpCost": 2.5,
+    "ppCost": 1,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "lowerLimb",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "grapple, reposition, thrown (40 ft.), trip",
+    "usage": null,
+    "validSlots": [
+      "lowerLimb",
+      "upperLimb"
+    ],
+    "weaponType": "melee"
+  }
+}

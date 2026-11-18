@@ -1,0 +1,21 @@
+{
+  "_id": "7RygQkqKnkV6heFo",
+  "name": "Exposed Platform",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/default/power-generator.svg",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Operators can choose to control the mech from the exposed platform where they have improved cover instead of the normal cockpit protections. Moving to and from the cockpit and platform is the same speed as entering or exiting the mech, including the ability to improve it with the entry hatch. When taking system damage, operators in the exposed platform are damaged on frame rolls as if it was a cockpit roll. If auxiliary damage causes the platform to not function, the operator can not pilot the mech for that turn.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

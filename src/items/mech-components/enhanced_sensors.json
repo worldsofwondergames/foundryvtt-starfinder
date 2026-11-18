@@ -1,0 +1,20 @@
+{
+  "_id": "ogEOjB9UyEd1GuV9",
+  "name": "Enhanced Sensors",
+  "type": "mechUpgrade",
+  "folder": "CJhf1OTkOOP1xjLL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Each time a mech gets this upgrade, it installs a new suite of sensing equipment that provides one of these benefits in a selected sense (electronics, heat, life, scent, sound, vibration, vision): blindsense 30 ft.; blindsight 30 ft. for an existing blindsense; sense through 30 ft. for an existing blindsight or vision; extend a blindsense by 60 ft.; extend a blindsight by 30 ft., up to the matching blindsense range; extend a sense through by 30 ft., up to blindsight range; unflankable; see invisibility (tier 5 or higher); true seeing to 120 ft. (tier 11 or higher).</p>"
+    },
+    "mpCost": 1,
+    "repeatCostStep": 1,
+    "repeatable": true,
+    "source": "Homebrew"
+  }
+}

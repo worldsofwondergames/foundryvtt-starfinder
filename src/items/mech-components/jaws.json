@@ -1,0 +1,50 @@
+{
+  "_id": "epvTxt86eatoJn2n",
+  "name": "Jaws",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/grindblade.webp",
+  "system": {
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": "bleed"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "bludgeoning": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "medium",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>It deals bludgeoning, bludgeoning and piercing, or piercing damage.</p>\n<p><strong>Close-Ranged:</strong> jaws can only be used to attack adjacent creatures.</p>\n<p><strong>Lockjaw:</strong> jaws deal low damage on a successful grapple maneuver.</p>\n<p><strong>Snack:</strong> a mech with the corpsegnawer core template can use the core's ability as a reaction if they kill the target with a jaw attack or while the target is grappled.</p>"
+    },
+    "mpCost": 3,
+    "ppCost": 0,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "grapple, underwater",
+    "usage": null,
+    "validSlots": [
+      "frame"
+    ],
+    "weaponType": "melee"
+  }
+}

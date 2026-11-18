@@ -1,0 +1,20 @@
+{
+  "_id": "zVn4pmhzPkESIugt",
+  "name": "Virtual Intelligence",
+  "type": "mechUpgrade",
+  "folder": "CJhf1OTkOOP1xjLL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The mech gains a VI with a tier equal to twice its computer's tier that can function as an operator as long as there is one other operator. Treat its tier as its skill ranks and ¼ its tier as its skill insight bonus for the Maneuver action and similar abilities. At the GM's discretion, this can be used to allow a mech to operate independently. Increase the mech's Will save by 1 for every 10 tiers of the VI. A mech can only have one VI.</p>"
+    },
+    "mpCost": 2,
+    "repeatCostStep": 1,
+    "repeatable": false,
+    "source": "Homebrew"
+  }
+}

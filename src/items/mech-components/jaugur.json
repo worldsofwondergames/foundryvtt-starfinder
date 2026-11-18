@@ -1,0 +1,32 @@
+{
+  "_id": "5vzTgJAjDifpixXu",
+  "name": "Jaugur",
+  "type": "mechFrame",
+  "folder": "8wehW3HvVps7o1In",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "auxSlots": 4,
+    "baseHp": 10,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Gargantuan mech (deepcore). Heavy drilling equipment is built into the frame. A deepcore mech can burrow through solid rock at a rate of 10 ft. and solid steel at a rate of 5 ft. per round as a move action.</p>"
+    },
+    "eac": 2,
+    "fort": 2,
+    "frameSlots": 3,
+    "hardness": 2,
+    "hpAdvancement": 9,
+    "kac": 3,
+    "mpCost": 4,
+    "operatorsMax": 6,
+    "operatorsMin": 2,
+    "ref": 0,
+    "size": "gargantuan",
+    "source": "Homebrew",
+    "speed": "30 ft., burrow 20 ft.",
+    "strength": 5
+  }
+}

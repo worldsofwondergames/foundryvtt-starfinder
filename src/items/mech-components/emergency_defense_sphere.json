@@ -1,0 +1,21 @@
+{
+  "_id": "ETyqKZtnZpOMyIov",
+  "name": "Emergency Defense Sphere",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/emergency_defense_sphere.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Adapted from the emergency defense sphere (NS p. 153). Once per day, when damage reduces the mech to ¼ of its Hit Points or fewer, a resilient sphere (as the spell) forms around the mech's space automatically, and the mech spends 3 PP. It doesn't form if the mech has fewer than 3 PP. It lasts until the start of the mech's next turn.</p>\n<p><strong>Auxiliary Slots:</strong> 2.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

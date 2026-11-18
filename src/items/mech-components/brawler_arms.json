@@ -1,0 +1,31 @@
+{
+  "_id": "Y6DpC6PZGMfQD9yD",
+  "name": "Brawler Arms",
+  "type": "mechUpperLimb",
+  "folder": "XyGHG8VPLQ1F0WWL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "attackBonusChoice": "melee",
+    "baseHp": 0,
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The mech's basic attack is increased by one tier. The mech receives the benefits of improved combat maneuver for bull rush, disarm, grapple, reposition, and trip while its upper limb slots are empty.</p>"
+    },
+    "eac": 1,
+    "hpAdvancement": 1,
+    "isActive": false,
+    "kac": 1,
+    "meleeAttack": 2,
+    "mpCost": 2,
+    "ppCost": 0,
+    "rangedAttack": 0,
+    "showAttackBonusChoice": false,
+    "slots": 2,
+    "source": "Homebrew",
+    "strength": 0
+  }
+}

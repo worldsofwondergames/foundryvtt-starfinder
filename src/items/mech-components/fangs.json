@@ -1,0 +1,58 @@
+{
+  "_id": "R7QpMi8wwxs8vkQ2",
+  "name": "Fangs",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/fangblade.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Poison Concentrate",
+        "actionType": "",
+        "description": "Select a poison up to the weapon's level plus 2 when you resupply the mech. This weapon has a cache of concentrated poison that can be activated for 2 PP as part of making an attack with this weapon.",
+        "ppCost": 2
+      }
+    ],
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": "bleed"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "piercing": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p><strong>Close-Ranged:</strong> fangs can only be used to attack adjacent creatures.</p>\n<p>@PPAbility[cost:2]{Poison Concentrate} Select a poison up to the weapon's level plus 2 when you resupply the mech. This weapon has a cache of concentrated poison that can be activated for 2 PP as part of making an attack with this weapon.</p>"
+    },
+    "mpCost": 2,
+    "ppCost": 2,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "injection, underwater",
+    "usage": null,
+    "validSlots": [
+      "frame"
+    ],
+    "weaponType": "melee"
+  }
+}

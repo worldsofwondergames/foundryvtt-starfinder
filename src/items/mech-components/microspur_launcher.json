@@ -1,0 +1,29 @@
+{
+  "_id": "OrZr3SDtmo9LHHHa",
+  "name": "Microspur Launcher",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/detonator.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Microspur Burst",
+        "actionType": "standard",
+        "description": "As a standard action, the mech makes harrying fire against every creature within 20 ft. of its space.",
+        "ppCost": 1
+      }
+    ],
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Adapted from the microspur spray (PW p. 197).</p>\n<p>@PPAbility[cost:1]{Microspur Burst} As a standard action, the mech makes harrying fire against every creature within 20 ft. of its space.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 1,
+    "source": "Homebrew"
+  }
+}

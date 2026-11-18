@@ -1,0 +1,20 @@
+{
+  "_id": "r8BoznFYRGdxfXPJ",
+  "name": "Fused Weaponry",
+  "type": "mechUpgrade",
+  "folder": "CJhf1OTkOOP1xjLL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Equip fusions with a total level equal to or less than the mech's tier plus two to any weapon or combination of weapons as if their item level is the weapon level plus two. If a fusion has a consumable component, the mech equips one qualifying item within the weapon per resupply; its item level must be equal to or lower than the weapon level plus three. A mech can activate a called fusion once per turn as a free action.</p>"
+    },
+    "mpCost": 2,
+    "repeatCostStep": 1,
+    "repeatable": false,
+    "source": "Homebrew"
+  }
+}

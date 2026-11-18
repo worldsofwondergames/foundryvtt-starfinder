@@ -1,0 +1,58 @@
+{
+  "_id": "Zs86MacGmbGdGajX",
+  "name": "Lightning Projector",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/arc_rifle_static.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Arc Fence",
+        "actionType": "",
+        "description": "The line stays until the start of the mech's next turn. A creature that enters it takes the weapon's damage (Reflex half), once per turn.",
+        "ppCost": 2
+      }
+    ],
+    "area": "flexible line",
+    "capacity": 6,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "electricity": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "medium",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>From the stormcaller (AR). The line runs between any two points within 60 ft.</p>\n<p>@PPAbility[cost:2]{Arc Fence} The line stays until the start of the mech's next turn. A creature that enters it takes the weapon's damage (Reflex half), once per turn.</p>"
+    },
+    "mpCost": 3.5,
+    "ppCost": 2,
+    "range": "60 ft.",
+    "save": {
+      "type": "reflex",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "flexible line, unwieldy",
+    "usage": 1,
+    "validSlots": [
+      "frame"
+    ],
+    "weaponType": "ranged"
+  }
+}

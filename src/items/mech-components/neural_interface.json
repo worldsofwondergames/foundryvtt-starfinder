@@ -1,0 +1,21 @@
+{
+  "_id": "qRsUIo4yqxoMyYHC",
+  "name": "Neural Interface",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/comm-unit-personal.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>A single operator can occupy the neural interface, connecting the mech to their body. They can apply combat feats during mech actions they control, following the same rules as combat algorithms for feat alterations. While within a neural interface, all systems damage causes the operator damage as if they damaged the cockpit, and cockpit hits do not allow for a saving throw. If multiple operators are in different neural interfaces, they must succeed at a (DC 5 + ½ Mech Tier + number of Neural Interface users) Will check at the beginning of each turn or be staggered.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

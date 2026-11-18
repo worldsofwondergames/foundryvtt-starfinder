@@ -1,0 +1,40 @@
+{
+  "_id": "Y88qRZqmM3RYF0kw",
+  "name": "Heavy Duty Treads",
+  "type": "mechLowerLimb",
+  "folder": "kAhhXt15enjibCol",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "actions": [
+      {
+        "name": "Crush",
+        "actionType": "full",
+        "description": "As a full action, the mech uses the trample universal creature ability. This deals medium bludgeoning damage as a mech weapon with a level equal to the mech's tier, with a Reflex save (DC 12 + ½ the mech's tier) for half.",
+        "ppCost": 2,
+        "saveDCBase": 12,
+        "saveDCScaling": "halfTier",
+        "saveType": "ref"
+      }
+    ],
+    "baseHp": 8,
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Wide, armored treads for rolling over infantry.</p>\n<p>@PPAbility[cost:2]{Crush} As a full action, the mech uses the trample universal creature ability. This deals medium bludgeoning damage as a mech weapon with a level equal to the mech's tier, with a Reflex save (DC 12 + ½ the mech's tier) for half.</p>"
+    },
+    "eac": 0,
+    "fort": 1,
+    "hpAdvancement": 1,
+    "isActive": false,
+    "kac": 3,
+    "mpCost": 2,
+    "ppCost": 2,
+    "ref": -1,
+    "slots": 0,
+    "source": "Homebrew",
+    "speed": "-10 ft."
+  }
+}

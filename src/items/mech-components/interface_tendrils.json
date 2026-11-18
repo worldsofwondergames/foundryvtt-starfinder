@@ -1,0 +1,21 @@
+{
+  "_id": "CyK3CPnhSuHGJ8lx",
+  "name": "Interface Tendrils",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/comm-unit-personal.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>This mech has a collection of reinforced information cable tendrils that can mimic the functions of fingers and hands through a specialized AR interface. An operator can use these up to a full mech action to make an Engineering or Computers check with the same action cost using their own bonus on any device within the mech's reach plus 10 feet.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

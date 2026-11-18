@@ -1,0 +1,20 @@
+{
+  "_id": "JmbwzlPE0tx4os9b",
+  "name": "Weapon Pod",
+  "type": "mechUpgrade",
+  "folder": "CJhf1OTkOOP1xjLL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Lighter weaponry can be mounted into drone-like pods that are controlled and powered by the mech. Each pod is a construct (technological) that has one frame mount for a weapon, a fly speed (perfect) equal to the mech's highest speed, HP equal to ⅓ of the mech's, and the base values of the AC, saves, and hardness for the mech's tier. The pod is tiny for Huge mechs, small for Gargantuan mechs, and medium for Colossal mechs. Each purchase adds one pod. A pod takes no actions of its own; its weapon attacks as one of the mech's attacks, measured from the pod's space.</p>"
+    },
+    "mpCost": 1,
+    "repeatCostStep": 1,
+    "repeatable": true,
+    "source": "Homebrew"
+  }
+}

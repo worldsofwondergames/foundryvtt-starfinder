@@ -1,0 +1,29 @@
+{
+  "_id": "885t3u4AP14t6w5m",
+  "name": "Phasic Cloak",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/emergency_defense_sphere.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Passthrough Shield",
+        "actionType": "",
+        "description": "The mech gains 20% concealment until the beginning of its next turn. Flanking enemies can be hit by attacks that miss due to this concealment if they are in range of the attack, rerolling the attack against the new target and ignoring the mech as soft cover. Effects that block dimensional travel prevent the phasic cloak from functioning.",
+        "ppCost": 1
+      }
+    ],
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Only mechs with a phase frame can take this auxiliary component.</p>\n<p>@PPAbility[cost:1]{Passthrough Shield} The mech gains 20% concealment until the beginning of its next turn. Flanking enemies can be hit by attacks that miss due to this concealment if they are in range of the attack, rerolling the attack against the new target and ignoring the mech as soft cover. Effects that block dimensional travel prevent the phasic cloak from functioning.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 1,
+    "source": "Homebrew"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "_id": "KFzhpeTIqwEyX5xa",
+  "name": "Engine Arms",
+  "type": "mechUpperLimb",
+  "folder": "XyGHG8VPLQ1F0WWL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "attackBonusChoice": "melee",
+    "baseHp": 0,
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>These arms forego offensive armament to help with the mech's maneuverability. Increase the mech's climbing and land speeds by 10 ft. and its flight and swim speeds by 20 ft. It does not grant speeds the mech lacks.</p>"
+    },
+    "eac": 1,
+    "hpAdvancement": 0,
+    "isActive": false,
+    "kac": 1,
+    "meleeAttack": 0,
+    "mpCost": 1,
+    "ppCost": 0,
+    "rangedAttack": 0,
+    "showAttackBonusChoice": false,
+    "slots": 0,
+    "source": "Homebrew",
+    "strength": 0
+  }
+}

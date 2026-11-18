@@ -1,0 +1,59 @@
+{
+  "_id": "np6oAVN4ybBkjsyd",
+  "name": "Magitech Rifle",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/gamma-rifle-fusion.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Spellshot",
+        "actionType": "",
+        "description": "The operator can cast an area spell through an attack with the magitech rifle, as per the Spellshot magic hack (CRB). This consumes 2 capacity.",
+        "ppCost": 2
+      }
+    ],
+    "area": "",
+    "capacity": 10,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "piercing": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "medium",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Only a mech with the magical subtype or an aeon core can equip this weapon. A Magitech Rifle allows an operator to cast a spell or use a spell gem while channeling the effect through the mech as a standard action. The spell must have a casting time of a standard action or less and a level equal to or less than 1 plus the weapon's level divided by four. Casting the spell or using the gem is part of the full action to operate the mech. If the spell requires an attack roll, use the attack bonus the operator would use for other mech attacks. This consumes 2 capacity instead of one and can be used as one attack in a full attack with other weapons.</p>\n<p>@PPAbility[cost:2]{Spellshot} The operator can cast an area spell through an attack with the magitech rifle, as per the Spellshot magic hack (CRB). This consumes 2 capacity.</p>"
+    },
+    "mpCost": 3.5,
+    "ppCost": 2,
+    "range": "100 ft.",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "guided, force, teleportive",
+    "usage": 1,
+    "validSlots": [
+      "frame",
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

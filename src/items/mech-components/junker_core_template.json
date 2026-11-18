@@ -1,0 +1,24 @@
+{
+  "_id": "cHmMuZjIxFq9kf49",
+  "name": "Junker Core Template",
+  "type": "mechUpgrade",
+  "folder": "mCSahqNlZvTowXgu",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "coreTemplate": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>This mech takes system damage at every ¼ of HP lost instead of ⅓. Treat a systems failure roll of 16 as landing on the power core in addition to the auxiliary systems damage. As a standard action, the mech can salvage the remains of a destroyed technological construct, vehicle, technological equipment, or similar item (at the GM's discretion) with a level of at least half the mech's tier within its reach. For one round for every 4 levels or CR of the salvaged target, the mech adds +1 to its PP rate, adds +2 to its maximum PP, and gains fast healing equal to ¼ its tier (minimum 1).</p>"
+    },
+    "mpCost": 0,
+    "ppInitialBonus": -1,
+    "ppMaxBonus": -1,
+    "ppRegenBonus": 0,
+    "repeatCostStep": 1,
+    "repeatable": false,
+    "source": "Homebrew"
+  }
+}

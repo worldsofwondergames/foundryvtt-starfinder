@@ -306,7 +306,8 @@ export default function(engine) {
         // ========================================
         // Slots: From frame and limbs
         // ========================================
-        data.attributes.slots.frame = frame?.system.frameSlots || 0;
+        // Arms such as Turret Arms add frame slots in place of upper limb slots.
+        data.attributes.slots.frame = (frame?.system.frameSlots || 0) + (upperLimb?.system.frameSlots || 0);
         data.attributes.slots.auxiliary = frame?.system.auxSlots || 0;
         data.attributes.slots.lowerLimb = lowerLimb?.system.slots || 0;
         data.attributes.slots.upperLimb = upperLimb?.system.slots || 0;
