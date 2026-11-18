@@ -10,7 +10,8 @@
         "name": "Accurate Strikes",
         "actionType": "",
         "description": "For 1 round, the mech treats all of its operators as though they each had a number of Piloting ranks equal to their respective levels for the purpose of calculating the mech's attack bonuses.",
-        "ppCost": 1
+        "ppCost": 1,
+        "armsPilotingRanks": true
       }
     ],
     "canBeActivated": true,

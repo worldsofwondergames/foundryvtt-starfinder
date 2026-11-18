@@ -39,7 +39,7 @@
     },
     "mpCost": 2,
     "ppCost": 1,
-    "range": "40 ft.",
+    "range": "",
     "save": {
       "type": "",
       "dc": null,
@@ -48,11 +48,11 @@
     "slot": "upperLimb",
     "slotsUsed": 2,
     "source": "Tech Revolution pg. 108",
-    "special": "reach, thrown, projectile mode (1 PP)",
+    "special": "reach, thrown (40 ft.), projectile mode (1 PP)",
     "usage": 1,
     "validSlots": [
       "upperLimb"
     ],
-    "weaponType": "ranged"
+    "weaponType": "melee"
   }
 }

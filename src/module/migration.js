@@ -2,6 +2,9 @@ import SFRPGModifier from "./modifiers/modifier.js";
 import { SFRPGEffectType, SFRPGModifierType, SFRPGModifierTypes } from "./modifiers/types.js";
 import { weaponCoreItemUpdate, weaponCoreTemplate } from "./rules/weapon-core.js";
 import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mech-limb-hp.js";
+import { naniteSwarmUpdate } from "./rules/mech-heal.js";
+import { autotargetUpdate } from "./rules/mech-piloting-ranks.js";
+import { autospearSystemUpdate } from "./rules/mech-thrown.js";
 import { compendiumMpCosts, correctedMpCost } from "./rules/mech-points.js";
 
 const SFRPGMigrationSchemas = Object.freeze({
@@ -16,7 +19,10 @@ const SFRPGMigrationSchemas = Object.freeze({
     MECH_ACTIONS_SYNC: 0.010, // Sync mech component actions from compendium to actor items that were imported before actions were added.
     WEAPON_CORE_ENERGY_TYPES: 0.011, // Mark Weapon Core as choosing two energy types, reading them from names such as "Weapon Core (Cold, Fire)".
     TOUGH_ARMS_HP: 0.012, // Give every Tough Arms the compendium's +1 Hit Point per tier in place of a flat +1.
-    MECH_MP_COSTS: 0.013 // Give copies of auxiliary systems, power cores and upgrades the compendium's Mech Point cost.
+    MECH_MP_COSTS: 0.013, // Give copies of auxiliary systems, power cores and upgrades the compendium's Mech Point cost.
+    NANITE_SWARM_HEAL: 0.014, // Give copies of Nanite Swarm Repair the heals its actions roll from the chat card.
+    AUTOTARGET_PILOTING_RANKS: 0.015, // Mark Accurate Strikes on copies of Autotarget, so using it changes the attack bonus.
+    AUTOSPEAR_THROWN: 0.016 // Give copies of the Autospear "thrown (40 ft.)" as a melee weapon, so it can be thrown.
 });
 
 /** The compendium's Mech Point costs, read once when a world migrates past MECH_MP_COSTS. */
@@ -147,6 +153,9 @@ const migrateItem = async function(item, schema) {
     if (schema < SFRPGMigrationSchemas.WEAPON_CORE_ENERGY_TYPES) _migrateWeaponCore(item, updateData);
     if (schema < SFRPGMigrationSchemas.TOUGH_ARMS_HP) _migrateToughArms(item, updateData);
     if (schema < SFRPGMigrationSchemas.MECH_MP_COSTS && mechMpCosts) _migrateMechMpCost(item, updateData);
+    if (schema < SFRPGMigrationSchemas.NANITE_SWARM_HEAL) Object.assign(updateData, naniteSwarmUpdate(item));
+    if (schema < SFRPGMigrationSchemas.AUTOTARGET_PILOTING_RANKS) Object.assign(updateData, autotargetUpdate(item));
+    if (schema < SFRPGMigrationSchemas.AUTOSPEAR_THROWN) _migrateAutospear(item, updateData);
 
     return updateData;
 };
@@ -210,6 +219,31 @@ const _migrateToughArms = function(item, updateData) {
             const updated = toughArmsTemplate(template);
             if (updated) changed = true;
             return updated ?? template;
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
+};
+
+/**
+ * Give an Autospear, and each Autospear template inside a mission pod, the
+ * compendium's "thrown (40 ft.)" as a melee weapon.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migrateAutospear = function(item, updateData) {
+    for (const [key, value] of Object.entries(autospearSystemUpdate(item))) {
+        updateData[`system.${key}`] = value;
+    }
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
+        let changed = false;
+        const templates = current.map(template => {
+            const fix = autospearSystemUpdate(template);
+            if (Object.keys(fix).length === 0) return template;
+            changed = true;
+            return { ...template, system: { ...template.system, ...fix } };
         });
         if (changed) updateData["system.itemTemplates"] = templates;
     }

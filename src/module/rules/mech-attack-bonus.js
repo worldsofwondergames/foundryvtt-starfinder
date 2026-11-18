@@ -99,9 +99,10 @@ export function saveBonusActive(armed, combat) {
  * @param {{source?: string, ppSpent?: number}|null} [flags.damageLevelOverride] An armed damage level override.
  * @param {{source?: string, ppSpent?: number, value?: number}|null} [flags.attackBonusOverride] An armed attack bonus.
  * @param {{source?: string, ppSpent?: number, value?: number}|null} [flags.saveBonusOverride] An armed save bonus that can still be used.
+ * @param {{source?: string, ppSpent?: number}|null} [flags.pilotingRanksOverride] Accurate Strikes, while it still applies.
  * @returns {Array<{kind: string, source: string, ppSpent: number, value: number|null}>} One entry per armed override.
  */
-export function armedOverrideBanners({ damageLevelOverride, attackBonusOverride, saveBonusOverride } = {}) {
+export function armedOverrideBanners({ damageLevelOverride, attackBonusOverride, saveBonusOverride, pilotingRanksOverride } = {}) {
     const banners = [];
 
     if (damageLevelOverride) {
@@ -128,6 +129,15 @@ export function armedOverrideBanners({ damageLevelOverride, attackBonusOverride,
             source: saveBonusOverride.source,
             ppSpent: saveBonusOverride.ppSpent || 0,
             value: saveBonusOverride.value ?? 0
+        });
+    }
+
+    if (pilotingRanksOverride) {
+        banners.push({
+            kind: "piloting",
+            source: pilotingRanksOverride.source,
+            ppSpent: pilotingRanksOverride.ppSpent || 0,
+            value: null
         });
     }
 

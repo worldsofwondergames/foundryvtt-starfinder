@@ -3,12 +3,17 @@ import { actionAttackBonus, actionSaveBonus, saveBonusActive, saveBonusTurn } fr
 import { actionDamageOverride } from "../../rules/mech-damage-level.js";
 import { promoteDiceLinkToBonus, promoteDiceLinkToSaveBonus } from "../../system/mech-bonus-link.js";
 import { promoteDiceLinkToReplenish } from "../../system/mech-replenish-link.js";
+import { promoteDiceLinkToHeal } from "../../system/mech-heal-link.js";
+import { actionHeal, healDice, healFormula } from "../../rules/mech-heal.js";
+import { pilotingRanksActive, pilotingRanksTurn } from "../../rules/mech-piloting-ranks.js";
 import { replenishFormula } from "../../rules/mech-replenish.js";
 import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effects.js";
 import { systemResetUpdate } from "../../rules/mech-system-failure.js";
 import { auxiliarySystemUsable, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
 import { clearSystemFlag } from "../../utils/flags.js";
-import { HURL_DAMAGE_LEVELS, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
+import { thrownRangeInUse } from "../../rules/mech-thrown.js";
+import { thrownHouseFeet } from "../../system/house-rules.js";
+import { HURL_DAMAGE_LEVELS, HURL_RANGE, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
 import { actionUsesEnergyType } from "../../rules/weapon-core.js";
 import { energyTypesFor, energyTypesLabel } from "../../system/weapon-core.js";
 
@@ -63,7 +68,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      *                                      action could not be performed
      */
     async useMechAction(category, index, { itemId = null, itemActionIndex = null } = {}) {
-        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, armsSaveBonus, restoresShields, energyTypes;
+        let name, description, ppCost, actionType, gearName, armsOverride, armsAttackBonus, armsSaveBonus, restoresShields, energyTypes, heal, armsPilotingRanks;
         // Set for gear actions so the override they arm is spent by the weapon it
         // is printed on and not by whatever the mech fires next.
         let overrideItemId = null;
@@ -96,7 +101,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             if (action.grantsHurl) {
                 const granted = await this._grantHurlAttack();
                 if (!granted) return null;
-                description = `${description} ${game.i18n.format(`SFRPG.MechSheet.Hurl.Thrown.${granted.damageLevel}`, { size: granted.sizeLabel })}`;
+                description = `${description} ${game.i18n.format(`SFRPG.MechSheet.Hurl.Thrown.${granted.damageLevel}`, { size: granted.sizeLabel, range: thrownRangeInUse(HURL_RANGE, thrownHouseFeet()) })}`;
             }
         } else if (category === "gear") {
             const item = this.items.get(itemId);
@@ -126,6 +131,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             img = item.img;
             armsOverride = actionDamageOverride(action);
             armsAttackBonus = actionAttackBonus(action);
+            heal = actionHeal(action);
+            armsPilotingRanks = action.armsPilotingRanks === true;
             if (armsOverride) overrideItemId = item.id;
         } else {
             return null;
@@ -134,6 +141,15 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         const actionTypeLabels = Object.fromEntries(
             Object.entries(SFRPG.mechActionTypes).map(([key, label]) => [key, game.i18n.localize(label)])
         );
+
+        // Accurate Strikes already running would be paid for twice and change nothing.
+        if (armsPilotingRanks) {
+            const active = this.activePilotingRanks();
+            if (active) {
+                ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.PilotingRanksOverride.AlreadyArmed", { source: active.source }));
+                return null;
+            }
+        }
 
         // Deduct PP if this action has a cost
         if (ppCost !== null && ppCost !== undefined && ppCost > 0) {
@@ -167,6 +183,17 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 source: name,
                 ppSpent: ppCost || 0,
                 itemId: overrideItemId
+            });
+        }
+
+        // Accurate Strikes lasts 1 round in combat, so it records where in the
+        // combat it was used. Outside combat the next attack spends it.
+        if (armsPilotingRanks) {
+            const combat = game.combats.find(c => c.started && c.combatants.some(combatant => combatant.actor?.uuid === this.uuid));
+            await this.setFlag("sfrpg", "pilotingRanksOverride", {
+                source: name,
+                ppSpent: ppCost || 0,
+                turn: pilotingRanksTurn(combat ?? null)
             });
         }
 
@@ -222,6 +249,28 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 source: name,
                 tooltip: game.i18n.format("SFRPG.MechSheet.Replenish.LinkTooltip", { formula })
             });
+
+            if (promoted) descriptionHTML = wrapper.innerHTML;
+        }
+
+        // A heal's dice are rolled from the card too. The text reads "1d6 x the
+        // mech's tier", so the link keeps "1d6" and rolls the whole formula -
+        // see onMechHealClick.
+        if (heal) {
+            const formula = healFormula(heal.formula, this.system.details.tier);
+            const enriched = await foundry.applications.ux.TextEditor.implementation.enrichHTML(description);
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = enriched;
+
+            const promoted = promoteDiceLinkToHeal(wrapper, healDice(formula), {
+                formula,
+                target: heal.target,
+                range: heal.range,
+                source: name
+            }, game.i18n.format("SFRPG.MechSheet.Heal.LinkTooltip", {
+                formula,
+                target: game.i18n.localize(heal.target === "target" ? "SFRPG.MechSheet.Heal.TargetTargeted" : "SFRPG.MechSheet.Heal.TargetSelf")
+            }));
 
             if (promoted) descriptionHTML = wrapper.innerHTML;
         }
@@ -611,6 +660,28 @@ export const ActorMechMixin = (superclass) => class extends superclass {
      */
     async cancelMechSaveBonus() {
         return this._cancelMechOverride("saveBonusOverride", "SFRPG.MechSheet.SaveBonusOverride.Cancelled");
+    }
+
+    /**
+     * Accurate Strikes on this mech, if it still applies.
+     *
+     * @returns {{source: string, ppSpent: number, turn: object|null}|null}
+     */
+    activePilotingRanks() {
+        const armed = this.getFlag("sfrpg", "pilotingRanksOverride");
+        if (!armed) return null;
+
+        const combat = armed.turn ? game.combats.get(armed.turn.combatId) ?? null : null;
+        return pilotingRanksActive(armed, combat) ? armed : null;
+    }
+
+    /**
+     * Cancel Accurate Strikes, refunding the Power Points that armed it.
+     *
+     * @returns {Promise<number|null>} The Power Points refunded, or null if it was not armed
+     */
+    async cancelMechPilotingRanks() {
+        return this._cancelMechOverride("pilotingRanksOverride", "SFRPG.MechSheet.PilotingRanksOverride.Cancelled");
     }
 
     /**

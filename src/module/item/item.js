@@ -20,7 +20,8 @@ import {
 } from "../rules/mech-condition-modifiers.js";
 import { levelRefusal, maxWeaponLevel, updatedWeaponLevel } from "../actor/sheet/mech-weapon-slots.js";
 import { applyPerDieBonus, overrideAppliesTo, resolveDamageLevel } from "../rules/mech-damage-level.js";
-import { canThrow, thrownRange } from "../rules/mech-thrown.js";
+import { canThrow, thrownRange, thrownRangeInUse } from "../rules/mech-thrown.js";
+import { thrownHouseFeet } from "../system/house-rules.js";
 import { Mix } from "../utils/custom-mixer.js";
 import { ItemActivationMixin } from "./mixins/item-activation.js";
 import { ItemCapacityMixin } from "./mixins/item-capacity.js";
@@ -28,6 +29,7 @@ import { ItemChatMixin } from "./mixins/item-chat.js";
 import { clearSystemFlag } from "../utils/flags.js";
 import { ongoingConditionOf } from "../rules/ongoing-damage.js";
 import { asChatHtml } from "../utils/chat-content.js";
+import { OPERATOR_ATTACK_PART, OPERATOR_ATTACK_PART_AT_LEVEL } from "../rules/mech-piloting-ranks.js";
 
 /**
  * @import { RollResult } from '../dice.js'
@@ -1335,9 +1337,11 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
 
         // Base attack (tier) + upper limb mods are pre-calculated on the mech
         // Operator's BAB or Piloting ranks are added here at roll time
+        // Accurate Strikes treats the operator's Piloting ranks as their level.
+        const pilotingRanks = this.actor?.activePilotingRanks?.() ?? null;
         const parts = [
             `@mech.attributes.${attackKey}`,
-            "max(@operator.attributes.baseAttackBonus.value, @operator.skills.pil.ranks)"
+            pilotingRanks ? OPERATOR_ATTACK_PART_AT_LEVEL : OPERATOR_ATTACK_PART
         ];
 
         const title = game.settings.get('sfrpg', 'useCustomChatCards')
@@ -1345,10 +1349,16 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             : game.i18n.format("SFRPG.Rolls.AttackRollFull", {name: this.name});
 
         const tags = [];
+        if (pilotingRanks) {
+            tags.push({
+                tag: "accurateStrikes",
+                text: game.i18n.format("SFRPG.MechSheet.PilotingRanksOverride.Tag", { source: pilotingRanks.source })
+            });
+        }
         if (thrown) {
             tags.push({
                 tag: "thrown",
-                text: game.i18n.format("SFRPG.MechSheet.Weapon.ThrownTag", { range: thrownRange(this.system.special) })
+                text: game.i18n.format("SFRPG.MechSheet.Weapon.ThrownTag", { range: thrownRangeInUse(thrownRange(this.system.special, this.system.range), thrownHouseFeet()) })
             });
         }
 
@@ -1459,6 +1469,8 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
                     // Only spend the bonus once a roll actually resolved - cancelling the
                     // attack dialog, or leaving the bonus out of the roll, leaves it armed.
                     if (pendingAttackBonus?.enabled) clearSystemFlag(this.actor, "attackBonusOverride");
+                    // Outside combat, Accurate Strikes lasts for one attack.
+                    if (pilotingRanks && !pilotingRanks.turn) clearSystemFlag(this.actor, "pilotingRanksOverride");
 
                     const rollDamageWithAttack = game.settings.get("sfrpg", "rollDamageWithAttack");
                     if (rollDamageWithAttack && !options.disableDamageAfterAttack) {

@@ -55,6 +55,7 @@ import { RPC } from "./module/rpc.js";
 import { mechShieldRefills } from "./module/rules/mech-shield-reset.js";
 import registerSystemRules from "./module/rules.js";
 import { registerSystemSettings } from "./module/system/settings.js";
+import { addHouseRulesHeading } from "./module/system/house-rules.js";
 import { narrativeSheetIsDefault } from "./module/rules/narrative-starship/mode.js";
 import TooltipManagerSFRPG from "./module/tooltip.js";
 import { generateUUID, rerenderApps } from "./module/utils/utilities.js";
@@ -71,6 +72,7 @@ import { onApplyOngoingClick, onOngoingConditionSet } from "./module/system/ongo
 import { onConditionItemDisabled, onTimedConditionSet } from "./module/system/condition-timer.js";
 import { onConditionEndCheckClick, onStopBleedingClick, onStopBleedingRequest } from "./module/system/condition-end-check.js";
 import { onMechReplenishClick } from "./module/system/mech-replenish-link.js";
+import { onMechHealClick, onMechHealRequest } from "./module/system/mech-heal-link.js";
 import { initializeNarrativeStarshipCombat, initializeNarrativeState } from "./module/system/narrative-starship-combat.js";
 import { onChatButtonAnswer, onChatButtonRequest, onRenderSpentButtons, onSingleUseInlineRoll } from "./module/system/chat-button-claim.js";
 import {
@@ -357,6 +359,7 @@ Hooks.once('init', async function() {
 
     console.log("Starfinder | [INIT] Registering system settings");
     registerSystemSettings();
+    Hooks.on("renderSettingsConfig", addHouseRulesHeading);
 
     if (game.settings.get("sfrpg", "sfrpgTheme")) {
         const bod = document.body;
@@ -707,6 +710,7 @@ Hooks.once("setup", function() {
     RPC.registerCallback("releaseChatButton", "gm", onChatButtonRequest);
     RPC.registerCallback("chatButtonAnswer", "local", onChatButtonAnswer);
     RPC.registerCallback("stopBleeding", "gm", onStopBleedingRequest);
+    RPC.registerCallback("mechHeal", "gm", onMechHealRequest);
     initializeNarrativeStarshipCombat();
 
     console.log("Starfinder | [SETUP] Initializing remote inventory system");
@@ -742,6 +746,7 @@ Hooks.once("ready", async () => {
     Hooks.on("onActorSetCondition", onTimedConditionSet);
     Hooks.on("updateItem", onConditionItemDisabled);
     $("body").on("click", 'a[data-action="mechReplenish"]', onMechReplenishClick);
+    $("body").on("click", 'a[data-action="mechHeal"]', onMechHealClick);
     $("body").on("click", 'a[data-action="mechFailureRoll"]', onMechFailureRollClick);
     $("body").on("click", 'a[data-action="mechPowerCoreLoss"]', onMechPowerCoreLossClick);
     $("body").on("click", 'a[data-action="mechCockpitSave"]', onMechCockpitSaveClick);
