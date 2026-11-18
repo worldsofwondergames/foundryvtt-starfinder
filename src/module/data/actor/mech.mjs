@@ -231,6 +231,11 @@ export default class SFRPGActorMech extends SFRPGActorBase {
                         initial: "",
                         blank: true,
                         label: "SFRPG.MechSheet.Attributes.Speed.Burrow"
+                    }),
+                    climb: new fields.StringField({
+                        initial: "",
+                        blank: true,
+                        label: "SFRPG.MechSheet.Attributes.Speed.Climb"
                     })
                 }),
                 reach: new fields.StringField({

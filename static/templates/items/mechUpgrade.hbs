@@ -49,6 +49,47 @@
                             <input type="text" name="system.mpCost" value="{{itemData.mpCost}}" data-dtype="Number" />
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.MechSheet.Upgrade.CoreTemplate" }}</label>
+                        <div class="form-fields">
+                            <input type="checkbox" name="system.coreTemplate" {{checked itemData.coreTemplate}} />
+                        </div>
+                    </div>
+                    {{#if itemData.coreTemplate}}
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.MechSheet.Upgrade.PpRegenBonus" }}</label>
+                        <div class="form-fields">
+                            <input type="text" name="system.ppRegenBonus" value="{{itemData.ppRegenBonus}}" data-dtype="Number" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.MechSheet.Upgrade.PpInitialBonus" }}</label>
+                        <div class="form-fields">
+                            <input type="text" name="system.ppInitialBonus" value="{{itemData.ppInitialBonus}}" data-dtype="Number" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.MechSheet.Upgrade.PpMaxBonus" }}</label>
+                        <div class="form-fields">
+                            <input type="text" name="system.ppMaxBonus" value="{{itemData.ppMaxBonus}}" data-dtype="Number" />
+                        </div>
+                    </div>
+                    {{else}}
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.MechSheet.Upgrade.Repeatable" }}</label>
+                        <div class="form-fields">
+                            <input type="checkbox" name="system.repeatable" {{checked itemData.repeatable}} />
+                        </div>
+                    </div>
+                    {{#if itemData.repeatable}}
+                    <div class="form-group">
+                        <label>{{ localize "SFRPG.MechSheet.Upgrade.RepeatCostStep" }}</label>
+                        <div class="form-fields">
+                            <input type="text" name="system.repeatCostStep" value="{{itemData.repeatCostStep}}" data-dtype="Number" />
+                        </div>
+                    </div>
+                    {{/if}}
+                    {{/if}}
                 </div>
             </div>
 
