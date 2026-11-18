@@ -516,7 +516,9 @@
             },
             "ItemAction": {
                 "Check": "Teste",
-                "NoActor": "Você precisa ter um ator selecionado ou atribuído ao seu usuário."
+                "NoActor": "Você precisa ter um ator selecionado ou atribuído ao seu usuário.",
+                "NoItem": "{actor} no longer has the item this card was posted for.",
+                "NotAllowed": "Only the GM, the person who posted this card, or an owner of {actor} can use this button."
             },
             "ItemActivation": {
                 "Activates": "Activados",
@@ -2174,9 +2176,13 @@
                 "ActionType": "Tipo de Ação",
                 "Actions": "Ações Especiais",
                 "AddAction": "Adicionar Ação",
+                "ArmsPilotingRanks": "Uses Operator Level as Piloting Ranks",
                 "DamageLevel": "Dispara no Nível de Dano",
                 "DamageLevelNone": "Da própria arma",
                 "Description": "Descrição",
+                "HealFormula": "Heal Formula",
+                "HealRange": "Heal Range (ft.)",
+                "HealTarget": "Heals",
                 "Name": "Nome da Ação",
                 "PpCost": "Custo em PP",
                 "RemoveAction": "Remover Ação",
@@ -2337,6 +2343,7 @@
                 "LowerLimbs": "Membros Inferiores ({current})",
                 "PowerCores": "Núcleos Energia ({current})",
                 "Upgrades": "Aprimoramentos",
+                "UpgradesLimited": "Upgrades ({current}/{max})",
                 "UpperLimbs": "Membros Superiores ({current})",
                 "Weapons": "Armas"
             },
@@ -2365,6 +2372,19 @@
                 "NameTooltip": "Digite o nome do mech aqui.",
                 "Tier": "Ranque",
                 "TierPlaceholder": "1"
+            },
+            "Heal": {
+                "Cooldown": "{name} was repaired less than 24 hours ago and can't benefit from this again for another {left} hours.",
+                "LinkTooltip": "Roll {formula} and heal {target} that many Hit Points.",
+                "Message": "{source}: {name} heals {amount} HP ({current}/{max})",
+                "NoMech": "The mech this action was used by is no longer available.",
+                "NoTarget": "Target one mech to repair.",
+                "NoToken": "Place {name} on the scene to measure the distance to its target.",
+                "NotMech": "{name} is not a mech.",
+                "NotOwner": "You do not have permission to use this mech's abilities.",
+                "OutOfRange": "{name} is {distance} feet away. {source} reaches {range} feet.",
+                "TargetSelf": "this mech",
+                "TargetTargeted": "the targeted mech"
             },
             "Hurl": {
                 "Choice": "{size} ({damage})",
@@ -2438,6 +2458,12 @@
             },
             "OperatorBonus": "Operador",
             "OperatorBonusAtRollTime": "+ BBA ou Pilotagem do Operador (no momento da rolagem)",
+            "PilotingRanksOverride": {
+                "AlreadyArmed": "{source} is already in effect.",
+                "Armed": "{source}: operators count their level as their Piloting ranks for this mech's attacks for 1 round.",
+                "Cancelled": "{source} canceled, {amount} PP refunded.",
+                "Tag": "{source}: operator level used as Piloting ranks"
+            },
             "PowerCore": {
                 "MpCost": "Custo em PM",
                 "OnlyOne": "Um mech só pode ter um núcleo de energia.",
@@ -2560,6 +2586,7 @@
                 "HpAdvancementBonus": "Bônus de Progressão de PV",
                 "KacBonus": "Bônus de CAC",
                 "MpCost": "Custo em PM",
+                "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
                 "ReflexBonus": "Bônus de Reflexo",
                 "SpBonusPerTier": "Bônus de PEsc por Ranque",
                 "SpeedBonus": "Bônus de Velocidade"
@@ -3608,6 +3635,17 @@
             "HideHostileStarshipCrit": {
                 "Hint": "Ao enviar notificações sobre críticos ou limites de espaçonaves, envia apenas ao GM se a nave for um Token Hostil.",
                 "Name": "Ocultar Mensagem de Crítico de Espaçonave Hostil"
+            },
+            "HouseRules": {
+                "Heading": "House Rules",
+                "MechUpgradeLimit": {
+                    "Hint": "A mech can have as many upgrades as half its tier, rounded down. Upgrades a mission pod adds don't count.",
+                    "Name": "Limit mech upgrades to half the tier"
+                },
+                "ThrownMechRange": {
+                    "Hint": "In feet. Every mech weapon with the thrown property, and every object thrown with Hurl, is thrown this far. Leave blank to use each weapon's own range.",
+                    "Name": "Thrown mech weapon range"
+                }
             },
             "LockArtworkRotationDefault": {
                 "ConfirmationText": "Aplicar uma atualização única às configurações de token protótipo de todos os Personagens/NPCs/Drones/Perigos?</p>Isto não afetará tokens já posicionados.</p>",

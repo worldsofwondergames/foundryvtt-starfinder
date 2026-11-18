@@ -516,7 +516,9 @@
             },
             "ItemAction": {
                 "Check": "Wurf",
-                "NoActor": "Es muss ein Akteur ausgewählt oder dem Benutzer zugewiesen sein."
+                "NoActor": "Es muss ein Akteur ausgewählt oder dem Benutzer zugewiesen sein.",
+                "NoItem": "{actor} no longer has the item this card was posted for.",
+                "NotAllowed": "Only the GM, the person who posted this card, or an owner of {actor} can use this button."
             },
             "ItemActivation": {
                 "Activates": "Aktiviert",
@@ -2173,9 +2175,13 @@
                 "ActionType": "Aktionsart",
                 "Actions": "Spezialaktionen",
                 "AddAction": "Aktion hinzufügen",
+                "ArmsPilotingRanks": "Uses Operator Level as Piloting Ranks",
                 "DamageLevel": "Feuert mit Schadensstufe",
                 "DamageLevelNone": "Eigene der Waffe",
                 "Description": "Beschreibung",
+                "HealFormula": "Heal Formula",
+                "HealRange": "Heal Range (ft.)",
+                "HealTarget": "Heals",
                 "Name": "Aktionsname",
                 "PpCost": "PP-Kosten",
                 "RemoveAction": "Aktion entfernen",
@@ -2336,6 +2342,7 @@
                 "LowerLimbs": "Untere Gliedmaßen ({current})",
                 "PowerCores": "Energiekerne ({current})",
                 "Upgrades": "Verbesserungen",
+                "UpgradesLimited": "Upgrades ({current}/{max})",
                 "UpperLimbs": "Obere Gliedmaßen ({current})",
                 "Weapons": "Waffen"
             },
@@ -2364,6 +2371,19 @@
                 "NameTooltip": "Mechname hier angeben.",
                 "Tier": "Grad",
                 "TierPlaceholder": "1"
+            },
+            "Heal": {
+                "Cooldown": "{name} was repaired less than 24 hours ago and can't benefit from this again for another {left} hours.",
+                "LinkTooltip": "Roll {formula} and heal {target} that many Hit Points.",
+                "Message": "{source}: {name} heals {amount} HP ({current}/{max})",
+                "NoMech": "The mech this action was used by is no longer available.",
+                "NoTarget": "Target one mech to repair.",
+                "NoToken": "Place {name} on the scene to measure the distance to its target.",
+                "NotMech": "{name} is not a mech.",
+                "NotOwner": "You do not have permission to use this mech's abilities.",
+                "OutOfRange": "{name} is {distance} feet away. {source} reaches {range} feet.",
+                "TargetSelf": "this mech",
+                "TargetTargeted": "the targeted mech"
             },
             "Hurl": {
                 "Choice": "{size} ({damage})",
@@ -2437,6 +2457,12 @@
             },
             "OperatorBonus": "Bediener",
             "OperatorBonusAtRollTime": "+ GAB oder Steuerung des Bedieners (beim Würfeln)",
+            "PilotingRanksOverride": {
+                "AlreadyArmed": "{source} is already in effect.",
+                "Armed": "{source}: operators count their level as their Piloting ranks for this mech's attacks for 1 round.",
+                "Cancelled": "{source} canceled, {amount} PP refunded.",
+                "Tag": "{source}: operator level used as Piloting ranks"
+            },
             "PowerCore": {
                 "MpCost": "MP-Kosten",
                 "OnlyOne": "Ein Mech kann nur einen Energiekern haben.",
@@ -2559,6 +2585,7 @@
                 "HpAdvancementBonus": "TP-Steigerungsbonus",
                 "KacBonus": "KRK-Bonus",
                 "MpCost": "MP-Kosten",
+                "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
                 "ReflexBonus": "Reflexbonus",
                 "SpBonusPerTier": "SP-Bonus pro Grad",
                 "SpeedBonus": "Bewegungsratenbonus"
@@ -3607,6 +3634,17 @@
             "HideHostileStarshipCrit": {
                 "Hint": "Gibt es Meldungen über Raumschiffe mit kritischen Werten oder Schwellenwerten und das Schiff ist ein feindlicher Token, werden diese nur an den Spielleiter gepostet.",
                 "Name": "Verstecke kritische Meldungen von feindlichen Raumschiffen"
+            },
+            "HouseRules": {
+                "Heading": "House Rules",
+                "MechUpgradeLimit": {
+                    "Hint": "A mech can have as many upgrades as half its tier, rounded down. Upgrades a mission pod adds don't count.",
+                    "Name": "Limit mech upgrades to half the tier"
+                },
+                "ThrownMechRange": {
+                    "Hint": "In feet. Every mech weapon with the thrown property, and every object thrown with Hurl, is thrown this far. Leave blank to use each weapon's own range.",
+                    "Name": "Thrown mech weapon range"
+                }
             },
             "LockArtworkRotationDefault": {
                 "ConfirmationText": "Einmalige Aktualisierung auf alle Prototyp-Figureneinstellungen von Charakteren/NSC/Drohnen/Gefahren anwenden?</p>Bereits platzierte Figuren sind davon nicht betroffen.</p>",
