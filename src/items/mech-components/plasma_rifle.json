@@ -28,9 +28,9 @@
       "gmnotes": "",
       "short": "",
       "unidentified": "",
-      "value": "<p>A devastating weapon that fires bolts of superheated plasma.</p>\n<p><strong>Critical:</strong> Wound</p>"
+      "value": "<p>A devastating weapon that fires bolts of superheated plasma.</p>\n<p><strong>Critical:</strong> Wound</p>\n<p>Tech Revolution prints this weapon's cost as 10 × tier. This system charges 4.5 × level, the same as the Flamethrower.</p>"
     },
-    "mpCost": 10,
+    "mpCost": 4.5,
     "ppCost": 0,
     "range": "100 ft.",
     "save": {
@@ -39,7 +39,7 @@
       "descriptor": ""
     },
     "slot": "upperLimb",
-    "source": "Tech Revolution pg. 108",
+    "source": "Tech Revolution pg. 105",
     "special": "line",
     "usage": 1,
     "validSlots": [

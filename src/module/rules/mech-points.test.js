@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, test } from "vitest";
-import { compendiumMpCosts, correctedMpCost, mechPointMinimum } from "./mech-points.js";
+import { PLASMA_RIFLE_MP_COST, compendiumMpCosts, correctedMpCost, mechPointMinimum, plasmaRifleMpCost } from "./mech-points.js";
 
 const componentDir = join(__dirname, "../../items/mech-components");
 const components = readdirSync(componentDir)
@@ -69,5 +69,24 @@ describe("correctedMpCost", () => {
     test("does not match a name across component types", () => {
         const sameName = compendiumMpCosts([{ uuid: uuid("x"), name: "Shield", type: "mechUpgrade", system: { mpCost: 3 } }]);
         expect(correctedMpCost({ type: "mechAuxiliary", name: "Shield", system: { mpCost: 1 } }, sameName)).toBeNull();
+    });
+});
+
+describe("plasmaRifleMpCost", () => {
+    test("the compendium Plasma Rifle has the corrected cost", () => {
+        const rifle = components.find(c => c.type === "mechWeapon" && c.name === "Plasma Rifle");
+        expect(rifle.system.mpCost).toBe(PLASMA_RIFLE_MP_COST);
+        expect(plasmaRifleMpCost(rifle)).toBeNull();
+    });
+
+    test("lowers an old copy's 10 per level", () => {
+        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle", system: { mpCost: 10 } })).toBe(4.5);
+        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle (Left Arm)", system: { mpCost: 10 } })).toBe(4.5);
+    });
+
+    test("leaves a cost the GM set and other weapons alone", () => {
+        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle", system: { mpCost: 6 } })).toBeNull();
+        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Laser Rifle", system: { mpCost: 10 } })).toBeNull();
+        expect(plasmaRifleMpCost({ type: "weapon", name: "Plasma Rifle", system: { mpCost: 10 } })).toBeNull();
     });
 });

@@ -68,3 +68,22 @@ export function correctedMpCost(item, costs) {
     if (mpCost === undefined || mpCost === (Number(item.system?.mpCost) || 0)) return null;
     return mpCost;
 }
+
+/**
+ * The Plasma Rifle's cost per level. Tech Revolution prints "10 x tier", which
+ * is far above every other ranged mech weapon, so the system charges what the
+ * Flamethrower, the other high damage electricity and fire weapon, costs. */
+export const PLASMA_RIFLE_MP_COST = 4.5;
+
+/**
+ * The cost an existing Plasma Rifle should have. Copies made from the old
+ * compendium entry cost 10 per level.
+ *
+ * @param {{type: string, name: string, system?: {mpCost?: number}}} item
+ * @returns {number|null} The new cost, or null when the item is not a Plasma
+ *     Rifle with the old cost.
+ */
+export function plasmaRifleMpCost(item) {
+    if (item?.type !== "mechWeapon" || baseName(item.name) !== "plasma rifle") return null;
+    return Number(item.system?.mpCost) === 10 ? PLASMA_RIFLE_MP_COST : null;
+}
