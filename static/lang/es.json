@@ -2311,6 +2311,36 @@
                 "DefenseTooltip": "{source}: {mod}",
                 "FromOperator": "{condition} (operador)"
             },
+            "CoreTemplate": {
+                "AeonAction": "Spend a Spell Slot",
+                "AeonButton": "Spell Slot",
+                "AeonNoSlots": "None of your operators aboard has an unused spell slot of level 2 or higher.",
+                "AeonSlotOption": "{operator}'s level {level} slot ({left} left) for {pp} PP",
+                "AeonSpent": "{operator} spends a level {level} spell slot to give {name} {amount} PP.",
+                "AeonTitle": "Aeon Core Template",
+                "AeonTooltip": "Once per round, an operator spends an unused spell slot to give the mech PP equal to half the slot's level, rounded down.",
+                "AeonUsedThisRound": "The Aeon core has already taken a spell slot this round.",
+                "Light": {
+                    "bright": "Bright",
+                    "darkness": "Darkness",
+                    "dim": "Dim",
+                    "normal": "Normal"
+                },
+                "LightLevel": "Light Level",
+                "LightTooltip": "The light the mech is in. At the start of its turn, its PP rate, initial PP, and maximum PP change by +2 in bright light, +1 in normal light, 0 in dim light, and -1 in darkness.",
+                "SalvageAction": "Salvage",
+                "SalvageActive": "Salvage: +1 PP rate, +2 maximum PP, and fast healing for {rounds} more rounds",
+                "SalvageHealed": "{name}'s fast healing from salvage restores {amount} HP.",
+                "SalvageLevel": "Level or CR of the salvaged target",
+                "SalvageNoRounds": "A target below level or CR 4 gives no rounds of salvage.",
+                "SalvageTitle": "Junker Core Template",
+                "SalvageTooLow": "The target must be at least level or CR {minimum}.",
+                "SalvageTooltip": "Salvage a destroyed technological construct, vehicle, or item within reach with a level of at least half the mech's tier. For 1 round per 4 levels or CR, the mech gets +1 PP rate, +2 maximum PP, and fast healing equal to ¼ its tier (minimum 1).",
+                "SalvageUsed": "{name} salvages a wreck: +1 PP rate, +2 maximum PP, and fast healing {healing} for {rounds} rounds.",
+                "ScrapperGain": "{name}'s Scrapper core gains {amount} PP ({current}/{max}). PP above the maximum is lost at the end of the mech's next turn.",
+                "ScrapperGainTooltip": "Roll for the PP the Scrapper core gains from this failure.",
+                "Title": "Power Core Template"
+            },
             "Crew": {
                 "AssignedCount": "({current} / {max})",
                 "CrewLimitReached": "Has alcanzado el número máximo de operadores ({max}).",
@@ -2596,6 +2626,14 @@
                 "SpBonusPerTier": "Bono a PEsc por nivel",
                 "SpeedBonus": "Bono a Velocidad"
             },
+            "Upkeep": {
+                "Active": "{system} is on. It costs {amount} PP at the start of each of the mech's turns.",
+                "Disabled": "{name}'s {system} has been disabled for lack of Power Points.",
+                "End": "End",
+                "Paid": "{name} spends {amount} PP to keep its {system} on ({current}/{max}).",
+                "SphereFailed": "{name}'s {system} fails to form for lack of Power Points. It needs {amount} PP.",
+                "SphereFormed": "{name}'s {system} forms a resilient sphere around the mech, costing {amount} PP. It lasts until the start of the mech's next turn."
+            },
             "UpperLimb": {
                 "AttackBonusChoice": "Bono de ataque",
                 "BaseHp": "PG base",
@@ -2620,6 +2658,8 @@
             },
             "Weapon": {
                 "Area": "Área",
+                "AttackInsufficientPP": "{weapon} needs {amount} PP to attack, and the mech has {current}.",
+                "AttackPPSpent": "{name} spends {amount} PP to attack with {weapon} ({current}/{max}).",
                 "Capacity": "Capacidad",
                 "Critical": "Efecto de golpe crítico",
                 "CriticalDice": "Dados de crítico",
