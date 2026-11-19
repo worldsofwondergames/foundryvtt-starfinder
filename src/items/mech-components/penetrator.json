@@ -1,0 +1,32 @@
+{
+  "_id": "n9pGvCU1Sj8CVy8d",
+  "name": "Penetrator",
+  "type": "mechFrame",
+  "folder": "8wehW3HvVps7o1In",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "auxSlots": 2,
+    "baseHp": 10,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Huge mech (deepcore). Heavy drilling equipment is built into the frame. A deepcore mech can burrow through solid rock at a rate of 10 ft. and solid steel at a rate of 5 ft. per round as a move action.</p>"
+    },
+    "eac": 2,
+    "fort": 2,
+    "frameSlots": 2,
+    "hardness": 1,
+    "hpAdvancement": 8,
+    "kac": 4,
+    "mpCost": 2.5,
+    "operatorsMax": 2,
+    "operatorsMin": 1,
+    "ref": 0,
+    "size": "huge",
+    "source": "Homebrew",
+    "speed": "30 ft., burrow 20 ft.",
+    "strength": 4
+  }
+}

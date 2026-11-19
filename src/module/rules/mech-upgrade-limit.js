@@ -15,13 +15,14 @@ export function maxMechUpgrades(tier) {
 
 /**
  * The upgrades that count against the limit. Upgrades an active mission pod
- * adds come and go with the pod, so they don't count.
+ * adds come and go with the pod, so they don't count, and a power core
+ * template isn't an upgrade.
  *
  * @param {Iterable<{type: string, flags?: object}>} items The mech's items.
  * @returns {number}
  */
 export function countedMechUpgrades(items) {
-    return [...items].filter(item => item.type === "mechUpgrade" && !item.flags?.sfrpg?.fromMissionPod).length;
+    return [...items].filter(item => item.type === "mechUpgrade" && !item.system?.coreTemplate && !item.flags?.sfrpg?.fromMissionPod).length;
 }
 
 /**

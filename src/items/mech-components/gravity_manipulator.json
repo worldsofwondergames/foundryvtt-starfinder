@@ -1,0 +1,20 @@
+{
+  "_id": "mBVBBpn136WQUQrK",
+  "name": "Gravity Manipulator",
+  "type": "mechUpgrade",
+  "folder": "CJhf1OTkOOP1xjLL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Solarians can use graviton-aligned zenith revelations through the mech as a mech standard action using the mech's space as their own.</p>\n<p>@PPAbility[cost:3]{Alter Gravity} The mech can adjust gravity within its reach by one step for one round. Additional upgrades allow the mech to adjust the gravity by another step. The operator can pick the direction of gravity when going up from zero-g.</p>"
+    },
+    "mpCost": 3,
+    "repeatCostStep": 1,
+    "repeatable": true,
+    "source": "Homebrew"
+  }
+}

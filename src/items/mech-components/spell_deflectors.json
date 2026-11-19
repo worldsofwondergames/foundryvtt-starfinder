@@ -1,0 +1,20 @@
+{
+  "_id": "DXlpOerap4xrPc5U",
+  "name": "Spell Deflectors",
+  "type": "mechUpgrade",
+  "folder": "CJhf1OTkOOP1xjLL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The mech gains spell resistance equal to 8 plus its tier. Multiple Spell Deflectors increase the base amount by 5. This does not apply to any spells cast on the mech from within the mech.</p>\n<p>@PPAbility[cost:4]{Dispelling Burst} As a standard action, the mech can overcharge its spell deflectors to cast greater dispel magic from the edges of its space to its reach, using its tier as its caster level. Each additional Spell Deflector upgrade adds +5 to the effective caster level.</p>"
+    },
+    "mpCost": 2,
+    "repeatCostStep": 1,
+    "repeatable": true,
+    "source": "Homebrew"
+  }
+}

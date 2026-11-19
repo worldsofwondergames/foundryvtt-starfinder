@@ -1,0 +1,32 @@
+{
+  "_id": "BgsMt93x0JbUpIFr",
+  "name": "Broodmother",
+  "type": "mechFrame",
+  "folder": "8wehW3HvVps7o1In",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "auxSlots": 5,
+    "baseHp": 15,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Gargantuan mech (crawler, transport). Clinging manipulators along the frame let the mech move as fast up a wall as it does across the ground.</p>"
+    },
+    "eac": 1,
+    "fort": 1,
+    "frameSlots": 2,
+    "hardness": 2,
+    "hpAdvancement": 9,
+    "kac": 2,
+    "mpCost": 3.5,
+    "operatorsMax": 6,
+    "operatorsMin": 2,
+    "ref": 0,
+    "size": "gargantuan",
+    "source": "Homebrew",
+    "speed": "40 ft., climb 60 ft.",
+    "strength": 3
+  }
+}

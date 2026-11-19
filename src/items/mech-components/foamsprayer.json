@@ -1,0 +1,52 @@
+{
+  "_id": "XJwWbvMHUQLLL8Dt",
+  "name": "Foamsprayer",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/hellhound-class_flamethrower.webp",
+  "system": {
+    "area": "blast",
+    "capacity": 5,
+    "critical": {
+      "effect": "immobilize"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "acid": true,
+            "cold": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "medium",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>A popular tool of enforcement agencies for crowd control, the Foamsprayer unleashes a blast of aerosolized chemical foam that inhibits movement and rapidly weakens those affected. The chemicals can be adjusted for lethality as needed.</p>"
+    },
+    "mpCost": 4,
+    "ppCost": 0,
+    "range": "60 ft.",
+    "save": {
+      "type": "reflex",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 2,
+    "source": "Homebrew",
+    "special": "blast, entangle, mire, stun, unwieldy",
+    "usage": 1,
+    "validSlots": [
+      "frame",
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

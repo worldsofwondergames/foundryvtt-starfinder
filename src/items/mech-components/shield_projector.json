@@ -1,0 +1,21 @@
+{
+  "_id": "EEUpDE4HGht6nZ8G",
+  "name": "Shield Projector",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/emergency_defense_sphere.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>As a move action or part of another action, the mech can enable or disable its shield projector. While active, any unit inside its natural reach is protected by the mech's shields from attacks originating outside of it. Attacks from inside the maximum reach ignore the shield. Damage these shields block is taken from the mech's Shield Points.</p>\n<p><strong>Auxiliary Slots:</strong> 2.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

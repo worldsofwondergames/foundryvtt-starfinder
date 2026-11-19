@@ -1,0 +1,32 @@
+{
+  "_id": "94BEs6YUCwQ1O9Gd",
+  "name": "Trapdoor",
+  "type": "mechFrame",
+  "folder": "8wehW3HvVps7o1In",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "auxSlots": 3,
+    "baseHp": 10,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Huge mech (deepcore, recon). A deepcore mech can burrow through solid rock at a rate of 10 ft. and solid steel at a rate of 5 ft. per round as a move action.</p>"
+    },
+    "eac": 2,
+    "fort": 0,
+    "frameSlots": 1,
+    "hardness": 0,
+    "hpAdvancement": 7,
+    "kac": 2,
+    "mpCost": 2,
+    "operatorsMax": 2,
+    "operatorsMin": 1,
+    "ref": 2,
+    "size": "huge",
+    "source": "Homebrew",
+    "speed": "40 ft., burrow 20 ft.",
+    "strength": 2
+  }
+}

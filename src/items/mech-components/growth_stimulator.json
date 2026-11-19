@@ -1,0 +1,29 @@
+{
+  "_id": "fU2I6dGR03VbiVey",
+  "name": "Growth Stimulator",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/emergency_defense_sphere.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Overgrowth",
+        "actionType": "",
+        "description": "The mech directs the stimulator to rapidly grow a selection of stored seeds containing durable flora. This functions as cover seeds (AR), but the height of the wall is 10 ft.",
+        "ppCost": 2
+      }
+    ],
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The mech must have the plant type to select this component.</p>\n<p>@PPAbility[cost:2]{Overgrowth} The mech directs the stimulator to rapidly grow a selection of stored seeds containing durable flora. This functions as cover seeds (AR), but the height of the wall is 10 ft.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 2,
+    "source": "Homebrew"
+  }
+}

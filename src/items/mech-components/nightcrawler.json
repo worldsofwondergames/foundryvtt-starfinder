@@ -1,0 +1,32 @@
+{
+  "_id": "kj8MELxLTNrstsjr",
+  "name": "Nightcrawler",
+  "type": "mechFrame",
+  "folder": "8wehW3HvVps7o1In",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "auxSlots": 3,
+    "baseHp": 10,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Huge mech (crawler, recon). Clinging manipulators along the frame let the mech move as fast up a wall as it does across the ground.</p>"
+    },
+    "eac": 2,
+    "fort": 0,
+    "frameSlots": 1,
+    "hardness": 0,
+    "hpAdvancement": 7,
+    "kac": 2,
+    "mpCost": 2.5,
+    "operatorsMax": 2,
+    "operatorsMin": 1,
+    "ref": 2,
+    "size": "huge",
+    "source": "Homebrew",
+    "speed": "60 ft., climb 80 ft.",
+    "strength": 2
+  }
+}

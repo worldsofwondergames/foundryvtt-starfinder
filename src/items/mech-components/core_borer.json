@@ -1,0 +1,50 @@
+{
+  "_id": "TI0uSjBPh2GKBpBN",
+  "name": "Core Borer",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/advanced_reaction_cannon.webp",
+  "system": {
+    "area": "explode (5 ft.)",
+    "capacity": 5,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "fire": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "high",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>It deals fire or cold damage.</p>"
+    },
+    "mpCost": 3.5,
+    "ppCost": 0,
+    "range": "60 ft.",
+    "save": {
+      "type": "reflex",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "upperLimb",
+    "slotsUsed": 2,
+    "source": "Homebrew",
+    "special": "explode (5 ft.), modal (cryo), shatter, unwieldy",
+    "usage": 1,
+    "validSlots": [
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

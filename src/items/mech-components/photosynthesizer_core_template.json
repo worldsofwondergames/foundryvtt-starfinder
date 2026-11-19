@@ -1,0 +1,24 @@
+{
+  "_id": "DovRfTKk0CjAzf6a",
+  "name": "Photosynthesizer Core Template",
+  "type": "mechUpgrade",
+  "folder": "mCSahqNlZvTowXgu",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "coreTemplate": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p><strong>Prerequisite:</strong> can be applied only to a core with a rate greater than 1.</p>\n<p>The mech gains plant immunities, loses the unliving trait, and counts as a plant for type. The mech's PP values fluctuate based on light levels, adjusting rate, initial, and maximum PP at the start of its turn: bright +2, normal +1, dim 0, darkness −1. A fully photon attuned solarian can discharge their energy as a free action similar to a zenith revelation, raising the light level for the mech by one step for 3 rounds.</p>"
+    },
+    "mpCost": 3,
+    "ppInitialBonus": 0,
+    "ppMaxBonus": 0,
+    "ppRegenBonus": 0,
+    "repeatCostStep": 1,
+    "repeatable": false,
+    "source": "Homebrew"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "_id": "DYeBcUrYEQKRMcFp",
+  "name": "Aeon Core Template",
+  "type": "mechUpgrade",
+  "folder": "mCSahqNlZvTowXgu",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "coreTemplate": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p><strong>Prerequisite:</strong> an eternal core.</p>\n<p>Once per round, an operator can spend an unused spell slot to give the mech PP equal to half the slot's level, rounded down.</p>"
+    },
+    "mpCost": 0,
+    "ppInitialBonus": -1,
+    "ppMaxBonus": -1,
+    "ppRegenBonus": 0,
+    "repeatCostStep": 1,
+    "repeatable": false,
+    "source": "Tech Revolution pg. 102"
+  }
+}

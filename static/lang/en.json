@@ -2290,6 +2290,7 @@
                 "SpTooltip": "Shield Points absorb damage before HP. They regenerate each turn.",
                 "Speed": {
                     "Burrow": "Burrow Speed",
+                    "Climb": "Climb Speed",
                     "Fly": "Fly Speed",
                     "Land": "Land Speed",
                     "Swim": "Swim Speed"
@@ -2579,6 +2580,14 @@
                 "KacBonus": "KAC Bonus",
                 "MpCost": "MP Cost",
                 "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
+                "NotRepeatable": "The mech already has {name}, which can be bought only once.",
+                "OneCoreTemplate": "The mech already has a power core template, so {name} can't be added.",
+                "Repeatable": "Repeatable",
+                "RepeatCostStep": "Added Cost per Repeat",
+                "CoreTemplate": "Power Core Template",
+                "PpRegenBonus": "PP Rate Adjustment",
+                "PpInitialBonus": "Initial PP Adjustment",
+                "PpMaxBonus": "Maximum PP Adjustment",
                 "ReflexBonus": "Reflex Bonus",
                 "SpBonusPerTier": "SP Bonus per Tier",
                 "SpeedBonus": "Speed Bonus"
@@ -2599,6 +2608,7 @@
                 "PpCost": "PP Cost",
                 "RangedAttack": "Ranged Attack Bonus",
                 "ShowAttackBonusChoice": "Choose Attack Bonus",
+                "FrameSlots": "Frame Slots",
                 "Slots": "Weapon Slots",
                 "SpecialAbility": "Special Ability",
                 "Strength": "Strength Modifier",

@@ -1,0 +1,21 @@
+{
+  "_id": "IvL0L0dSI0CEssfJ",
+  "name": "Arcane Sensors",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/technological items/omnidirectional_camera.webp",
+  "system": {
+    "canBeActivated": false,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p><strong>Prerequisites:</strong> the mech must have a recon frame and the magical subtype to install this component.</p>\n<p>The mech's sensors can detect magic as if under the effects of arcane sight. An operator can use a mech's standard action to use the actions outlined under the spell. The mech can also be controlled by its operator to cast clairaudience/clairvoyance at five times the range using its mech's as the caster level but expending a spell slot as normal.</p>\n<p><strong>Auxiliary Slots:</strong> 1.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 0,
+    "source": "Homebrew"
+  }
+}

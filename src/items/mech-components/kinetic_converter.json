@@ -1,0 +1,29 @@
+{
+  "_id": "0FANNsRje1TtTkCh",
+  "name": "Kinetic Converter",
+  "type": "mechAuxiliary",
+  "folder": "vj3kvHdvf2DlBF6O",
+  "img": "systems/sfrpg/icons/equipment/weapons/battery-high-capacity.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Rebound",
+        "actionType": "reaction",
+        "description": "Once per day, as a reaction when an attack or effect that isn't a critical hit deals the mech damage, the mech takes none of it. It is instead pushed 5 ft. directly away from the source for every 10 damage negated. If it hits an obstacle first, it stops and takes 1d6 bludgeoning damage per 10 ft. it didn't travel.",
+        "ppCost": 3
+      }
+    ],
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Adapted from the kinetic converter (AR p. 123).</p>\n<p>@PPAbility[cost:3]{Rebound} Once per day, as a reaction when an attack or effect that isn't a critical hit deals the mech damage, the mech takes none of it. It is instead pushed 5 ft. directly away from the source for every 10 damage negated. If it hits an obstacle first, it stops and takes 1d6 bludgeoning damage per 10 ft. it didn't travel.</p>\n<p><strong>Auxiliary Slots:</strong> 2.</p>"
+    },
+    "isActive": false,
+    "mpCost": 0,
+    "ppCost": 3,
+    "source": "Homebrew"
+  }
+}

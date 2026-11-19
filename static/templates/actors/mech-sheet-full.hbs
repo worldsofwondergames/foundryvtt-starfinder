@@ -182,6 +182,12 @@
                                 <span class="calculated-value">{{system.attributes.speed.burrow}}</span>
                             </div>
                         </div>
+                        <div class="form-group" data-tooltip="{{#each system.attributes.speedTooltip.climb as |tip|}}{{tip}}<br>{{/each}}">
+                            <label>{{ localize "SFRPG.MechSheet.Attributes.Speed.Climb" }}</label>
+                            <div class="form-fields">
+                                <span class="calculated-value">{{system.attributes.speed.climb}}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -5,7 +5,8 @@ import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mec
 import { naniteSwarmUpdate } from "./rules/mech-heal.js";
 import { autotargetUpdate } from "./rules/mech-piloting-ranks.js";
 import { autospearSystemUpdate } from "./rules/mech-thrown.js";
-import { compendiumMpCosts, correctedMpCost } from "./rules/mech-points.js";
+import { compendiumMpCosts, correctedMpCost, plasmaRifleMpCost } from "./rules/mech-points.js";
+import { superiorComputerUpdate } from "./rules/mech-upgrade-rules.js";
 
 const SFRPGMigrationSchemas = Object.freeze({
     NPC_DATA_UPATE: 0.001,
@@ -22,7 +23,9 @@ const SFRPGMigrationSchemas = Object.freeze({
     MECH_MP_COSTS: 0.013, // Give copies of auxiliary systems, power cores and upgrades the compendium's Mech Point cost.
     NANITE_SWARM_HEAL: 0.014, // Give copies of Nanite Swarm Repair the heals its actions roll from the chat card.
     AUTOTARGET_PILOTING_RANKS: 0.015, // Mark Accurate Strikes on copies of Autotarget, so using it changes the attack bonus.
-    AUTOSPEAR_THROWN: 0.016 // Give copies of the Autospear "thrown (40 ft.)" as a melee weapon, so it can be thrown.
+    AUTOSPEAR_THROWN: 0.016, // Give copies of the Autospear "thrown (40 ft.)" as a melee weapon, so it can be thrown.
+    SUPERIOR_COMPUTER_REPEAT: 0.018, // Stop copies of Superior Computer from costing more each time the mech buys another.
+    PLASMA_RIFLE_COST: 0.019 // Lower copies of the mech Plasma Rifle from 10 to 4.5 Mech Points per level.
 });
 
 /** The compendium's Mech Point costs, read once when a world migrates past MECH_MP_COSTS. */
@@ -156,6 +159,8 @@ const migrateItem = async function(item, schema) {
     if (schema < SFRPGMigrationSchemas.NANITE_SWARM_HEAL) Object.assign(updateData, naniteSwarmUpdate(item));
     if (schema < SFRPGMigrationSchemas.AUTOTARGET_PILOTING_RANKS) Object.assign(updateData, autotargetUpdate(item));
     if (schema < SFRPGMigrationSchemas.AUTOSPEAR_THROWN) _migrateAutospear(item, updateData);
+    if (schema < SFRPGMigrationSchemas.SUPERIOR_COMPUTER_REPEAT) _migrateSuperiorComputer(item, updateData);
+    if (schema < SFRPGMigrationSchemas.PLASMA_RIFLE_COST) _migratePlasmaRifle(item, updateData);
 
     return updateData;
 };
@@ -241,6 +246,55 @@ const _migrateAutospear = function(item, updateData) {
         let changed = false;
         const templates = current.map(template => {
             const fix = autospearSystemUpdate(template);
+            if (Object.keys(fix).length === 0) return template;
+            changed = true;
+            return { ...template, system: { ...template.system, ...fix } };
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
+};
+
+/**
+ * Lower a Plasma Rifle, and each Plasma Rifle template inside a mission pod,
+ * from the old 10 Mech Points per level to the compendium's cost.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migratePlasmaRifle = function(item, updateData) {
+    const mpCost = plasmaRifleMpCost(item);
+    if (mpCost !== null) updateData["system.mpCost"] = mpCost;
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
+        let changed = false;
+        const templates = current.map(template => {
+            const templateCost = plasmaRifleMpCost(template);
+            if (templateCost === null) return template;
+            changed = true;
+            return { ...template, system: { ...template.system, mpCost: templateCost } };
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
+};
+
+/**
+ * Stop a Superior Computer, and each one inside a mission pod, from costing
+ * more each time the mech buys another.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migrateSuperiorComputer = function(item, updateData) {
+    for (const [key, value] of Object.entries(superiorComputerUpdate(item))) {
+        updateData[`system.${key}`] = value;
+    }
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
+        let changed = false;
+        const templates = current.map(template => {
+            const fix = superiorComputerUpdate(template);
             if (Object.keys(fix).length === 0) return template;
             changed = true;
             return { ...template, system: { ...template.system, ...fix } };

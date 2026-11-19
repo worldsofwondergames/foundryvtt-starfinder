@@ -1,0 +1,32 @@
+{
+  "_id": "Zmk66O3YJg8d09Ac",
+  "name": "Basilisk",
+  "type": "mechFrame",
+  "folder": "8wehW3HvVps7o1In",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "auxSlots": 4,
+    "baseHp": 10,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Colossal mech (crawler). Clinging manipulators along the frame let the mech move as fast up a wall as it does across the ground.</p>"
+    },
+    "eac": 1,
+    "fort": 1,
+    "frameSlots": 4,
+    "hardness": 2,
+    "hpAdvancement": 10,
+    "kac": 2,
+    "mpCost": 4,
+    "operatorsMax": 6,
+    "operatorsMin": 2,
+    "ref": 1,
+    "size": "colossal",
+    "source": "Homebrew",
+    "speed": "30 ft., climb 40 ft.",
+    "strength": 5
+  }
+}

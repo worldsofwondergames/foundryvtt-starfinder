@@ -1,5 +1,7 @@
 import { effectiveSystems, hardnessRate, movementRate } from "../../../mech-system-effects.js";
 import { mechPointMinimum } from "../../../mech-points.js";
+import { templatedPowerPoints, upgradeCostsPerTier } from "../../../mech-upgrade-rules.js";
+import { MECH_SPEED_TYPES, addSpeedTooltips, applySpeedModifiers, parseSpeedString } from "../../../mech-speed.js";
 
 /**
  * Calculate mech statistics from component items (frame, limbs, power core).
@@ -45,7 +47,7 @@ export default function(engine) {
         data.attributes.fort.tooltip = [];
         data.attributes.ref.tooltip = [];
         data.attributes.will.tooltip = [];
-        data.attributes.speedTooltip = { land: [], fly: [], swim: [], burrow: [] };
+        data.attributes.speedTooltip = Object.fromEntries(MECH_SPEED_TYPES.map(type => [type, []]));
         data.attributes.reachTooltip = [];
         data.attributes.sizeTooltip = [];
         data.attributes.operatorsTooltip = [];
@@ -260,7 +262,7 @@ export default function(engine) {
         // system provides is not the limbs' to slow.
         const limbRate = movementRate(systemStatuses.lowerLimbs);
         if (limbRate < 1) {
-            for (const speedType of ["land", "fly", "swim", "burrow"]) {
+            for (const speedType of MECH_SPEED_TYPES) {
                 const current = parseInt(data.attributes.speed[speedType]) || 0;
                 if (current <= 0) continue;
 
@@ -275,9 +277,14 @@ export default function(engine) {
         // Power Points: From power core
         // ========================================
         if (powerCore) {
-            data.attributes.pp.initial = powerCore.system.ppInitial || 3;
-            data.attributes.pp.max = powerCore.system.ppMax || 5;
-            data.attributes.pp.regen = powerCore.system.ppRegen || 1;
+            const pp = templatedPowerPoints({
+                initial: powerCore.system.ppInitial || 3,
+                max: powerCore.system.ppMax || 5,
+                regen: powerCore.system.ppRegen || 1
+            }, items);
+            data.attributes.pp.initial = pp.initial;
+            data.attributes.pp.max = pp.max;
+            data.attributes.pp.regen = pp.regen;
         }
 
         // ========================================
@@ -299,7 +306,8 @@ export default function(engine) {
         // ========================================
         // Slots: From frame and limbs
         // ========================================
-        data.attributes.slots.frame = frame?.system.frameSlots || 0;
+        // Arms such as Turret Arms add frame slots in place of upper limb slots.
+        data.attributes.slots.frame = (frame?.system.frameSlots || 0) + (upperLimb?.system.frameSlots || 0);
         data.attributes.slots.auxiliary = frame?.system.auxSlots || 0;
         data.attributes.slots.lowerLimb = lowerLimb?.system.slots || 0;
         data.attributes.slots.upperLimb = upperLimb?.system.slots || 0;
@@ -420,7 +428,7 @@ export default function(engine) {
                 data.attributes.sp.tooltip.push(`${upgrade.name}: +${sys.spBonusPerTier}×${tier} = +${spBonus}`);
             }
             if (sys.speedBonus) {
-                const speedTypes = ["land", "fly", "swim", "burrow"];
+                const speedTypes = MECH_SPEED_TYPES;
                 for (const speedType of speedTypes) {
                     const current = parseInt(data.attributes.speed[speedType]) || 0;
                     if (current > 0) {
@@ -446,14 +454,16 @@ export default function(engine) {
         const mechComponentTypes = ["mechFrame", "mechUpperLimb", "mechLowerLimb", "mechPowerCore", "mechAuxiliary", "mechUpgrade", "mechWeapon", "mechMissionPod"];
         let totalMp = 0;
         data.currency.mpTooltip = [];
+        const upgradeCosts = upgradeCostsPerTier(items);
 
         for (const item of items) {
-            if (mechComponentTypes.includes(item.type) && item.system.mpCost) {
+            const costPerTier = upgradeCosts.get(item) ?? item.system.mpCost;
+            if (mechComponentTypes.includes(item.type) && costPerTier) {
                 const effectiveLevel = (item.type === "mechWeapon" && item.system.levelOverride) ? item.system.levelOverride : tier;
-                const itemMp = item.system.mpCost * effectiveLevel;
+                const itemMp = costPerTier * effectiveLevel;
                 totalMp += itemMp;
                 const levelLabel = effectiveLevel !== tier ? `${effectiveLevel} (Lvl)` : `${tier}`;
-                data.currency.mpTooltip.push(`${item.name}: ${item.system.mpCost} × ${levelLabel} = ${itemMp}`);
+                data.currency.mpTooltip.push(`${item.name}: ${costPerTier} × ${levelLabel} = ${itemMp}`);
             }
         }
 
@@ -537,120 +547,4 @@ export default function(engine) {
 
         return fact;
     });
-}
-
-/**
- * Parse a speed string like "60 ft." or "30 ft., swim 60 ft., fly 40 ft."
- * and populate the speed object with absolute values.
- */
-function parseSpeedString(speedStr, speedObj) {
-    if (!speedStr) return;
-
-    // Reset speeds
-    speedObj.land = "";
-    speedObj.fly = "";
-    speedObj.swim = "";
-    speedObj.burrow = "";
-
-    // Split by comma
-    const parts = speedStr.split(",").map(s => s.trim());
-
-    for (const part of parts) {
-        if (part.toLowerCase().startsWith("fly")) {
-            speedObj.fly = part.replace(/^fly\s*/i, "");
-        } else if (part.toLowerCase().startsWith("swim")) {
-            speedObj.swim = part.replace(/^swim\s*/i, "");
-        } else if (part.toLowerCase().startsWith("burrow")) {
-            speedObj.burrow = part.replace(/^burrow\s*/i, "");
-        } else {
-            // Assume land speed if no prefix
-            speedObj.land = part;
-        }
-    }
-}
-
-/**
- * Apply speed modifiers from lower limbs.
- * Handles modifier strings like "+10 ft.", "fly +10 ft. (perfect, max 5 ft.)",
- * or absolute new speed types like "burrow 40 ft.".
- * A modifier without a type prefix (e.g., "+10 ft.") applies to ALL existing speeds.
- */
-function applySpeedModifiers(speedStr, speedObj) {
-    if (!speedStr) return;
-
-    const parts = speedStr.split(",").map(s => s.trim());
-    const speedTypes = ["land", "fly", "swim", "burrow"];
-
-    for (const part of parts) {
-        let type = null;
-        let remainder = part;
-
-        if (part.toLowerCase().startsWith("fly")) {
-            type = "fly";
-            remainder = part.replace(/^fly\s*/i, "");
-        } else if (part.toLowerCase().startsWith("swim")) {
-            type = "swim";
-            remainder = part.replace(/^swim\s*/i, "");
-        } else if (part.toLowerCase().startsWith("burrow")) {
-            type = "burrow";
-            remainder = part.replace(/^burrow\s*/i, "");
-        }
-
-        // Check if this is a modifier (starts with + or -)
-        const modMatch = remainder.match(/^([+-]\d+)\s*ft\./);
-        if (modMatch) {
-            const mod = parseInt(modMatch[1]);
-
-            if (type === null) {
-                // No type prefix - apply to land speed only
-                const current = parseInt(speedObj.land) || 0;
-                if (current > 0) {
-                    speedObj.land = `${current + mod} ft.`;
-                }
-            } else {
-                // Specific type - apply to that type only
-                const current = parseInt(speedObj[type]) || 0;
-                const newSpeed = current + mod;
-                speedObj[type] = `${newSpeed} ft.`;
-            }
-        } else {
-            // It's an absolute value (e.g., "burrow 40 ft.") - set it if not already set
-            const targetType = type || "land";
-            if (!speedObj[targetType]) {
-                speedObj[targetType] = remainder;
-            }
-        }
-    }
-}
-
-/**
- * Add tooltip entries for a speed string, attributing them to a source component.
- */
-function addSpeedTooltips(speedStr, tooltipObj, sourceName) {
-    if (!speedStr) return;
-
-    const parts = speedStr.split(",").map(s => s.trim());
-
-    for (const part of parts) {
-        let type = "land";
-        let display = part;
-
-        if (part.toLowerCase().startsWith("fly")) {
-            type = "fly";
-            display = part.replace(/^fly\s*/i, "");
-        } else if (part.toLowerCase().startsWith("swim")) {
-            type = "swim";
-            display = part.replace(/^swim\s*/i, "");
-        } else if (part.toLowerCase().startsWith("burrow")) {
-            type = "burrow";
-            display = part.replace(/^burrow\s*/i, "");
-        }
-
-        const modMatch = display.match(/^[+-]/);
-        if (modMatch) {
-            tooltipObj[type].push(`${sourceName}: ${display}`);
-        } else {
-            tooltipObj[type].push(`${sourceName}: ${display}`);
-        }
-    }
 }

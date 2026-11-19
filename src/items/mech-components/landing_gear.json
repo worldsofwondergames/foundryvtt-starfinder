@@ -1,0 +1,37 @@
+{
+  "_id": "IqG4V1yTNyuNwoQF",
+  "name": "Landing Gear",
+  "type": "mechLowerLimb",
+  "folder": "kAhhXt15enjibCol",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "actions": [
+      {
+        "name": "Divert Power",
+        "actionType": "",
+        "description": "Channel some of the additional energy that would've powered your mech's legs to add an additional +20 feet to flight speed until the end of the mech's turn.",
+        "ppCost": 1
+      }
+    ],
+    "baseHp": 0,
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>Only flight frames can take these lower limbs. The mech has limited maneuverability on land, but the less complicated component makes it possible to enhance its air speed.</p>\n<p>The mech's land speed is capped at 10 ft., and its flight speed increases by 10 ft.</p>\n<p>@PPAbility[cost:1]{Divert Power} Channel some of the additional energy that would've powered your mech's legs to add an additional +20 feet to flight speed until the end of the mech's turn.</p>"
+    },
+    "eac": 0,
+    "fort": 0,
+    "hpAdvancement": 0,
+    "isActive": false,
+    "kac": 0,
+    "mpCost": 0.5,
+    "ppCost": 1,
+    "ref": 0,
+    "slots": 0,
+    "source": "Homebrew",
+    "speed": "fly +10 ft."
+  }
+}

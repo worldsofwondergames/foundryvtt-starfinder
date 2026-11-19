@@ -1,0 +1,59 @@
+{
+  "_id": "H7wHYkBHI3I9Hhi0",
+  "name": "Shock Baton",
+  "type": "mechWeapon",
+  "folder": "ufslMqZOMYF7vkkO",
+  "img": "systems/sfrpg/icons/equipment/weapons/hammer.webp",
+  "system": {
+    "actions": [
+      {
+        "name": "Extend",
+        "actionType": "",
+        "description": "The shock baton gains reach for one round.",
+        "ppCost": 1
+      }
+    ],
+    "area": "",
+    "capacity": null,
+    "critical": {
+      "effect": "knockdown"
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "electricity": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>@PPAbility[cost:1]{Extend} The shock baton gains reach for one round.</p>"
+    },
+    "mpCost": 2,
+    "ppCost": 1,
+    "range": "",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "lowerLimb",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "lockdown, nonlethal, thrown (20 ft.), trip",
+    "usage": null,
+    "validSlots": [
+      "lowerLimb",
+      "upperLimb"
+    ],
+    "weaponType": "melee"
+  }
+}

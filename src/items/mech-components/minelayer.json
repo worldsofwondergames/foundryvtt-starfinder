@@ -1,0 +1,48 @@
+{
+  "_id": "R2smLwOA9Hgwurf7",
+  "name": "Minelayer",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/nil-grenade-launcher-squad.webp",
+  "system": {
+    "area": "",
+    "capacity": 3,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {}
+        }
+      ]
+    },
+    "damageLevel": "medium",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>From the minelayer (AR). It fires the same grenades as the Grenade Launcher. Each lands intact and explodes when a creature moves within 10 ft. of it, or after 1d6 + 1 rounds.</p>"
+    },
+    "mpCost": 3,
+    "ppCost": 0,
+    "range": "120 ft.",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "mine",
+    "usage": 1,
+    "validSlots": [
+      "frame"
+    ],
+    "weaponType": "ranged"
+  }
+}

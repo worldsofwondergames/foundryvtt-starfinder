@@ -1,0 +1,52 @@
+{
+  "_id": "JdpDqTJkLfyfCW2B",
+  "name": "Gravity Coil",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/arc_rifle_static.webp",
+  "system": {
+    "area": "",
+    "capacity": 10,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "bludgeoning": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": ""
+    },
+    "mpCost": 2.5,
+    "ppCost": 0,
+    "range": "60 ft.",
+    "save": {
+      "type": "",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "frame",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "force, gravitation",
+    "usage": 1,
+    "validSlots": [
+      "frame",
+      "upperLimb",
+      "lowerLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}

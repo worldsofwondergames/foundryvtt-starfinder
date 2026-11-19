@@ -1,0 +1,40 @@
+{
+  "_id": "vMdnX17k8PH0HJjX",
+  "name": "Turret Arms",
+  "type": "mechUpperLimb",
+  "folder": "XyGHG8VPLQ1F0WWL",
+  "img": "systems/sfrpg/icons/mech-frame.png",
+  "system": {
+    "actions": [
+      {
+        "name": "Alpha Strike",
+        "actionType": "full",
+        "description": "The mech can spend 3 PP and a full action to make a full attack with each weapon mounted on its turret arms. All of these attacks must attack one target or an intersection of its occupied space, even if the target is destroyed before the later attacks resolve. Each attack takes the normal −4 full attack penalty, plus −1 for each weapon beyond two. Unwieldy weapons can't be used with Alpha Strike.",
+        "ppCost": 3
+      }
+    ],
+    "attackBonusChoice": "melee",
+    "baseHp": 0,
+    "canBeActivated": true,
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>The fortified hardpoints of turret arms allow a large array of weaponry, but it suffers at using melee weaponry and changing its armament outside of the engineering bay. Turret arms have frame slots instead of upper limb slots: they provide 4 frame slots and no upper limb slots.</p>\n<p>@PPAbility[cost:3]{Alpha Strike} The mech can spend 3 PP and a full action to make a full attack with each weapon mounted on its turret arms. All of these attacks must attack one target or an intersection of its occupied space, even if the target is destroyed before the later attacks resolve. Each attack takes the normal −4 full attack penalty, plus −1 for each weapon beyond two. Unwieldy weapons can't be used with Alpha Strike.</p>"
+    },
+    "eac": 0,
+    "frameSlots": 4,
+    "hpAdvancement": 0,
+    "isActive": false,
+    "kac": 1,
+    "meleeAttack": -4,
+    "mpCost": 2,
+    "ppCost": 3,
+    "rangedAttack": 1,
+    "showAttackBonusChoice": false,
+    "slots": 0,
+    "source": "Homebrew",
+    "strength": 0
+  }
+}

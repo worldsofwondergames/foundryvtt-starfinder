@@ -20,6 +20,13 @@ export default class SFRPGItemMechUpperLimb extends SFRPGItemBase {
                 required: true,
                 label: "SFRPG.MechSheet.UpperLimb.Slots"
             }),
+            frameSlots: new fields.NumberField({
+                initial: 0,
+                min: 0,
+                integer: true,
+                required: true,
+                label: "SFRPG.MechSheet.UpperLimb.FrameSlots"
+            }),
             meleeAttack: new fields.NumberField({
                 initial: 0,
                 integer: true,

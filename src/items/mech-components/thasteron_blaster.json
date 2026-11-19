@@ -1,0 +1,50 @@
+{
+  "_id": "hCommhge7rCzdkdd",
+  "name": "Thasteron Blaster",
+  "type": "mechWeapon",
+  "folder": "yxRJ0fA0zyqCjCBH",
+  "img": "systems/sfrpg/icons/equipment/weapons/scattergun-impact.webp",
+  "system": {
+    "area": "blast",
+    "capacity": 4,
+    "critical": {
+      "effect": ""
+    },
+    "damage": {
+      "parts": [
+        {
+          "formula": "",
+          "operator": "",
+          "types": {
+            "bludgeoning": true
+          }
+        }
+      ]
+    },
+    "damageLevel": "low",
+    "description": {
+      "chat": "",
+      "gmnotes": "",
+      "short": "",
+      "unidentified": "",
+      "value": "<p>From the thasteron blunderbuss (DC p. 52). Each creature hit is pushed 20 ft. away from the mech unless it succeeds at a Reflex save (DC 12 + ½ the mech's tier). A creature pushed into a wall or other barrier stops and falls prone. Creatures larger than the mech aren't moved.</p>"
+    },
+    "mpCost": 3,
+    "ppCost": 0,
+    "range": "30 ft.",
+    "save": {
+      "type": "reflex",
+      "dc": null,
+      "descriptor": ""
+    },
+    "slot": "upperLimb",
+    "slotsUsed": 1,
+    "source": "Homebrew",
+    "special": "blast, propel (20 ft.)",
+    "usage": 1,
+    "validSlots": [
+      "upperLimb"
+    ],
+    "weaponType": "ranged"
+  }
+}
