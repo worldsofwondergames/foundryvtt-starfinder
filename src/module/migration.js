@@ -5,7 +5,7 @@ import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mec
 import { naniteSwarmUpdate } from "./rules/mech-heal.js";
 import { autotargetUpdate } from "./rules/mech-piloting-ranks.js";
 import { autospearSystemUpdate } from "./rules/mech-thrown.js";
-import { compendiumMpCosts, correctedMpCost, correctedPpCost, plasmaRifleMpCost } from "./rules/mech-points.js";
+import { compendiumMpCosts, componentPpFix, correctedMpCost, plasmaRifleMpCost } from "./rules/mech-points.js";
 import { upkeepDataFix } from "./rules/mech-upkeep.js";
 import { superiorComputerUpdate } from "./rules/mech-upgrade-rules.js";
 
@@ -27,7 +27,7 @@ const SFRPGMigrationSchemas = Object.freeze({
     AUTOSPEAR_THROWN: 0.016, // Give copies of the Autospear "thrown (40 ft.)" as a melee weapon, so it can be thrown.
     SUPERIOR_COMPUTER_REPEAT: 0.018, // Stop copies of Superior Computer from costing more each time the mech buys another.
     PLASMA_RIFLE_COST: 0.019, // Lower copies of the mech Plasma Rifle from 10 to 4.5 Mech Points per level.
-    TOP_PP_COST: 0.020, // Show the Offgasser's and Propellers' most expensive action as their PP cost.
+    TOP_PP_COST: 0.020, // A component's PP cost is its own cost, so one whose costs belong to actions shows 0.
     UPKEEP_SYSTEMS: 0.021 // Give the Holodouble Projector its Project Double action and the Emergency Defense Sphere its 3 PP cost.
 });
 
@@ -284,24 +284,25 @@ const _migrateUpkeep = function(item, updateData) {
 };
 
 /**
- * Raise the PP cost of an Offgasser or Propellers, and of each one inside a
- * mission pod, to its most expensive action.
+ * Set the PP cost of a component whose costs belong to its actions to 0, and
+ * add the action five weapons were missing, along with each one inside a
+ * mission pod.
  *
  * @param {Item} item
  * @param {object} updateData
  */
 const _migratePpCost = function(item, updateData) {
-    const ppCost = correctedPpCost(item);
-    if (ppCost !== null) updateData["system.ppCost"] = ppCost;
+    const fix = componentPpFix(item);
+    for (const [key, value] of Object.entries(fix ?? {})) updateData[`system.${key}`] = value;
 
     if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
         const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
         let changed = false;
         const templates = current.map(template => {
-            const templateCost = correctedPpCost(template);
-            if (templateCost === null) return template;
+            const templateFix = componentPpFix(template);
+            if (!templateFix) return template;
             changed = true;
-            return { ...template, system: { ...template.system, ppCost: templateCost } };
+            return { ...template, system: { ...template.system, ...templateFix } };
         });
         if (changed) updateData["system.itemTemplates"] = templates;
     }

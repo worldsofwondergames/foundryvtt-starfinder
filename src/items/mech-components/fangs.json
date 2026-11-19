@@ -38,7 +38,7 @@
       "value": "<p><strong>Close-Ranged:</strong> fangs can only be used to attack adjacent creatures.</p>\n<p>@PPAbility[cost:2]{Poison Concentrate} Select a poison up to the weapon's level plus 2 when you resupply the mech. This weapon has a cache of concentrated poison that can be activated for 2 PP as part of making an attack with this weapon.</p>"
     },
     "mpCost": 2,
-    "ppCost": 2,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "",

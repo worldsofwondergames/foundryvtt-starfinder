@@ -892,4 +892,22 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         if (!this._mechCombat()) update["flags.sfrpg.appliedLight"] = light || null;
         await this.update(update);
     }
+
+    /**
+     * Spend a weapon's PP cost for an attack that was rolled, and tell the
+     * mech's owners and the GMs.
+     *
+     * @param {Item} weapon The weapon that attacked.
+     * @param {number} cost The PP the attack costs.
+     */
+    async spendAttackPowerPoints(weapon, cost) {
+        const pp = this.system.attributes.pp;
+        const current = Math.max(0, (pp.value || 0) - cost);
+        await this.update({ "system.attributes.pp.value": current });
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this }),
+            content: `<p>${game.i18n.format("SFRPG.MechSheet.Weapon.AttackPPSpent", { name: this.name, weapon: weapon.name, amount: cost, current, max: pp.max })}</p>`,
+            whisper: game.users.filter(u => u.isGM || this.testUserPermission(u, "OWNER")).map(u => u.id)
+        });
+    }
 };

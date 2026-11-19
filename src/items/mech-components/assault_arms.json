@@ -27,7 +27,7 @@
     "kac": 2,
     "meleeAttack": 0,
     "mpCost": 1,
-    "ppCost": 1,
+    "ppCost": 0,
     "rangedAttack": 0,
     "showAttackBonusChoice": true,
     "slots": 3,

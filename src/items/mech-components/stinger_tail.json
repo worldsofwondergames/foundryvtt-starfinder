@@ -5,6 +5,14 @@
   "folder": "ufslMqZOMYF7vkkO",
   "img": "systems/sfrpg/icons/equipment/weapons/fangblade.webp",
   "system": {
+    "actions": [
+      {
+        "name": "Inject Acid",
+        "actionType": "",
+        "description": "After a successful strike, release acidic mist that targets opponents, dealing low acid damage. A successful Reflex save reduces damage by half, while a failed save imposes a -2 penalty to sight-based Perception checks lasting 1 round.",
+        "ppCost": 2
+      }
+    ],
     "area": "",
     "capacity": null,
     "critical": {
@@ -31,7 +39,7 @@
       "value": "<p>A mechanical tail loaded with a reservoir of corrosive chemicals.</p>\n<p>@PPAbility[cost:2]{Inject Acid} After a successful strike, release acidic mist that targets opponents, dealing low acid damage. A successful Reflex save reduces damage by half, while a failed save imposes a -2 penalty to sight-based Perception checks lasting 1 round.</p>\n<p><strong>Critical:</strong> Corrode</p>"
     },
     "mpCost": 2,
-    "ppCost": 2,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "reflex",

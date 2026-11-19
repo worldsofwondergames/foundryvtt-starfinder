@@ -39,7 +39,7 @@
       "value": "<p>The immense energy ball unleashed by the particle cannon detonates on impact, creating a wide burst of heat and energy.</p>\n<p>@PPAbility[cost:4]{Energy Conversion} The mech can use its power to charge the particle cannon for one attack instead of needing or consuming capacity.</p>"
     },
     "mpCost": 5,
-    "ppCost": 4,
+    "ppCost": 0,
     "range": "100 ft.",
     "save": {
       "type": "reflex",

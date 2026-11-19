@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, test } from "vitest";
-import { PLASMA_RIFLE_MP_COST, compendiumMpCosts, correctedMpCost, correctedPpCost, mechPointMinimum, plasmaRifleMpCost } from "./mech-points.js";
+import { PLASMA_RIFLE_MP_COST, compendiumMpCosts, correctedMpCost, componentPpFix, ADDED_WEAPON_ACTIONS, attackPpCost, mechPointMinimum, plasmaRifleMpCost } from "./mech-points.js";
 
 const componentDir = join(__dirname, "../../items/mech-components");
 const components = readdirSync(componentDir)
@@ -91,22 +91,48 @@ describe("plasmaRifleMpCost", () => {
     });
 });
 
-describe("correctedPpCost", () => {
+describe("componentPpFix", () => {
     const component = name => JSON.parse(readFileSync(join(__dirname, `../../items/mech-components/${name}.json`), "utf8"));
+    const compendium = readdirSync(componentDir).filter(file => file.endsWith(".json"))
+        .map(file => JSON.parse(readFileSync(join(componentDir, file), "utf8")))
+        .filter(item => !Array.isArray(item));
 
-    test("the compendium Offgasser and Propellers show their most expensive action", () => {
-        for (const item of [component("offgasser"), component("propellers")]) {
-            expect(item.system.ppCost).toBe(Math.max(...item.system.actions.map(action => action.ppCost)));
-            expect(correctedPpCost(item)).toBeNull();
+    test("no compendium component needs a change, and only the Emergency Defense Sphere keeps a PP cost", () => {
+        expect(compendium.filter(item => componentPpFix(item)).map(item => item.name)).toEqual([]);
+        expect(compendium.filter(item => item.type !== "mechUpgrade" && item.system.ppCost > 0).map(item => item.name))
+            .toEqual(["Emergency Defense Sphere"]);
+    });
+
+    test("the added actions match the compendium weapons", () => {
+        for (const [file, name] of [["anti-materiel_gun_pod", "anti-materiel gun pod"], ["arc_pulserifle", "arc pulserifle"], ["buzzblade", "buzzblade"], ["flame_doshko", "flame doshko"], ["stinger_tail", "stinger tail"]]) {
+            expect(component(file).system.actions).toEqual([ADDED_WEAPON_ACTIONS.get(name)]);
         }
     });
 
-    test("an older copy is raised to the compendium's cost, and other items are left alone", () => {
+    test("an older copy gets its missing action and a PP cost of 0", () => {
+        const buzzblade = component("buzzblade");
+        expect(componentPpFix({ ...buzzblade, system: { ...buzzblade.system, actions: [], ppCost: 2 } }))
+            .toEqual({ actions: buzzblade.system.actions, ppCost: 0 });
         const offgasser = component("offgasser");
-        const propellers = component("propellers");
-        expect(correctedPpCost({ ...offgasser, system: { ...offgasser.system, ppCost: 2 } })).toBe(offgasser.system.ppCost);
-        expect(correctedPpCost({ ...propellers, system: { ...propellers.system, ppCost: 1 } })).toBe(propellers.system.ppCost);
-        expect(correctedPpCost({ type: "mechAuxiliary", name: "Cloaker", system: { ppCost: 2 } })).toBeNull();
-        expect(correctedPpCost({ type: "mechWeapon", name: "Offgasser", system: { ppCost: 2 } })).toBeNull();
+        expect(componentPpFix({ ...offgasser, system: { ...offgasser.system, ppCost: 3 } })).toEqual({ ppCost: 0 });
+        const auger = component("auger");
+        expect(componentPpFix({ ...auger, system: { ...auger.system, ppCost: 2 } })).toEqual({ ppCost: 0 });
+        const arms = component("assault_arms");
+        expect(componentPpFix({ ...arms, system: { ...arms.system, ppCost: 1 } })).toEqual({ ppCost: 0 });
+    });
+
+    test("a component with no actions keeps its cost, and other item types are left alone", () => {
+        const sphere = component("emergency_defense_sphere");
+        expect(componentPpFix(sphere)).toBeNull();
+        expect(componentPpFix({ type: "mechUpgrade", name: "Buzzblade", system: { ppCost: 2 } })).toBeNull();
+        expect(componentPpFix({ type: "mechAuxiliary", name: "Buzzblade", system: { ppCost: 2, actions: [] } })).toBeNull();
+    });
+});
+
+describe("attackPpCost", () => {
+    test("a weapon's PP cost is spent on each attack, and no other item's is", () => {
+        expect(attackPpCost({ type: "mechWeapon", system: { ppCost: 2 } })).toBe(2);
+        expect(attackPpCost({ type: "mechWeapon", system: { ppCost: -1 } })).toBe(0);
+        expect(attackPpCost({ type: "mechAuxiliary", system: { ppCost: 3 } })).toBe(0);
     });
 });

@@ -29,7 +29,7 @@
     },
     "isActive": false,
     "mpCost": 0,
-    "ppCost": 2,
+    "ppCost": 0,
     "source": "Homebrew"
   }
 }

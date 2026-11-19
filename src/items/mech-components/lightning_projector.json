@@ -38,7 +38,7 @@
       "value": "<p>From the stormcaller (AR). The line runs between any two points within 60 ft.</p>\n<p>@PPAbility[cost:2]{Arc Fence} The line stays until the start of the mech's next turn. A creature that enters it takes the weapon's damage (Reflex half), once per turn.</p>"
     },
     "mpCost": 3.5,
-    "ppCost": 2,
+    "ppCost": 0,
     "range": "60 ft.",
     "save": {
       "type": "reflex",

@@ -39,7 +39,7 @@
       "value": "<p>A heavy launcher that fires explosive rockets.</p>\n<p><strong>Special:</strong> @PPAbility[cost:3]{Siege Mode} Fire a devastating shot with increased damage and blast radius.</p>"
     },
     "mpCost": 4,
-    "ppCost": 3,
+    "ppCost": 0,
     "range": "150 ft.",
     "save": {
       "type": "reflex",

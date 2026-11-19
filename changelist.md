@@ -13,7 +13,9 @@
   - The Emergency Defense Sphere costs 3 PP. When damage takes the mech to ¼ of its Hit Points, the sphere forms and the PP is spent, or everyone is told it failed for lack of PP. It forms once until the mech's system damage is reset
   - Existing copies are changed when the world migrates
 - The mech sheet's system damage Reset restored Hit Points but left Shield Points as they were. It now restores both (#177)
-- The Offgasser's PP cost field showed 2 and the Propellers' showed 1, the cost of their cheapest actions. They now show 3 and 2, the cost of their most expensive actions, and existing copies are changed when the world migrates
+- A mech weapon's PP cost is now spent on each attack. A chat card tells the mech's owners and the GMs what was spent, and an attack the mech can't pay for is refused (#181)
+- A mech component's PP cost field now holds only what the component itself costs. 62 components showed the cost of one of their actions there, and those now show 0, since each action's button spends its own cost. The Emergency Defense Sphere keeps its 3. Existing copies are changed when the world migrates (#181)
+- The Anti-Materiel Gun Pod, Arc Pulserifle, Buzzblade, Flame Doshko, and Stinger Tail had no action for their PP abilities. Each now has one (#181)
 
 # Version 14.3.0
 
