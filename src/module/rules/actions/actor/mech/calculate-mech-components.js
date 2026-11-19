@@ -1,6 +1,7 @@
 import { effectiveSystems, hardnessRate, movementRate } from "../../../mech-system-effects.js";
 import { mechPointMinimum } from "../../../mech-points.js";
 import { templatedPowerPoints, upgradeCostsPerTier } from "../../../mech-upgrade-rules.js";
+import { boostedPowerPoints, coreTemplateKind } from "../../../mech-core-templates.js";
 import { MECH_SPEED_TYPES, addSpeedTooltips, applySpeedModifiers, parseSpeedString } from "../../../mech-speed.js";
 
 /**
@@ -282,6 +283,15 @@ export default function(engine) {
                 max: powerCore.system.ppMax || 5,
                 regen: powerCore.system.ppRegen || 1
             }, items);
+            // A Photosynthesizer core shifts with the light it took in at the start
+            // of the mech's turn, and a Junker core's salvage raises it for a while.
+            const kind = coreTemplateKind(items);
+            const flags = actor?.flags?.sfrpg ?? {};
+            const boosted = boostedPowerPoints(pp, {
+                light: kind === "photosynthesizer" ? flags.appliedLight ?? null : null,
+                salvaging: kind === "junker" && (flags.salvageBoost?.rounds ?? 0) > 0
+            });
+            Object.assign(pp, boosted);
             data.attributes.pp.initial = pp.initial;
             data.attributes.pp.max = pp.max;
             data.attributes.pp.regen = pp.regen;

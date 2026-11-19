@@ -2317,6 +2317,36 @@
                 "Operators": "Operators",
                 "OperatorsSetting": "NPC Operators"
             },
+            "CoreTemplate": {
+                "Title": "Power Core Template",
+                "AeonAction": "Spend a Spell Slot",
+                "AeonButton": "Spell Slot",
+                "AeonTooltip": "Once per round, an operator spends an unused spell slot to give the mech PP equal to half the slot's level, rounded down.",
+                "AeonTitle": "Aeon Core Template",
+                "AeonSlotOption": "{operator}'s level {level} slot ({left} left) for {pp} PP",
+                "AeonNoSlots": "None of your operators aboard has an unused spell slot of level 2 or higher.",
+                "AeonUsedThisRound": "The Aeon core has already taken a spell slot this round.",
+                "AeonSpent": "{operator} spends a level {level} spell slot to give {name} {amount} PP.",
+                "SalvageAction": "Salvage",
+                "SalvageTooltip": "Salvage a destroyed technological construct, vehicle, or item within reach with a level of at least half the mech's tier. For 1 round per 4 levels or CR, the mech gets +1 PP rate, +2 maximum PP, and fast healing equal to ¼ its tier (minimum 1).",
+                "SalvageTitle": "Junker Core Template",
+                "SalvageLevel": "Level or CR of the salvaged target",
+                "SalvageTooLow": "The target must be at least level or CR {minimum}.",
+                "SalvageNoRounds": "A target below level or CR 4 gives no rounds of salvage.",
+                "SalvageUsed": "{name} salvages a wreck: +1 PP rate, +2 maximum PP, and fast healing {healing} for {rounds} rounds.",
+                "SalvageActive": "Salvage: +1 PP rate, +2 maximum PP, and fast healing for {rounds} more rounds",
+                "SalvageHealed": "{name}'s fast healing from salvage restores {amount} HP.",
+                "ScrapperGain": "{name}'s Scrapper core gains {amount} PP ({current}/{max}). PP above the maximum is lost at the end of the mech's next turn.",
+                "ScrapperGainTooltip": "Roll for the PP the Scrapper core gains from this failure.",
+                "LightLevel": "Light Level",
+                "LightTooltip": "The light the mech is in. At the start of its turn, its PP rate, initial PP, and maximum PP change by +2 in bright light, +1 in normal light, 0 in dim light, and -1 in darkness.",
+                "Light": {
+                    "bright": "Bright",
+                    "normal": "Normal",
+                    "dim": "Dim",
+                    "darkness": "Darkness"
+                }
+            },
             "DamageLevelOverride": {
                 "Armed": "{source} is armed — the next damage roll is boosted.",
                 "Cancel": "Cancel",
