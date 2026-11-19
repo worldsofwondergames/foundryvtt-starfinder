@@ -1,6 +1,7 @@
 # Version 14.3.1
 
 ## Bugfixes
+- A mech's Aim bonus went to the next attack from that mech, whoever made it. It now goes only to the next attack by the pilot who rolled the Aim die. Another pilot's attack neither gets it nor uses it up (#171)
 
 # Version 14.3.0
 

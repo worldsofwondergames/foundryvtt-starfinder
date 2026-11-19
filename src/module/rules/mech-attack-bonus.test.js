@@ -1,5 +1,24 @@
 import { describe, expect, test } from "vitest";
-import { actionAttackBonus, actionSaveBonus, armedOverrideBanners, saveBonusActive, saveBonusTurn } from "./mech-attack-bonus.js";
+import { actionAttackBonus, actionSaveBonus, armedOverrideBanners, attackBonusAppliesTo, saveBonusActive, saveBonusTurn } from "./mech-attack-bonus.js";
+
+describe("attackBonusAppliesTo", () => {
+    test("applies only to the roll of the pilot who armed it", () => {
+        const aim = { value: 3, userId: "pilotA" };
+        expect(attackBonusAppliesTo(aim, "rifle", "pilotA")).toBe(true);
+        expect(attackBonusAppliesTo(aim, "rifle", "pilotB")).toBe(false);
+    });
+
+    test("applies only to the weapon it names", () => {
+        const aim = { value: 3, userId: "pilotA", itemId: "rifle" };
+        expect(attackBonusAppliesTo(aim, "rifle", "pilotA")).toBe(true);
+        expect(attackBonusAppliesTo(aim, "claw", "pilotA")).toBe(false);
+    });
+
+    test("a bonus armed before pilots were recorded applies to anyone, and none applies to no one", () => {
+        expect(attackBonusAppliesTo({ value: 3 }, "rifle", "pilotB")).toBe(true);
+        expect(attackBonusAppliesTo(null, "rifle", "pilotA")).toBe(false);
+    });
+});
 
 describe("actionAttackBonus", () => {
     test("reads the formula an action declares", () => {

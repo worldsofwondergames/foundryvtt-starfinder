@@ -451,7 +451,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
             formula: formula,
             value: roll.total,
             ppSpent: ppSpent,
-            itemId: itemId
+            itemId: itemId,
+            userId: game.user.id
         });
 
         return roll.total;

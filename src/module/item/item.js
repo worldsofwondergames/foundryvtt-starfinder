@@ -30,6 +30,7 @@ import { clearSystemFlag } from "../utils/flags.js";
 import { ongoingConditionOf } from "../rules/ongoing-damage.js";
 import { asChatHtml } from "../utils/chat-content.js";
 import { OPERATOR_ATTACK_PART, OPERATOR_ATTACK_PART_AT_LEVEL } from "../rules/mech-piloting-ranks.js";
+import { attackBonusAppliesTo } from "../rules/mech-attack-bonus.js";
 
 /**
  * @import { RollResult } from '../dice.js'
@@ -1401,8 +1402,9 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
         // An armed attack bonus (e.g. Aim) was rolled from the action's chat card, so
         // the number is already fixed. It is shown on the dialog as a pending
         // modifier the pilot can leave out of this roll, which leaves it armed.
+        // Another pilot's roll from the same mech doesn't get it.
         const attackBonus = this.actor?.getFlag("sfrpg", "attackBonusOverride");
-        const attackBonusApplies = overrideAppliesTo(attackBonus, this.id);
+        const attackBonusApplies = attackBonusAppliesTo(attackBonus, this.id, game.user.id);
         let pendingAttackBonus = null;
         if (attackBonusApplies) {
             pendingAttackBonus = new SFRPGModifier(pendingModifierData(attackBonus), {parent: this, globalModifier: true});

@@ -10,6 +10,24 @@
 const BONUS_FORMULA = /^(?:\d{1,3}d\d{1,3}(?:\s*\+\s*\d{1,3})?|\d{1,3})$/;
 
 /**
+ * Whether an armed attack bonus such as Aim applies to a roll.
+ *
+ * Aim belongs to the pilot who took it, so it applies only to that user's roll,
+ * and only with the weapon it names, if it names one. A bonus armed before the
+ * user was recorded applies to anyone's roll.
+ *
+ * @param {{itemId?: string|null, userId?: string|null}|null|undefined} armed The attackBonusOverride flag.
+ * @param {string} itemId The weapon being rolled.
+ * @param {string} userId The user making the roll.
+ * @returns {boolean}
+ */
+export function attackBonusAppliesTo(armed, itemId, userId) {
+    if (!armed) return false;
+    if (armed.itemId && armed.itemId !== itemId) return false;
+    return !armed.userId || armed.userId === userId;
+}
+
+/**
  * The attack bonus a mech action declares, if any.
  *
  * Aim reads "roll 1d4 and add the result as an insight bonus to the attack roll",
