@@ -134,17 +134,18 @@ export function isFailed(status) {
 }
 
 /**
- * The update that puts a mech back to full Hit Points with every component
- * Nominal, and the components it changes.
+ * The update that puts a mech back to full Hit Points and Shield Points with
+ * every component Nominal, and the components it changes.
  *
  * @param {object} options
  * @param {Object<string, {value: string}>} [options.systems] The mech's components.
  * @param {number} [options.hpMax] The mech's maximum Hit Points.
+ * @param {number} [options.spMax] The mech's maximum Shield Points.
  * @returns {{update: object, changed: Array<[string, string]>}} The update, and
  *          each component that was not Nominal with the status it had.
  */
-export function systemResetUpdate({ systems = {}, hpMax = 0 } = {}) {
-    const update = { "system.attributes.hp.value": hpMax };
+export function systemResetUpdate({ systems = {}, hpMax = 0, spMax = 0 } = {}) {
+    const update = { "system.attributes.hp.value": hpMax, "system.attributes.sp.value": spMax };
     const changed = [];
     for (const [component, data] of Object.entries(systems)) {
         const status = data?.value ?? "nominal";
