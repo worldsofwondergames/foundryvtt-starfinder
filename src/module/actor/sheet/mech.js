@@ -1,3 +1,5 @@
+import { activeUpkeepSystems, endUpkeep } from "../../system/mech-upkeep.js";
+import { upkeepCost } from "../../rules/mech-upkeep.js";
 import { LIGHT_LEVELS, coreTemplateKind } from "../../rules/mech-core-templates.js";
 import { ActorSFRPG } from "../actor.js";
 import { armedOverrideBanners } from "../../rules/mech-attack-bonus.js";
@@ -348,6 +350,13 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             insufficientPPTooltip: insufficientPPTooltip
         }));
 
+        // A system such as the Holodouble Projector shows while it is on, with a
+        // control to switch it off before its next payment.
+        actionsTab.upkeepSystems = activeUpkeepSystems(this.actor).map(item => ({
+            id: item.id,
+            label: game.i18n.format("SFRPG.MechSheet.Upkeep.Active", { system: item.name, amount: upkeepCost(item) })
+        }));
+
         // Aeon, Junker, and Photosynthesizer cores each add a control of their own.
         const templateKind = coreTemplateKind(this.actor.items);
         const salvage = this.actor.getFlag("sfrpg", "salvageBoost");
@@ -527,6 +536,10 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
 
         // Cancel an armed damage level override
         html.find('.mech-override-cancel').click(event => this._onCancelOverride(event));
+        html.find('.mech-upkeep-end').click(event => {
+            const item = this.actor.items.get(event.currentTarget.dataset.itemId);
+            if (item) endUpkeep(item);
+        });
         html.find('.mech-aeon-slot').click(() => this.actor.useAeonSlot());
         html.find('.mech-salvage').click(() => this.actor.useSalvage());
         html.find('.mech-salvage-cancel').click(() => this.actor.cancelSalvage());

@@ -5,6 +5,14 @@
   "folder": "vj3kvHdvf2DlBF6O",
   "img": "systems/sfrpg/icons/equipment/technological items/omnidirectional_camera.webp",
   "system": {
+    "actions": [
+      {
+        "name": "Project Double",
+        "actionType": "standard",
+        "description": "The mech projects one holographic double of itself, as mirror image with one image. The double costs 1 PP at the start of each of the mech's turns, and it ends when the mech can't pay.",
+        "ppCost": 0
+      }
+    ],
     "canBeActivated": false,
     "description": {
       "chat": "",

@@ -2347,6 +2347,14 @@
                     "darkness": "Darkness"
                 }
             },
+            "Upkeep": {
+                "Active": "{system} is on. It costs {amount} PP at the start of each of the mech's turns.",
+                "End": "End",
+                "Paid": "{name} spends {amount} PP to keep its {system} on ({current}/{max}).",
+                "Disabled": "{name}'s {system} has been disabled for lack of Power Points.",
+                "SphereFormed": "{name}'s {system} forms a resilient sphere around the mech, costing {amount} PP. It lasts until the start of the mech's next turn.",
+                "SphereFailed": "{name}'s {system} fails to form for lack of Power Points. It needs {amount} PP."
+            },
             "DamageLevelOverride": {
                 "Armed": "{source} is armed — the next damage roll is boosted.",
                 "Cancel": "Cancel",

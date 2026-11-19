@@ -12,6 +12,7 @@ import { systemResetUpdate } from "../../rules/mech-system-failure.js";
 import { auxiliarySystemUsable, mechOperators, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
 import { aeonPowerPoints, aeonSlots, coreTemplateKind, salvageFastHealing, salvageRounds, usedThisRound } from "../../rules/mech-core-templates.js";
 import { clearSystemFlag } from "../../utils/flags.js";
+import { startUpkeep } from "../../system/mech-upkeep.js";
 import { thrownRangeInUse } from "../../rules/mech-thrown.js";
 import { thrownHouseFeet } from "../../system/house-rules.js";
 import { HURL_DAMAGE_LEVELS, HURL_RANGE, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
@@ -173,6 +174,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                     this.getFlag("sfrpg", "systemOverrides") ?? {}
                 );
                 await postAuxiliaryCheck(this, item, statuses.auxSystem);
+                // A system such as the Holodouble Projector stays on, and costs PP each turn.
+                await startUpkeep(item);
             }
         }
 
@@ -718,6 +721,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         await this.update(update);
 
         if (this.getFlag("sfrpg", "systemFailures")) await clearSystemFlag(this, "systemFailures");
+        if (this.getFlag("sfrpg", "emergencySphereUsed")) await clearSystemFlag(this, "emergencySphereUsed");
         await this.setFlag("sfrpg", "failureEpoch", foundry.utils.randomID(8));
 
         // An auxiliary system an inoperable component stopped works again once

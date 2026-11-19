@@ -3,6 +3,7 @@ import { isRegenDue, regeneratedPowerPoints, regeneratedShieldPoints } from "../
 import { clearSystemFlag } from "../utils/flags.js";
 import { asChatHtml } from "../utils/chat-content.js";
 import { coreTemplateKind, salvageFastHealing } from "../rules/mech-core-templates.js";
+import { payUpkeep } from "../system/mech-upkeep.js";
 
 /**
  * Applies a change of turn to the mechs involved. The mech whose turn ended
@@ -194,6 +195,7 @@ async function startCoreTemplateTurn(combatant, eventData) {
         lastRegenRound: combatant.getFlag("sfrpg", "lastCoreTemplateRound") ?? null
     })) return;
     await combatant.setFlag("sfrpg", "lastCoreTemplateRound", round);
+    await payUpkeep(actor);
 
     const kind = coreTemplateKind(actor.items);
     const surplus = actor.getFlag("sfrpg", "scrapperSurplus");

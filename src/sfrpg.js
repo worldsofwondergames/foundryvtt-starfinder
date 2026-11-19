@@ -88,6 +88,7 @@ import {
     onMechScrapperGainClick
 } from "./module/system/mech-failure-link.js";
 import { onHoverMechToken, onUpdateMechSystems } from "./module/system/mech-failure-token.js";
+import { checkEmergencySphere } from "./module/system/mech-upkeep.js";
 import { failuresTriggered } from "./module/rules/mech-system-failure.js";
 import TextEditorSFRPG from "./module/system/text-editor.js";
 
@@ -1136,6 +1137,8 @@ Hooks.on("updateActor", async (actor, changes, options) => {
     if (value >= actor.system.attributes.hp.max && actor.getFlag("sfrpg", "overkill")) {
         await clearSystemFlag(actor, "overkill");
     }
+
+    await checkEmergencySphere(actor, { value, previousValue });
 
     const fired = actor.getFlag("sfrpg", "systemFailures") ?? [];
     const triggered = failuresTriggered({
