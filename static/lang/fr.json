@@ -2290,6 +2290,7 @@
                 "SpTooltip": "Les points de bouclier absorbent les dégâts avant les PV. Ils se régénèrent à chaque tour.",
                 "Speed": {
                     "Burrow": "Vitesse de creusement",
+                    "Climb": "Climb Speed",
                     "Fly": "Vitesse de vol",
                     "Land": "Vitesse au sol",
                     "Swim": "Vitesse de nage"
@@ -2573,13 +2574,21 @@
             },
             "Upgrade": {
                 "BaseHpBonus": "Bonus aux PV de base",
+                "CoreTemplate": "Power Core Template",
                 "EacBonus": "Bonus de CAE",
                 "FortitudeBonus": "Bonus de Vigueur",
                 "HpAdvancementBonus": "Bonus de progression des PV",
                 "KacBonus": "Bonus de CAC",
                 "MpCost": "Coût en PM",
+                "NotRepeatable": "The mech already has {name}, which can be bought only once.",
+                "OneCoreTemplate": "The mech already has a power core template, so {name} can't be added.",
                 "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
+                "PpInitialBonus": "Initial PP Adjustment",
+                "PpMaxBonus": "Maximum PP Adjustment",
+                "PpRegenBonus": "PP Rate Adjustment",
                 "ReflexBonus": "Bonus de Réflexes",
+                "RepeatCostStep": "Added Cost per Repeat",
+                "Repeatable": "Repeatable",
                 "SpBonusPerTier": "Bonus de PB par échelon",
                 "SpeedBonus": "Bonus de vitesse"
             },
@@ -2591,6 +2600,7 @@
                 "ChoiceRanged": "+1 à distance",
                 "Combat": "Combat",
                 "Eac": "Modificateur de CAE",
+                "FrameSlots": "Frame Slots",
                 "HpAdvancement": "Progression des PV",
                 "Kac": "Modificateur de CAC",
                 "MeleeAttack": "Bonus d'attaque au corps à corps",

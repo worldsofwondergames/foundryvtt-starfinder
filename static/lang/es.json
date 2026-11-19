@@ -2294,6 +2294,7 @@
                 "SpTooltip": "Los Puntos de Escudo absorben el daño antes que los PG. Se regeneran cada turno.",
                 "Speed": {
                     "Burrow": "Velocidad de excavación",
+                    "Climb": "Climb Speed",
                     "Fly": "Velocidad de vuelo",
                     "Land": "Velocidad terrestre",
                     "Swim": "Velocidad de nado"
@@ -2577,13 +2578,21 @@
             },
             "Upgrade": {
                 "BaseHpBonus": "Bono a PG base",
+                "CoreTemplate": "Power Core Template",
                 "EacBonus": "Bono a CAE",
                 "FortitudeBonus": "Bono a Fortaleza",
                 "HpAdvancementBonus": "Bono al avance de PG",
                 "KacBonus": "Bono a CAC",
                 "MpCost": "Coste en PM",
+                "NotRepeatable": "The mech already has {name}, which can be bought only once.",
+                "OneCoreTemplate": "The mech already has a power core template, so {name} can't be added.",
                 "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
+                "PpInitialBonus": "Initial PP Adjustment",
+                "PpMaxBonus": "Maximum PP Adjustment",
+                "PpRegenBonus": "PP Rate Adjustment",
                 "ReflexBonus": "Bono a Reflejos",
+                "RepeatCostStep": "Added Cost per Repeat",
+                "Repeatable": "Repeatable",
                 "SpBonusPerTier": "Bono a PEsc por nivel",
                 "SpeedBonus": "Bono a Velocidad"
             },
@@ -2595,6 +2604,7 @@
                 "ChoiceRanged": "+1 a distancia",
                 "Combat": "Combate",
                 "Eac": "Modificador a CAE",
+                "FrameSlots": "Frame Slots",
                 "HpAdvancement": "Avance de PG",
                 "Kac": "Modificador a CAC",
                 "MeleeAttack": "Bono de ataque cuerpo a cuerpo",

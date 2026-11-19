@@ -2298,6 +2298,7 @@
                 "SpTooltip": "シールド･ポイントはHPより先にダメージを吸収します。毎ターン回復します。",
                 "Speed": {
                     "Burrow": "穴掘り移動速度",
+                    "Climb": "Climb Speed",
                     "Fly": "飛行移動速度",
                     "Land": "地上移動速度",
                     "Swim": "水泳移動速度"
@@ -2581,13 +2582,21 @@
             },
             "Upgrade": {
                 "BaseHpBonus": "基本HPボーナス",
+                "CoreTemplate": "Power Core Template",
                 "EacBonus": "EACボーナス",
                 "FortitudeBonus": "頑健ボーナス",
                 "HpAdvancementBonus": "HP成長ボーナス",
                 "KacBonus": "KACボーナス",
                 "MpCost": "MPコスト",
+                "NotRepeatable": "The mech already has {name}, which can be bought only once.",
+                "OneCoreTemplate": "The mech already has a power core template, so {name} can't be added.",
                 "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
+                "PpInitialBonus": "Initial PP Adjustment",
+                "PpMaxBonus": "Maximum PP Adjustment",
+                "PpRegenBonus": "PP Rate Adjustment",
                 "ReflexBonus": "反応ボーナス",
+                "RepeatCostStep": "Added Cost per Repeat",
+                "Repeatable": "Repeatable",
                 "SpBonusPerTier": "ティア毎のSPボーナス",
                 "SpeedBonus": "移動速度ボーナス"
             },
@@ -2599,6 +2608,7 @@
                 "ChoiceRanged": "遠隔 +1",
                 "Combat": "戦闘",
                 "Eac": "EAC修正値",
+                "FrameSlots": "Frame Slots",
                 "HpAdvancement": "HP成長",
                 "Kac": "KAC修正値",
                 "MeleeAttack": "近接攻撃ボーナス",

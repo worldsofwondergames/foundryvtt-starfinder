@@ -2297,6 +2297,7 @@
                 "SpTooltip": "Schildpunkte absorbieren Schaden vor den TP. Sie regenerieren sich jeden Zug.",
                 "Speed": {
                     "Burrow": "Bewegungsrate Graben",
+                    "Climb": "Climb Speed",
                     "Fly": "Bewegungsrate Fliegen",
                     "Land": "Bewegungsrate an Land",
                     "Swim": "Bewegungsrate Schwimmen"
@@ -2580,13 +2581,21 @@
             },
             "Upgrade": {
                 "BaseHpBonus": "Grund-TP-Bonus",
+                "CoreTemplate": "Power Core Template",
                 "EacBonus": "ERK-Bonus",
                 "FortitudeBonus": "Zähigkeitsbonus",
                 "HpAdvancementBonus": "TP-Steigerungsbonus",
                 "KacBonus": "KRK-Bonus",
                 "MpCost": "MP-Kosten",
+                "NotRepeatable": "The mech already has {name}, which can be bought only once.",
+                "OneCoreTemplate": "The mech already has a power core template, so {name} can't be added.",
                 "OverLimit": "{name} already has {max} upgrades, the most a tier {tier} mech can have under the house rule (half the tier, rounded down).",
+                "PpInitialBonus": "Initial PP Adjustment",
+                "PpMaxBonus": "Maximum PP Adjustment",
+                "PpRegenBonus": "PP Rate Adjustment",
                 "ReflexBonus": "Reflexbonus",
+                "RepeatCostStep": "Added Cost per Repeat",
+                "Repeatable": "Repeatable",
                 "SpBonusPerTier": "SP-Bonus pro Grad",
                 "SpeedBonus": "Bewegungsratenbonus"
             },
@@ -2598,6 +2607,7 @@
                 "ChoiceRanged": "+1 Fernkampf",
                 "Combat": "Kampf",
                 "Eac": "ERK-Modifikator",
+                "FrameSlots": "Frame Slots",
                 "HpAdvancement": "TP-Steigerung",
                 "Kac": "KRK-Modifikator",
                 "MeleeAttack": "Nahkampfangriffsbonus",
