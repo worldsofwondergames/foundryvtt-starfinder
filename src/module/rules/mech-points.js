@@ -88,23 +88,47 @@ export function plasmaRifleMpCost(item) {
     return Number(item.system?.mpCost) === 10 ? PLASMA_RIFLE_MP_COST : null;
 }
 
-/**
- * Components whose PP cost field showed a cheaper action rather than the most
- * expensive one, as Tech Revolution's Cloaker does.
- */
-const PP_COST_FIXES = new Map([
-    ["offgasser", { from: 2, to: 3 }],
-    ["propellers", { from: 1, to: 2 }]
+/** The mech component types whose PP cost field is the component's own cost. */
+const PP_COMPONENT_TYPES = new Set(["mechWeapon", "mechAuxiliary", "mechLowerLimb", "mechUpperLimb"]);
+
+/** The actions five weapons were missing, as the compendium items have them. */
+export const ADDED_WEAPON_ACTIONS = new Map([
+    ["anti-materiel gun pod", { name: "Shrapnel Spitter", actionType: "move", description: "As a move action, converts to non-penetrating explosive mode for 1 round, gaining fiery and explode properties.", ppCost: 1 }],
+    ["arc pulserifle", { name: "Arc Blast", actionType: "standard", description: "As a standard action, fire a cone attack with length equal to the weapon's range. Expends 4 SP to use this ability.", ppCost: 2 }],
+    ["buzzblade", { name: "Cleave", actionType: "", description: "Make a melee attack against an adjacent foe; if you hit, you can make another attack against a different adjacent foe.", ppCost: 2 }],
+    ["flame doshko", { name: "Cleave", actionType: "", description: "Make a melee attack against an adjacent foe; if you hit, you can make another attack against a different adjacent foe.", ppCost: 2 }],
+    ["stinger tail", { name: "Inject Acid", actionType: "", description: "After a successful strike, release acidic mist that targets opponents, dealing low acid damage. A successful Reflex save reduces damage by half, while a failed save imposes a -2 penalty to sight-based Perception checks lasting 1 round.", ppCost: 2 }]
 ]);
 
 /**
- * The PP cost an existing Offgasser or Propellers should show.
+ * The changes an existing component needs so its PP cost field holds only what
+ * the component itself costs. A cost that belongs to an action is spent by the
+ * action's button, so a component with actions gets a PP cost of 0. The five
+ * weapons that had no action for their ability get one first.
  *
- * @param {{type: string, name: string, system?: {ppCost?: number}}} item
- * @returns {number|null} The new cost, or null when the item needs no change.
+ * @param {{type: string, name: string, system?: {ppCost?: number, actions?: Array}}} item
+ * @returns {{ppCost?: number, actions?: Array}|null} The changed system fields, or null when the item needs none.
  */
-export function correctedPpCost(item) {
-    if (item?.type !== "mechAuxiliary") return null;
-    const fix = PP_COST_FIXES.get(baseName(item.name));
-    return fix && Number(item.system?.ppCost) === fix.from ? fix.to : null;
+export function componentPpFix(item) {
+    if (!PP_COMPONENT_TYPES.has(item?.type)) return null;
+    const fix = {};
+    let actions = item.system?.actions ?? [];
+    const added = item.type === "mechWeapon" ? ADDED_WEAPON_ACTIONS.get(baseName(item.name)) : null;
+    if (added && !actions.some(action => action.name === added.name)) {
+        actions = [...actions, added];
+        fix.actions = actions;
+    }
+    if (actions.length > 0 && Number(item.system?.ppCost) > 0) fix.ppCost = 0;
+    return Object.keys(fix).length > 0 ? fix : null;
+}
+
+/**
+ * The PP a mech spends each time it attacks with a weapon.
+ *
+ * @param {{type: string, system?: {ppCost?: number}}} item
+ * @returns {number} The cost, 0 for a weapon that costs nothing to fire or for any other item.
+ */
+export function attackPpCost(item) {
+    if (item?.type !== "mechWeapon") return 0;
+    return Math.max(0, Number(item.system?.ppCost) || 0);
 }

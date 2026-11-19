@@ -2653,6 +2653,8 @@
                 "Title": "Upper Limb"
             },
             "Weapon": {
+                "AttackInsufficientPP": "{weapon} needs {amount} PP to attack, and the mech has {current}.",
+                "AttackPPSpent": "{name} spends {amount} PP to attack with {weapon} ({current}/{max}).",
                 "Area": "Area",
                 "Capacity": "Capacity",
                 "Critical": "Critical Hit Effect",

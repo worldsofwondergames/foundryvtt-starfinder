@@ -5,6 +5,14 @@
   "folder": "ufslMqZOMYF7vkkO",
   "img": "systems/sfrpg/icons/equipment/weapons/grindblade.webp",
   "system": {
+    "actions": [
+      {
+        "name": "Cleave",
+        "actionType": "",
+        "description": "Make a melee attack against an adjacent foe; if you hit, you can make another attack against a different adjacent foe.",
+        "ppCost": 2
+      }
+    ],
     "area": "",
     "capacity": null,
     "critical": {
@@ -31,7 +39,7 @@
       "value": "<p>A massive chainsaw-like blade that inflicts grievous wounds.</p>\n<p><strong>Critical:</strong> Bleed</p>\n<p><strong>Special:</strong> @PPAbility[cost:2]{Cleave} Make a melee attack against an adjacent foe; if you hit, you can make another attack against a different adjacent foe.</p>"
     },
     "mpCost": 3.5,
-    "ppCost": 2,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "",

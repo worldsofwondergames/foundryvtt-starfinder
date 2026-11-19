@@ -27,6 +27,7 @@ import { ItemActivationMixin } from "./mixins/item-activation.js";
 import { ItemCapacityMixin } from "./mixins/item-capacity.js";
 import { ItemChatMixin } from "./mixins/item-chat.js";
 import { clearSystemFlag } from "../utils/flags.js";
+import { attackPpCost } from "../rules/mech-points.js";
 import { ongoingConditionOf } from "../rules/ongoing-damage.js";
 import { asChatHtml } from "../utils/chat-content.js";
 import { OPERATOR_ATTACK_PART, OPERATOR_ATTACK_PART_AT_LEVEL } from "../rules/mech-piloting-ranks.js";
@@ -1335,6 +1336,19 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
             return null;
         }
 
+        // A weapon with a PP cost spends it on each attack, so a mech that can't
+        // pay can't fire.
+        const ppCost = attackPpCost(this);
+        const ppAvailable = this.actor?.system?.attributes?.pp?.value || 0;
+        if (ppCost > 0 && ppAvailable < ppCost) {
+            ui.notifications.warn(game.i18n.format("SFRPG.MechSheet.Weapon.AttackInsufficientPP", {
+                weapon: this.name,
+                amount: ppCost,
+                current: ppAvailable
+            }));
+            return null;
+        }
+
         // Base attack (tier) + upper limb mods are pre-calculated on the mech
         // Operator's BAB or Piloting ranks are added here at roll time
         // Accurate Strikes treats the operator's Piloting ranks as their level.
@@ -1471,6 +1485,7 @@ export class ItemSFRPG extends Mix(foundry.documents.Item).with(ItemActivationMi
                     if (pendingAttackBonus?.enabled) clearSystemFlag(this.actor, "attackBonusOverride");
                     // Outside combat, Accurate Strikes lasts for one attack.
                     if (pilotingRanks && !pilotingRanks.turn) clearSystemFlag(this.actor, "pilotingRanksOverride");
+                    if (ppCost > 0) this.actor.spendAttackPowerPoints(this, ppCost);
 
                     const rollDamageWithAttack = game.settings.get("sfrpg", "rollDamageWithAttack");
                     if (rollDamageWithAttack && !options.disableDamageAfterAttack) {

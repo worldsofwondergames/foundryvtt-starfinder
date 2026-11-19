@@ -38,7 +38,7 @@
       "value": "<p>Only a mech with the magical subtype or an aeon core can equip this weapon. A Magitech Staff allows an operator to cast a spell or use a spell gem while channeling the effect through the mech as a standard action. The spell must have a casting time of a standard action or less and a level equal to or less than 1 plus the weapon's level divided by four. Casting the spell or using the gem is part of the full action to operate the mech. If the spell requires an attack roll, use the attack bonus the operator would use for other mech weapons and the mech's reach with the staff for both touch and melee attacks. This can be used as part of a full action like a standard attack.</p>\n<p>@PPAbility[cost:1]{Spellstrike} This ability allows the mech to make a single attack with the magitech staff while delivering a spell with the range of touch.</p>"
     },
     "mpCost": 2.5,
-    "ppCost": 1,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "",

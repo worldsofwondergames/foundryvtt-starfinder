@@ -38,7 +38,7 @@
       "value": "<p>@PPAbility[cost:1]{Pierce the Heavens} As a standard action, the mech can move as if it had a burrow speed of 30 ft. for dirt or 5 ft. for stone. Deepcore mechs instead double the distance of their burrowing speeds for this move.</p>"
     },
     "mpCost": 2.5,
-    "ppCost": 1,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "",

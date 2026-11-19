@@ -28,7 +28,7 @@
     "isActive": false,
     "kac": 0,
     "mpCost": 0.5,
-    "ppCost": 1,
+    "ppCost": 0,
     "ref": 0,
     "slots": 0,
     "source": "Homebrew",

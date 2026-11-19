@@ -38,7 +38,7 @@
       "value": "<p>From boomknuckles (TR p. 58).</p>\n<p>@PPAbility[cost:1]{Boost} As part of a move action or a bull rush, the mech gains +10 ft. to its speed for that move or a +4 bonus to the bull rush.</p>"
     },
     "mpCost": 3,
-    "ppCost": 1,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "",
