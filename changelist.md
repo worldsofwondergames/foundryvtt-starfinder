@@ -1,6 +1,7 @@
 # Version 14.3.1
 
 ## Bugfixes
+- The Offgasser's PP cost field showed 2 and the Propellers' showed 1, the cost of their cheapest actions. They now show 3 and 2, the cost of their most expensive actions, and existing copies are changed when the world migrates
 
 # Version 14.3.0
 

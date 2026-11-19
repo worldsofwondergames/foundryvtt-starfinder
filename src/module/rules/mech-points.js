@@ -87,3 +87,24 @@ export function plasmaRifleMpCost(item) {
     if (item?.type !== "mechWeapon" || baseName(item.name) !== "plasma rifle") return null;
     return Number(item.system?.mpCost) === 10 ? PLASMA_RIFLE_MP_COST : null;
 }
+
+/**
+ * Components whose PP cost field showed a cheaper action rather than the most
+ * expensive one, as Tech Revolution's Cloaker does.
+ */
+const PP_COST_FIXES = new Map([
+    ["offgasser", { from: 2, to: 3 }],
+    ["propellers", { from: 1, to: 2 }]
+]);
+
+/**
+ * The PP cost an existing Offgasser or Propellers should show.
+ *
+ * @param {{type: string, name: string, system?: {ppCost?: number}}} item
+ * @returns {number|null} The new cost, or null when the item needs no change.
+ */
+export function correctedPpCost(item) {
+    if (item?.type !== "mechAuxiliary") return null;
+    const fix = PP_COST_FIXES.get(baseName(item.name));
+    return fix && Number(item.system?.ppCost) === fix.from ? fix.to : null;
+}
