@@ -158,4 +158,11 @@ describe("transitionButtons", () => {
         expect(transitionButtons({ component: "auxSystem", status: "inoperable", ...mech, auxiliaryCount: 0 }))
             .toEqual([]);
     });
+
+    it("adds a Scrapper core's 1d4 PP after the component's own buttons", () => {
+        expect(transitionButtons({ component: "upperLimbs", status: "malfunctioning", ...mech, scrapper: true }))
+            .toEqual([{ action: "mechScrapperGain", formula: "1d4", index: 0 }]);
+        expect(transitionButtons({ component: "powerCore", status: "inoperable", ...mech, scrapper: true }).map(b => b.action))
+            .toEqual(["mechPowerCoreLoss", "mechScrapperGain"]);
+    });
 });

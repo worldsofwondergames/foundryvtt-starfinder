@@ -9,8 +9,10 @@ import { pilotingRanksActive, pilotingRanksTurn } from "../../rules/mech-pilotin
 import { replenishFormula } from "../../rules/mech-replenish.js";
 import { effectiveSystems, overcomeActions } from "../../rules/mech-system-effects.js";
 import { systemResetUpdate } from "../../rules/mech-system-failure.js";
-import { auxiliarySystemUsable, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
+import { auxiliarySystemUsable, mechOperators, postAuxiliaryCheck, postChanceCard } from "../../system/mech-failure-link.js";
+import { aeonPowerPoints, aeonSlots, coreTemplateKind, salvageFastHealing, salvageRounds, usedThisRound } from "../../rules/mech-core-templates.js";
 import { clearSystemFlag } from "../../utils/flags.js";
+import { startUpkeep } from "../../system/mech-upkeep.js";
 import { thrownRangeInUse } from "../../rules/mech-thrown.js";
 import { thrownHouseFeet } from "../../system/house-rules.js";
 import { HURL_DAMAGE_LEVELS, HURL_RANGE, hurlSizeOptions, hurlStillActive, hurlWeaponSystem, isActorsTurn } from "../../rules/mech-hurl.js";
@@ -172,6 +174,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                     this.getFlag("sfrpg", "systemOverrides") ?? {}
                 );
                 await postAuxiliaryCheck(this, item, statuses.auxSystem);
+                // A system such as the Holodouble Projector stays on, and costs PP each turn.
+                await startUpkeep(item);
             }
         }
 
@@ -699,7 +703,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
 
         const { update, changed } = systemResetUpdate({
             systems: this.system.attributes.systems,
-            hpMax: this.system.attributes.hp.max
+            hpMax: this.system.attributes.hp.max,
+            spMax: this.system.attributes.sp.max
         });
         if (!game.user.isGM) {
             update["flags.sfrpg.resetReport"] = {
@@ -707,6 +712,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 user: game.user.id,
                 hpFrom: this.system.attributes.hp.value,
                 hpTo: this.system.attributes.hp.max,
+                spFrom: this.system.attributes.sp.value,
+                spTo: this.system.attributes.sp.max,
                 systems: changed
             };
         }
@@ -714,6 +721,7 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         await this.update(update);
 
         if (this.getFlag("sfrpg", "systemFailures")) await clearSystemFlag(this, "systemFailures");
+        if (this.getFlag("sfrpg", "emergencySphereUsed")) await clearSystemFlag(this, "emergencySphereUsed");
         await this.setFlag("sfrpg", "failureEpoch", foundry.utils.randomID(8));
 
         // An auxiliary system an inoperable component stopped works again once
@@ -757,5 +765,149 @@ export const ActorMechMixin = (superclass) => class extends superclass {
         }));
 
         return refund;
+    }
+
+    /**
+     * The started combat the mech is in, if any.
+     *
+     * @returns {Combat|null}
+     */
+    _mechCombat() {
+        return game.combats.find(c => c.started && c.combatants.some(combatant => combatant.actor?.uuid === this.uuid)) ?? null;
+    }
+
+    /**
+     * Post a core template's card to everyone.
+     *
+     * @param {string} key The localization key under SFRPG.MechSheet.CoreTemplate.
+     * @param {object} data The values for the message.
+     */
+    async _postCoreTemplateCard(key, data) {
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this }),
+            content: `<p>${game.i18n.format(`SFRPG.MechSheet.CoreTemplate.${key}`, { name: this.name, ...data })}</p>`
+        });
+    }
+
+    /**
+     * With an Aeon core, an operator spends an unused spell slot to give the mech PP
+     * equal to half the slot's level, once per round.
+     *
+     * @returns {Promise<number|null>} The PP gained, or null when nothing was spent.
+     */
+    async useAeonSlot() {
+        if (coreTemplateKind(this.items) !== "aeon") return null;
+        const combat = this._mechCombat();
+        if (usedThisRound(this.getFlag("sfrpg", "aeonUsed"), combat)) {
+            ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.CoreTemplate.AeonUsedThisRound"));
+            return null;
+        }
+
+        const operators = mechOperators(this).filter(operator => operator.isOwner);
+        const slots = aeonSlots(operators);
+        if (slots.length === 0) {
+            ui.notifications.warn(game.i18n.localize("SFRPG.MechSheet.CoreTemplate.AeonNoSlots"));
+            return null;
+        }
+
+        const options = slots.map((slot, i) => `<option value="${i}">${game.i18n.format("SFRPG.MechSheet.CoreTemplate.AeonSlotOption", {
+            operator: slot.operatorName,
+            level: slot.level,
+            left: slot.value,
+            pp: aeonPowerPoints(slot.level)
+        })}</option>`).join("");
+        const picked = await foundry.applications.api.DialogV2.prompt({
+            window: { title: game.i18n.localize("SFRPG.MechSheet.CoreTemplate.AeonTitle") },
+            content: `<div class="form-group"><select name="slot">${options}</select></div>`,
+            ok: { callback: (event, button) => Number(button.form.elements.slot.value) },
+            rejectClose: false
+        });
+        const slot = slots[picked];
+        if (!slot) return null;
+
+        const operator = operators.find(o => o.id === slot.operatorId);
+        const gained = aeonPowerPoints(slot.level);
+        const pp = this.system.attributes.pp;
+        const current = Math.min((pp.value || 0) + gained, pp.max);
+        await operator.update({ [slot.path]: slot.value - 1 });
+        await this.update({
+            "system.attributes.pp.value": Math.max(current, pp.value || 0),
+            "flags.sfrpg.aeonUsed": combat ? { combatId: combat.id, round: combat.round } : null
+        });
+        await this._postCoreTemplateCard("AeonSpent", { operator: operator.name, level: slot.level, amount: gained });
+        return gained;
+    }
+
+    /**
+     * With a Junker core's Salvage, a target of at least half the mech's tier gives
+     * +1 PP rate, +2 maximum PP, and fast healing for 1 round per 4 levels or CR.
+     *
+     * @returns {Promise<number|null>} The rounds the bonus lasts, or null when nothing was salvaged.
+     */
+    async useSalvage() {
+        if (coreTemplateKind(this.items) !== "junker") return null;
+        const tier = this.system.details.tier;
+        const level = await foundry.applications.api.DialogV2.prompt({
+            window: { title: game.i18n.localize("SFRPG.MechSheet.CoreTemplate.SalvageTitle") },
+            content: `<div class="form-group"><label>${game.i18n.localize("SFRPG.MechSheet.CoreTemplate.SalvageLevel")}</label>`
+                + `<input type="number" name="level" min="0" value="${Math.ceil(tier / 2)}"></div>`,
+            ok: { callback: (event, button) => Number(button.form.elements.level.value) },
+            rejectClose: false
+        });
+        if (level === null || level === undefined) return null;
+
+        const rounds = salvageRounds(level, tier);
+        if (!rounds) {
+            ui.notifications.warn(game.i18n.format(rounds === null
+                ? "SFRPG.MechSheet.CoreTemplate.SalvageTooLow"
+                : "SFRPG.MechSheet.CoreTemplate.SalvageNoRounds", { minimum: Math.ceil(tier / 2) }));
+            return null;
+        }
+
+        await this.setFlag("sfrpg", "salvageBoost", { rounds });
+        await this._postCoreTemplateCard("SalvageUsed", { rounds, healing: salvageFastHealing(tier) });
+        return rounds;
+    }
+
+    /**
+     * End a Junker core's salvage bonus early, and take the PP above the
+     * maximum it raised.
+     */
+    async cancelSalvage() {
+        await this.update({ "flags.sfrpg.salvageBoost": null });
+        const pp = this.system.attributes.pp;
+        if (!this.getFlag("sfrpg", "scrapperSurplus") && pp.value > pp.max) {
+            await this.update({ "system.attributes.pp.value": pp.max });
+        }
+    }
+
+    /**
+     * Choose the light a Photosynthesizer core is in. In combat it takes effect
+     * at the start of the mech's turn; outside combat it takes effect at once.
+     *
+     * @param {string|null} light A key of LIGHT_LEVELS, or null for none chosen.
+     */
+    async setLightLevel(light) {
+        const update = { "flags.sfrpg.lightLevel": light || null };
+        if (!this._mechCombat()) update["flags.sfrpg.appliedLight"] = light || null;
+        await this.update(update);
+    }
+
+    /**
+     * Spend a weapon's PP cost for an attack that was rolled, and tell the
+     * mech's owners and the GMs.
+     *
+     * @param {Item} weapon The weapon that attacked.
+     * @param {number} cost The PP the attack costs.
+     */
+    async spendAttackPowerPoints(weapon, cost) {
+        const pp = this.system.attributes.pp;
+        const current = Math.max(0, (pp.value || 0) - cost);
+        await this.update({ "system.attributes.pp.value": current });
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this }),
+            content: `<p>${game.i18n.format("SFRPG.MechSheet.Weapon.AttackPPSpent", { name: this.name, weapon: weapon.name, amount: cost, current, max: pp.max })}</p>`,
+            whisper: game.users.filter(u => u.isGM || this.testUserPermission(u, "OWNER")).map(u => u.id)
+        });
     }
 };

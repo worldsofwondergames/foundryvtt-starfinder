@@ -38,7 +38,7 @@
       "value": "<p>Only a mech with the magical subtype or an aeon core can equip this weapon. A Magitech Cannon allows an operator to cast a spell or use a spell gem while channeling the effect through the mech as a standard action. The spell must have a casting time of a standard action or less and a level equal to or less than 1 plus the weapon's level divided by four. Casting the spell or using the gem is part of the full action to operate the mech. If the spell requires an attack roll, use the attack bonus that operator would use for other mech attacks. This consumes 2 capacity instead of 1.</p>\n<p>@PPAbility[cost:2]{Maximize Spell} The next cast through the Magitech Cannon this round is improved. Increase the DC of any spell effects by 2. Add 4 as a bonus to caster level for determining spell effects and checks to overcome spell resistance for that spell.</p>"
     },
     "mpCost": 4,
-    "ppCost": 2,
+    "ppCost": 0,
     "range": "120 ft.",
     "save": {
       "type": "reflex",

@@ -1,3 +1,6 @@
+import { activeUpkeepSystems, endUpkeep } from "../../system/mech-upkeep.js";
+import { upkeepCost } from "../../rules/mech-upkeep.js";
+import { LIGHT_LEVELS, coreTemplateKind } from "../../rules/mech-core-templates.js";
 import { ActorSFRPG } from "../actor.js";
 import { armedOverrideBanners } from "../../rules/mech-attack-bonus.js";
 import { COMPONENT_LABELS, damageState, systemHint } from "../../rules/mech-system-failure.js";
@@ -347,6 +350,28 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
             insufficientPPTooltip: insufficientPPTooltip
         }));
 
+        // A system such as the Holodouble Projector shows while it is on, with a
+        // control to switch it off before its next payment.
+        actionsTab.upkeepSystems = activeUpkeepSystems(this.actor).map(item => ({
+            id: item.id,
+            label: game.i18n.format("SFRPG.MechSheet.Upkeep.Active", { system: item.name, amount: upkeepCost(item) })
+        }));
+
+        // Aeon, Junker, and Photosynthesizer cores each add a control of their own.
+        const templateKind = coreTemplateKind(this.actor.items);
+        const salvage = this.actor.getFlag("sfrpg", "salvageBoost");
+        actionsTab.coreTemplate = {
+            show: ["aeon", "junker", "photosynthesizer"].includes(templateKind),
+            aeon: templateKind === "aeon",
+            junker: templateKind === "junker",
+            salvageLabel: templateKind === "junker" && salvage?.rounds > 0
+                ? game.i18n.format("SFRPG.MechSheet.CoreTemplate.SalvageActive", { rounds: salvage.rounds })
+                : null,
+            photosynthesizer: templateKind === "photosynthesizer",
+            lightLevel: this.actor.getFlag("sfrpg", "lightLevel") ?? "",
+            lightLevels: Object.fromEntries(Object.keys(LIGHT_LEVELS).map(key => [key, `SFRPG.MechSheet.CoreTemplate.Light.${key}`]))
+        };
+
         // The cockpit's controls only need a check once they have failed outright.
         actionsTab.showCockpitCheck = systemStatuses.cockpit === "inoperable";
 
@@ -511,6 +536,14 @@ export class ActorSheetSFRPGMech extends ActorSheetSFRPG {
 
         // Cancel an armed damage level override
         html.find('.mech-override-cancel').click(event => this._onCancelOverride(event));
+        html.find('.mech-upkeep-end').click(event => {
+            const item = this.actor.items.get(event.currentTarget.dataset.itemId);
+            if (item) endUpkeep(item);
+        });
+        html.find('.mech-aeon-slot').click(() => this.actor.useAeonSlot());
+        html.find('.mech-salvage').click(() => this.actor.useSalvage());
+        html.find('.mech-salvage-cancel').click(() => this.actor.cancelSalvage());
+        html.find('.mech-light-level').change(event => this.actor.setLightLevel(event.currentTarget.value));
 
         // Restore Hit Points, clear System Damage and let the thresholds fire again
         html.find('.mech-reset-failures').click(() => this.actor.resetSystemFailures());

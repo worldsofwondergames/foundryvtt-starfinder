@@ -2,6 +2,8 @@ import { effectiveSystems, regenerationRate } from "../rules/mech-system-effects
 import { isRegenDue, regeneratedPowerPoints, regeneratedShieldPoints } from "../rules/mech-turn-regen.js";
 import { clearSystemFlag } from "../utils/flags.js";
 import { asChatHtml } from "../utils/chat-content.js";
+import { coreTemplateKind, salvageFastHealing } from "../rules/mech-core-templates.js";
+import { payUpkeep } from "../system/mech-upkeep.js";
 
 /**
  * Applies a change of turn to the mechs involved. The mech whose turn ended
@@ -23,6 +25,7 @@ export async function applyMechTurnChanges(eventData) {
     // holds one mech, or wraps back onto the same one, the mech arriving and the
     // mech whose turn just ended are the same actor, and the override it bought at
     // the start of that turn still has to count.
+    if (eventData.isNewTurn && eventData.direction > 0) await endScrapperSurplus(departing?.actor);
     await regeneratePowerPoints(departing, eventData);
 
     const mech = arriving?.actor;
@@ -37,6 +40,8 @@ export async function applyMechTurnChanges(eventData) {
     for (const system of mech.items.filter(item => item.getFlag("sfrpg", "failedThisTurn"))) {
         await clearSystemFlag(system, "failedThisTurn");
     }
+
+    await startCoreTemplateTurn(arriving, eventData);
 
     // The overrides from the mech's last turn have run out by now, so its shields
     // come back at the rate its power core's own status allows.
@@ -150,4 +155,84 @@ async function applyRegen(combatant, { flag, round, path, pool, value, message }
         })),
         whisper: game.users.filter(u => u.isGM || actor.testUserPermission(u, "OWNER")).map(u => u.id)
     });
+}
+
+/**
+ * Drops the PP a Scrapper core gave above the mech's maximum, once the mech's
+ * next turn after the gain has ended. A gain during another combatant's turn
+ * lasts to the end of the mech's coming turn, and a gain during its own turn
+ * lasts to the end of the one after.
+ *
+ * @param {Actor|null} actor The mech whose turn ended.
+ */
+async function endScrapperSurplus(actor) {
+    const surplus = actor?.type === "mech" ? actor.getFlag("sfrpg", "scrapperSurplus") : null;
+    if (!surplus?.turnStarted) return;
+
+    const pp = actor.system.attributes.pp;
+    await actor.update({
+        "system.attributes.pp.value": Math.min(pp.value, pp.max),
+        "flags.sfrpg.scrapperSurplus": null
+    });
+}
+
+/**
+ * The start-of-turn effects of the mech's power core template. A Photosynthesizer
+ * core takes in the light level chosen on the sheet. A Junker core's salvage
+ * heals the mech and counts down a round. A Scrapper core's surplus starts the
+ * turn it lasts to the end of.
+ *
+ * @param {Combatant} combatant The mech's combatant.
+ * @param {object} eventData The combat event data.
+ */
+async function startCoreTemplateTurn(combatant, eventData) {
+    const actor = combatant.actor;
+    const round = eventData.newRound ?? eventData.combat?.round;
+    if (!isRegenDue({
+        direction: eventData.direction,
+        isNewTurn: eventData.isNewTurn,
+        round,
+        lastRegenRound: combatant.getFlag("sfrpg", "lastCoreTemplateRound") ?? null
+    })) return;
+    await combatant.setFlag("sfrpg", "lastCoreTemplateRound", round);
+    await payUpkeep(actor);
+
+    const kind = coreTemplateKind(actor.items);
+    const surplus = actor.getFlag("sfrpg", "scrapperSurplus");
+    const update = {};
+    if (surplus && !surplus.turnStarted) update["flags.sfrpg.scrapperSurplus.turnStarted"] = true;
+
+    if (kind === "photosynthesizer") {
+        const light = actor.getFlag("sfrpg", "lightLevel") ?? null;
+        if (light !== actor.getFlag("sfrpg", "appliedLight")) update["flags.sfrpg.appliedLight"] = light;
+    }
+
+    const salvage = kind === "junker" ? actor.getFlag("sfrpg", "salvageBoost") : null;
+    let healed = 0;
+    if (salvage?.rounds > 0) {
+        const hp = actor.system.attributes.hp;
+        healed = Math.max(0, Math.min(salvageFastHealing(actor.system.details.tier), hp.max - hp.value));
+        if (healed > 0) update["system.attributes.hp.value"] = hp.value + healed;
+        if (salvage.rounds > 1) update["flags.sfrpg.salvageBoost.rounds"] = salvage.rounds - 1;
+        else update["flags.sfrpg.salvageBoost"] = null;
+    }
+
+    if (Object.keys(update).length === 0) return;
+    await actor.update(update);
+
+    // A lower maximum, from darker light or a salvage running out, takes the PP
+    // above it, unless a Scrapper core's surplus is still allowed to stand.
+    const pp = actor.system.attributes.pp;
+    if (!surplus && pp.value > pp.max) await actor.update({ "system.attributes.pp.value": pp.max });
+
+    if (healed > 0) {
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({actor}),
+            content: asChatHtml(game.i18n.format("SFRPG.MechSheet.CoreTemplate.SalvageHealed", {
+                name: actor.name,
+                amount: healed
+            })),
+            whisper: game.users.filter(u => u.isGM || actor.testUserPermission(u, "OWNER")).map(u => u.id)
+        });
+    }
 }

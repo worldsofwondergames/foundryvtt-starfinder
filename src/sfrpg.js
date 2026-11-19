@@ -84,9 +84,11 @@ import {
     onMechChanceCheckClick,
     onMechCockpitSaveClick,
     onMechFailureRollClick,
-    onMechPowerCoreLossClick
+    onMechPowerCoreLossClick,
+    onMechScrapperGainClick
 } from "./module/system/mech-failure-link.js";
 import { onHoverMechToken, onUpdateMechSystems } from "./module/system/mech-failure-token.js";
+import { checkEmergencySphere } from "./module/system/mech-upkeep.js";
 import { failuresTriggered } from "./module/rules/mech-system-failure.js";
 import TextEditorSFRPG from "./module/system/text-editor.js";
 
@@ -749,6 +751,7 @@ Hooks.once("ready", async () => {
     $("body").on("click", 'a[data-action="mechHeal"]', onMechHealClick);
     $("body").on("click", 'a[data-action="mechFailureRoll"]', onMechFailureRollClick);
     $("body").on("click", 'a[data-action="mechPowerCoreLoss"]', onMechPowerCoreLossClick);
+    $("body").on("click", 'a[data-action="mechScrapperGain"]', onMechScrapperGainClick);
     $("body").on("click", 'a[data-action="mechCockpitSave"]', onMechCockpitSaveClick);
     $("body").on("click", 'a[data-action="mechAuxiliaryPick"]', onMechAuxiliaryPickClick);
     $("body").on("click", 'a[data-action="mechChanceCheck"]', onMechChanceCheckClick);
@@ -1135,6 +1138,8 @@ Hooks.on("updateActor", async (actor, changes, options) => {
         await clearSystemFlag(actor, "overkill");
     }
 
+    await checkEmergencySphere(actor, { value, previousValue });
+
     const fired = actor.getFlag("sfrpg", "systemFailures") ?? [];
     const triggered = failuresTriggered({
         value,
@@ -1179,7 +1184,9 @@ Hooks.on("updateActor", async (actor, changes) => {
         user: game.users.get(report.user)?.name ?? "",
         name: actor.name,
         from: report.hpFrom,
-        to: report.hpTo
+        to: report.hpTo,
+        spFrom: report.spFrom ?? "",
+        spTo: report.spTo ?? ""
     })];
     for (const [component, status] of report.systems ?? []) {
         lines.push(game.i18n.format("SFRPG.MechSheet.SystemFailure.ResetReportSystem", {

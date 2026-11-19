@@ -39,7 +39,7 @@
       "value": "<p>This combination of an alloyed sword and high-frequency motors make an ideal weapon for cutting through hard targets, but it requires more stabilization to handle it.</p>\n<p>@PPAbility[cost:2]{Honing} For 1 round, the Vibro Katana's penetrating property is replaced by the shattering property.</p>"
     },
     "mpCost": 4,
-    "ppCost": 2,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "",

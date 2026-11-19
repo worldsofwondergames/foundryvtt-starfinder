@@ -1,3 +1,22 @@
+# Version 14.3.1
+
+## New Features
+- Four power core templates now apply their PP rules (#180)
+  - With a Scrapper core, the system failure card has a 1d4 button that adds PP, even past the maximum. PP still above the maximum at the end of the mech's next turn is lost
+  - With an Aeon core, a Spell Slot button spends an operator's unused spell slot for PP equal to half its level, once per round
+  - With a Junker core, a Salvage button asks for the target's level or CR. For 1 round per 4 levels, the mech gets +1 PP rate, +2 maximum PP, and fast healing at the start of its turn
+  - With a Photosynthesizer core, a light level choice on the Actions tab changes the PP rate, initial PP, and maximum PP at the start of the mech's turn
+- A mech weapon's PP cost is now spent on each attack. A chat card tells the mech's owners and the GMs what was spent, and an attack the mech can't pay for is refused (#181)
+
+## Bugfixes
+- The mech sheet's system damage Reset restored Hit Points but left Shield Points as they were. It now restores both (#177)
+- The Holodouble Projector and Emergency Defense Sphere never spent their PP (#178)
+  - The Holodouble Projector has a Project Double action. While the double is up, the mech pays 1 PP at the start of each of its turns, and a banner on the Actions tab can end it. When the mech can't pay, the double ends and everyone is told
+  - The Emergency Defense Sphere costs 3 PP. When damage takes the mech to ¼ of its Hit Points, the sphere forms and the PP is spent, or everyone is told it failed for lack of PP. It forms once until the mech's system damage is reset
+- A mech component's PP cost field now holds only what the component itself costs. 62 components showed the cost of one of their actions there, and each now shows 0, since each action's button spends its own cost. The Emergency Defense Sphere keeps its 3 (#181)
+- The Anti-Materiel Gun Pod, Arc Pulserifle, Buzzblade, Flame Doshko, and Stinger Tail had no action for their PP abilities. Each now has one (#181)
+- Existing copies of these components in worlds, on mechs, and in mission pods are changed when the world migrates (#178, #181)
+
 # Version 14.3.0
 
 ## New Features

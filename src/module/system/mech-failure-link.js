@@ -11,6 +11,7 @@ import {
 import { auxiliaryFailureChance } from "../rules/mech-system-effects.js";
 import { turnStartFailures } from "../rules/mech-turn-failures.js";
 import { CANCELED, rollOnce } from "./chat-button-claim.js";
+import { SCRAPPER_GAIN, coreTemplateKind } from "../rules/mech-core-templates.js";
 
 /**
  * The die shown at the front of every roll button on a failure card, matching
@@ -101,7 +102,8 @@ async function rollFailure(actor, link) {
     const component = componentForRoll(roll.total);
     if (!component) return null;
 
-    const status = nextStatus(actor.system.attributes.systems[component]?.value);
+    const previous = actor.system.attributes.systems[component]?.value;
+    const status = nextStatus(previous);
     await actor.update({ [`system.attributes.systems.${component}.value`]: status });
 
     const outcome = game.i18n.format("SFRPG.MechSheet.SystemFailure.Result", {
@@ -112,7 +114,7 @@ async function rollFailure(actor, link) {
 
     // Everyone at the table sees what failed. The dice for what it costs are
     // only drawn for the mech's owners and the GMs, who are the ones to roll them.
-    const actions = transitionMarkup(actor, component, status);
+    const actions = transitionMarkup(actor, component, status, status !== previous);
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),
         content: await failureContent(actor, outcome + (actions ? `<div class="${OWNER_ONLY_CLASS}">${actions}</div>` : "")),
@@ -226,9 +228,10 @@ async function failureContent(actor, prompt) {
  * @param {Actor} actor The mech.
  * @param {string} component The component that failed.
  * @param {string} status The status it has taken on.
+ * @param {boolean} gained Whether the component took on a worse status, which a Scrapper core turns into PP.
  * @returns {string} HTML to append to the outcome, empty when nothing is owed.
  */
-function transitionMarkup(actor, component, status) {
+function transitionMarkup(actor, component, status, gained) {
     const operators = mechOperators(actor);
     const tier = actor.system.details.tier;
     const buttons = transitionButtons({
@@ -236,7 +239,8 @@ function transitionMarkup(actor, component, status) {
         status,
         tier,
         operatorCount: operators.length,
-        auxiliaryCount: auxiliarySystems(actor).length
+        auxiliaryCount: auxiliarySystems(actor).length,
+        scrapper: gained && coreTemplateKind(actor.items) === "scrapper"
     });
     if (buttons.length === 0) return "";
 
@@ -251,9 +255,10 @@ function transitionMarkup(actor, component, status) {
             : button.formula;
         const tooltip = button.action === "mechCockpitSave"
             ? game.i18n.format("SFRPG.MechSheet.SystemFailure.CockpitSaveTooltip", { dc })
-            : game.i18n.localize(button.action === "mechPowerCoreLoss"
-                ? "SFRPG.MechSheet.SystemFailure.PowerCoreLossTooltip"
-                : "SFRPG.MechSheet.SystemFailure.AuxiliaryPickTooltip");
+            : game.i18n.localize({
+                mechPowerCoreLoss: "SFRPG.MechSheet.SystemFailure.PowerCoreLossTooltip",
+                mechScrapperGain: "SFRPG.MechSheet.CoreTemplate.ScrapperGainTooltip"
+            }[button.action] ?? "SFRPG.MechSheet.SystemFailure.AuxiliaryPickTooltip");
 
         return `<p><a class="enriched-link" data-action="${button.action}"`
             + ` data-formula="${button.formula}" data-index="${button.index}" data-dc="${dc}"`
@@ -355,6 +360,36 @@ export async function onMechCockpitSaveClick(event) {
 }
 
 /**
+ * Handle a click on the PP a Scrapper core gives when its mech gains a system
+ * failure condition. The PP can go above the maximum, and what is left above it
+ * at the end of the mech's next turn is lost.
+ *
+ * @param {Event} event The click event.
+ * @returns {Promise<number|null>} The PP gained, or null if nothing was rolled.
+ */
+export async function onMechScrapperGainClick(event) {
+    return handleClick(event, async (link, actor) => {
+        const roll = await new Roll(link.dataset.formula).evaluate();
+        const pp = actor.system.attributes.pp;
+        const current = (pp.value || 0) + roll.total;
+
+        await actor.update({
+            "system.attributes.pp.value": current,
+            "flags.sfrpg.scrapperSurplus": { turnStarted: false }
+        });
+        await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            flavor: game.i18n.format("SFRPG.MechSheet.CoreTemplate.ScrapperGain", { name: actor.name, amount: roll.total, current, max: pp.max }),
+            rolls: [roll],
+            sound: CONFIG.sounds.dice,
+            whisper: failureRecipients(game.users, actor)
+        });
+
+        return roll.total;
+    });
+}
+
+/**
  * Handle a click on the roll that picks which auxiliary system stops working.
  *
  * @param {Event} event The click event.
@@ -391,9 +426,21 @@ export async function onMechAuxiliaryPickClick(event) {
  * @param {number} [options.tier] The mech's tier.
  * @param {number} [options.operatorCount] How many operators are aboard.
  * @param {number} [options.auxiliaryCount] How many auxiliary systems the mech carries.
+ * @param {boolean} [options.scrapper] Whether a Scrapper core gives PP for this failure.
  * @returns {Array<{action: string, formula: string, index: number}>} The buttons to add.
  */
-export function transitionButtons({ component, status, tier = 0, operatorCount = 0, auxiliaryCount = 0 } = {}) {
+export function transitionButtons({ component, status, tier = 0, operatorCount = 0, auxiliaryCount = 0, scrapper = false } = {}) {
+    const gain = scrapper ? [{ action: "mechScrapperGain", formula: SCRAPPER_GAIN, index: 0 }] : [];
+    return [...componentButtons({ component, status, tier, operatorCount, auxiliaryCount }), ...gain];
+}
+
+/**
+ * The buttons for what the failed component itself costs.
+ *
+ * @param {object} options See transitionButtons.
+ * @returns {Array<{action: string, formula: string, index: number}>}
+ */
+function componentButtons({ component, status, tier, operatorCount, auxiliaryCount }) {
     if (component === "powerCore") {
         const formula = powerCoreLoss(status);
         return formula ? [{ action: "mechPowerCoreLoss", formula, index: 0 }] : [];

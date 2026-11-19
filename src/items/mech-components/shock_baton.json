@@ -38,7 +38,7 @@
       "value": "<p>@PPAbility[cost:1]{Extend} The shock baton gains reach for one round.</p>"
     },
     "mpCost": 2,
-    "ppCost": 1,
+    "ppCost": 0,
     "range": "",
     "save": {
       "type": "",

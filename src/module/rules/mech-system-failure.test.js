@@ -146,13 +146,15 @@ describe("COMPONENT_LABELS", () => {
 });
 
 describe("systemResetUpdate", () => {
-    it("restores Hit Points to the maximum and sets every component Nominal", () => {
+    it("restores Hit Points and Shield Points to their maximums and sets every component Nominal", () => {
         const { update } = systemResetUpdate({
             systems: { upperLimbs: { value: "inoperable" }, frame: { value: "nominal" } },
-            hpMax: 59
+            hpMax: 59,
+            spMax: 12
         });
         expect(update).toEqual({
             "system.attributes.hp.value": 59,
+            "system.attributes.sp.value": 12,
             "system.attributes.systems.upperLimbs.value": "nominal",
             "system.attributes.systems.frame.value": "nominal"
         });

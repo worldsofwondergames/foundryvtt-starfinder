@@ -5,7 +5,8 @@ import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mec
 import { naniteSwarmUpdate } from "./rules/mech-heal.js";
 import { autotargetUpdate } from "./rules/mech-piloting-ranks.js";
 import { autospearSystemUpdate } from "./rules/mech-thrown.js";
-import { compendiumMpCosts, correctedMpCost, plasmaRifleMpCost } from "./rules/mech-points.js";
+import { compendiumMpCosts, componentPpFix, correctedMpCost, plasmaRifleMpCost } from "./rules/mech-points.js";
+import { upkeepDataFix } from "./rules/mech-upkeep.js";
 import { superiorComputerUpdate } from "./rules/mech-upgrade-rules.js";
 
 const SFRPGMigrationSchemas = Object.freeze({
@@ -25,7 +26,9 @@ const SFRPGMigrationSchemas = Object.freeze({
     AUTOTARGET_PILOTING_RANKS: 0.015, // Mark Accurate Strikes on copies of Autotarget, so using it changes the attack bonus.
     AUTOSPEAR_THROWN: 0.016, // Give copies of the Autospear "thrown (40 ft.)" as a melee weapon, so it can be thrown.
     SUPERIOR_COMPUTER_REPEAT: 0.018, // Stop copies of Superior Computer from costing more each time the mech buys another.
-    PLASMA_RIFLE_COST: 0.019 // Lower copies of the mech Plasma Rifle from 10 to 4.5 Mech Points per level.
+    PLASMA_RIFLE_COST: 0.019, // Lower copies of the mech Plasma Rifle from 10 to 4.5 Mech Points per level.
+    TOP_PP_COST: 0.020, // A component's PP cost is its own cost, so one whose costs belong to actions shows 0.
+    UPKEEP_SYSTEMS: 0.021 // Give the Holodouble Projector its Project Double action and the Emergency Defense Sphere its 3 PP cost.
 });
 
 /** The compendium's Mech Point costs, read once when a world migrates past MECH_MP_COSTS. */
@@ -161,6 +164,8 @@ const migrateItem = async function(item, schema) {
     if (schema < SFRPGMigrationSchemas.AUTOSPEAR_THROWN) _migrateAutospear(item, updateData);
     if (schema < SFRPGMigrationSchemas.SUPERIOR_COMPUTER_REPEAT) _migrateSuperiorComputer(item, updateData);
     if (schema < SFRPGMigrationSchemas.PLASMA_RIFLE_COST) _migratePlasmaRifle(item, updateData);
+    if (schema < SFRPGMigrationSchemas.TOP_PP_COST) _migratePpCost(item, updateData);
+    if (schema < SFRPGMigrationSchemas.UPKEEP_SYSTEMS) _migrateUpkeep(item, updateData);
 
     return updateData;
 };
@@ -249,6 +254,55 @@ const _migrateAutospear = function(item, updateData) {
             if (Object.keys(fix).length === 0) return template;
             changed = true;
             return { ...template, system: { ...template.system, ...fix } };
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
+};
+
+/**
+ * Give a Holodouble Projector its Project Double action and an Emergency
+ * Defense Sphere its PP cost, along with each one inside a mission pod.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migrateUpkeep = function(item, updateData) {
+    const fix = upkeepDataFix(item);
+    for (const [key, value] of Object.entries(fix ?? {})) updateData[`system.${key}`] = value;
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
+        let changed = false;
+        const templates = current.map(template => {
+            const templateFix = upkeepDataFix(template);
+            if (!templateFix) return template;
+            changed = true;
+            return { ...template, system: { ...template.system, ...templateFix } };
+        });
+        if (changed) updateData["system.itemTemplates"] = templates;
+    }
+};
+
+/**
+ * Set the PP cost of a component whose costs belong to its actions to 0, and
+ * add the action five weapons were missing, along with each one inside a
+ * mission pod.
+ *
+ * @param {Item} item
+ * @param {object} updateData
+ */
+const _migratePpCost = function(item, updateData) {
+    const fix = componentPpFix(item);
+    for (const [key, value] of Object.entries(fix ?? {})) updateData[`system.${key}`] = value;
+
+    if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
+        const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
+        let changed = false;
+        const templates = current.map(template => {
+            const templateFix = componentPpFix(template);
+            if (!templateFix) return template;
+            changed = true;
+            return { ...template, system: { ...template.system, ...templateFix } };
         });
         if (changed) updateData["system.itemTemplates"] = templates;
     }

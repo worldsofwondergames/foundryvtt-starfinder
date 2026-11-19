@@ -30,7 +30,7 @@
     "kac": 1,
     "meleeAttack": -4,
     "mpCost": 2,
-    "ppCost": 3,
+    "ppCost": 0,
     "rangedAttack": 1,
     "showAttackBonusChoice": false,
     "slots": 0,

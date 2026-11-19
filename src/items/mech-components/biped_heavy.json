@@ -30,7 +30,7 @@
     "hpAdvancement": 1,
     "kac": 1,
     "mpCost": 2,
-    "ppCost": 2,
+    "ppCost": 0,
     "ref": 0,
     "slots": 1,
     "source": "Tech Revolution pg. 106",
