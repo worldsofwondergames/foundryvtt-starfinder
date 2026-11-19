@@ -18,7 +18,7 @@
   "download": "https://github.com/worldsofwondergames/foundryvtt-starfinder/releases/download/14.3.1/sfrpg-14.3.1.zip",
   "flags": {
     "sfrpg": {
-      "schema": 0.019
+      "schema": 0.020
     },
     "hotReload": {
       "extensions": [

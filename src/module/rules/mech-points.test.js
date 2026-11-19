@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, test } from "vitest";
-import { PLASMA_RIFLE_MP_COST, compendiumMpCosts, correctedMpCost, mechPointMinimum, plasmaRifleMpCost } from "./mech-points.js";
+import { PLASMA_RIFLE_MP_COST, compendiumMpCosts, correctedMpCost, correctedPpCost, mechPointMinimum, plasmaRifleMpCost } from "./mech-points.js";
 
 const componentDir = join(__dirname, "../../items/mech-components");
 const components = readdirSync(componentDir)
@@ -88,5 +88,25 @@ describe("plasmaRifleMpCost", () => {
         expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle", system: { mpCost: 6 } })).toBeNull();
         expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Laser Rifle", system: { mpCost: 10 } })).toBeNull();
         expect(plasmaRifleMpCost({ type: "weapon", name: "Plasma Rifle", system: { mpCost: 10 } })).toBeNull();
+    });
+});
+
+describe("correctedPpCost", () => {
+    const component = name => JSON.parse(readFileSync(join(__dirname, `../../items/mech-components/${name}.json`), "utf8"));
+
+    test("the compendium Offgasser and Propellers show their most expensive action", () => {
+        for (const item of [component("offgasser"), component("propellers")]) {
+            expect(item.system.ppCost).toBe(Math.max(...item.system.actions.map(action => action.ppCost)));
+            expect(correctedPpCost(item)).toBeNull();
+        }
+    });
+
+    test("an older copy is raised to the compendium's cost, and other items are left alone", () => {
+        const offgasser = component("offgasser");
+        const propellers = component("propellers");
+        expect(correctedPpCost({ ...offgasser, system: { ...offgasser.system, ppCost: 2 } })).toBe(offgasser.system.ppCost);
+        expect(correctedPpCost({ ...propellers, system: { ...propellers.system, ppCost: 1 } })).toBe(propellers.system.ppCost);
+        expect(correctedPpCost({ type: "mechAuxiliary", name: "Cloaker", system: { ppCost: 2 } })).toBeNull();
+        expect(correctedPpCost({ type: "mechWeapon", name: "Offgasser", system: { ppCost: 2 } })).toBeNull();
     });
 });
