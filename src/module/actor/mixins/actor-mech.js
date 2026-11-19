@@ -700,7 +700,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
 
         const { update, changed } = systemResetUpdate({
             systems: this.system.attributes.systems,
-            hpMax: this.system.attributes.hp.max
+            hpMax: this.system.attributes.hp.max,
+            spMax: this.system.attributes.sp.max
         });
         if (!game.user.isGM) {
             update["flags.sfrpg.resetReport"] = {
@@ -708,6 +709,8 @@ export const ActorMechMixin = (superclass) => class extends superclass {
                 user: game.user.id,
                 hpFrom: this.system.attributes.hp.value,
                 hpTo: this.system.attributes.hp.max,
+                spFrom: this.system.attributes.sp.value,
+                spTo: this.system.attributes.sp.max,
                 systems: changed
             };
         }

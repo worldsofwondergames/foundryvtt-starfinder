@@ -1181,7 +1181,9 @@ Hooks.on("updateActor", async (actor, changes) => {
         user: game.users.get(report.user)?.name ?? "",
         name: actor.name,
         from: report.hpFrom,
-        to: report.hpTo
+        to: report.hpTo,
+        spFrom: report.spFrom ?? "",
+        spTo: report.spTo ?? ""
     })];
     for (const [component, status] of report.systems ?? []) {
         lines.push(game.i18n.format("SFRPG.MechSheet.SystemFailure.ResetReportSystem", {
