@@ -581,6 +581,17 @@
                 {{/if}}
             </ol>
 
+            {{!-- Systems that cost PP each turn while on --}}
+            {{#each actionsTab.upkeepSystems as |system|}}
+            <div class="mech-override-banner">
+                <i class="fas fa-bolt"></i>
+                <span class="mech-override-label">{{system.label}}</span>
+                {{#if ../isOwner}}
+                <button type="button" class="tag mech-upkeep-end" data-item-id="{{system.id}}">{{ localize "SFRPG.MechSheet.Upkeep.End" }}</button>
+                {{/if}}
+            </div>
+            {{/each}}
+
             {{!-- Armed overrides --}}
             {{#each actionsTab.armedOverrides as |override|}}
             <div class="mech-override-banner">

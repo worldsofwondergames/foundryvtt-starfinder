@@ -8,6 +8,10 @@
   - With a Photosynthesizer core, a light level choice on the Actions tab changes the PP rate, initial PP, and maximum PP at the start of the mech's turn
 
 ## Bugfixes
+- The Holodouble Projector and Emergency Defense Sphere never spent their PP (#178)
+  - The Holodouble Projector has a Project Double action. While the double is up, the mech pays 1 PP at the start of each of its turns, and a banner on the Actions tab can end it. When the mech can't pay, the double ends and everyone is told
+  - The Emergency Defense Sphere costs 3 PP. When damage takes the mech to ¼ of its Hit Points, the sphere forms and the PP is spent, or everyone is told it failed for lack of PP. It forms once until the mech's system damage is reset
+  - Existing copies are changed when the world migrates
 - The mech sheet's system damage Reset restored Hit Points but left Shield Points as they were. It now restores both (#177)
 - The Offgasser's PP cost field showed 2 and the Propellers' showed 1, the cost of their cheapest actions. They now show 3 and 2, the cost of their most expensive actions, and existing copies are changed when the world migrates
 
