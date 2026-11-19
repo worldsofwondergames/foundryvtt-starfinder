@@ -84,7 +84,8 @@ import {
     onMechChanceCheckClick,
     onMechCockpitSaveClick,
     onMechFailureRollClick,
-    onMechPowerCoreLossClick
+    onMechPowerCoreLossClick,
+    onMechScrapperGainClick
 } from "./module/system/mech-failure-link.js";
 import { onHoverMechToken, onUpdateMechSystems } from "./module/system/mech-failure-token.js";
 import { failuresTriggered } from "./module/rules/mech-system-failure.js";
@@ -749,6 +750,7 @@ Hooks.once("ready", async () => {
     $("body").on("click", 'a[data-action="mechHeal"]', onMechHealClick);
     $("body").on("click", 'a[data-action="mechFailureRoll"]', onMechFailureRollClick);
     $("body").on("click", 'a[data-action="mechPowerCoreLoss"]', onMechPowerCoreLossClick);
+    $("body").on("click", 'a[data-action="mechScrapperGain"]', onMechScrapperGainClick);
     $("body").on("click", 'a[data-action="mechCockpitSave"]', onMechCockpitSaveClick);
     $("body").on("click", 'a[data-action="mechAuxiliaryPick"]', onMechAuxiliaryPickClick);
     $("body").on("click", 'a[data-action="mechChanceCheck"]', onMechChanceCheckClick);

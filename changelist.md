@@ -1,5 +1,12 @@
 # Version 14.3.1
 
+## New Features
+- Four power core templates now apply their PP rules (#180)
+  - With a Scrapper core, the system failure card has a 1d4 button that adds PP, even past the maximum. PP still above the maximum at the end of the mech's next turn is lost
+  - With an Aeon core, a Spell Slot button spends an operator's unused spell slot for PP equal to half its level, once per round
+  - With a Junker core, a Salvage button asks for the target's level or CR. For 1 round per 4 levels, the mech gets +1 PP rate, +2 maximum PP, and fast healing at the start of its turn
+  - With a Photosynthesizer core, a light level choice on the Actions tab changes the PP rate, initial PP, and maximum PP at the start of the mech's turn
+
 ## Bugfixes
 - The Offgasser's PP cost field showed 2 and the Propellers' showed 1, the cost of their cheapest actions. They now show 3 and 2, the cost of their most expensive actions, and existing copies are changed when the world migrates
 

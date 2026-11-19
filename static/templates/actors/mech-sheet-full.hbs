@@ -613,6 +613,61 @@
                 {{/each}}
             </ol>
 
+            {{!-- Power core template --}}
+            {{#if actionsTab.coreTemplate.show}}
+            <ol class="mech-action-list">
+                <li class="mech-action-header flexrow">
+                    <h3 class="item-name noborder">{{ localize "SFRPG.MechSheet.CoreTemplate.Title" }}</h3>
+                </li>
+                {{#if actionsTab.coreTemplate.aeon}}
+                <li class="mech-action-item flexrow">
+                    <div class="mech-action-name" data-tooltip="{{ localize "SFRPG.MechSheet.CoreTemplate.AeonTooltip" }}">
+                        <h4>{{ localize "SFRPG.MechSheet.CoreTemplate.AeonAction" }}</h4>
+                    </div>
+                    {{#if @root.isOwner}}
+                    <div class="mech-action-buttons">
+                        <button type="button" class="tag mech-aeon-slot action-type-button">{{ localize "SFRPG.MechSheet.CoreTemplate.AeonButton" }}</button>
+                    </div>
+                    {{/if}}
+                </li>
+                {{/if}}
+                {{#if actionsTab.coreTemplate.junker}}
+                <li class="mech-action-item flexrow">
+                    <div class="mech-action-name" data-tooltip="{{ localize "SFRPG.MechSheet.CoreTemplate.SalvageTooltip" }}">
+                        <h4>{{ localize "SFRPG.MechSheet.CoreTemplate.SalvageAction" }}</h4>
+                    </div>
+                    {{#if @root.isOwner}}
+                    <div class="mech-action-buttons">
+                        <button type="button" class="tag mech-salvage action-type-button">{{ localize "SFRPG.MechSheet.Actions.ActionTypes.Standard" }}</button>
+                    </div>
+                    {{/if}}
+                </li>
+                {{#if actionsTab.coreTemplate.salvageLabel}}
+                <li class="mech-override-banner">
+                    <i class="fas fa-bolt"></i>
+                    <span class="mech-override-label">{{actionsTab.coreTemplate.salvageLabel}}</span>
+                    {{#if @root.isOwner}}
+                    <button type="button" class="tag mech-salvage-cancel">{{ localize "SFRPG.MechSheet.DamageLevelOverride.Cancel" }}</button>
+                    {{/if}}
+                </li>
+                {{/if}}
+                {{/if}}
+                {{#if actionsTab.coreTemplate.photosynthesizer}}
+                <li class="mech-action-item flexrow">
+                    <div class="mech-action-name" data-tooltip="{{ localize "SFRPG.MechSheet.CoreTemplate.LightTooltip" }}">
+                        <h4>{{ localize "SFRPG.MechSheet.CoreTemplate.LightLevel" }}</h4>
+                    </div>
+                    <div class="mech-action-buttons">
+                        <select class="mech-light-level" {{#unless @root.isOwner}}disabled{{/unless}}>
+                            <option value=""></option>
+                            {{selectOptions actionsTab.coreTemplate.lightLevels selected=actionsTab.coreTemplate.lightLevel localize=true}}
+                        </select>
+                    </div>
+                </li>
+                {{/if}}
+            </ol>
+            {{/if}}
+
             {{#if actionsTab.showCockpitCheck}}
             <ol class="mech-action-list">
                 <li class="mech-action-item flexrow">

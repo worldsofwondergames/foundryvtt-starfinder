@@ -23,6 +23,7 @@ const SINGLE_USE_ACTIONS = [
     "mechHeal",
     "mechFailureRoll",
     "mechPowerCoreLoss",
+    "mechScrapperGain",
     "mechCockpitSave",
     "mechAuxiliaryPick",
     "mechChanceCheck",
