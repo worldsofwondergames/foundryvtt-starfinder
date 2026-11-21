@@ -70,22 +70,42 @@ export function correctedMpCost(item, costs) {
 }
 
 /**
- * The Plasma Rifle's cost per level. Tech Revolution prints "10 x tier", which
- * is far above every other ranged mech weapon, so the system charges what the
- * Flamethrower, the other high damage electricity and fire weapon, costs. */
-export const PLASMA_RIFLE_MP_COST = 4.5;
+ * The Plasma Rifle's cost per level, as Tech Revolution prints it. Archives of
+ * Nethys lists 10 (https://aonsrd.com/Mech_Weapons.aspx), which is an error.
+ */
+export const PLASMA_RIFLE_MP_COST = 4;
+
+/** The costs the compendium's Plasma Rifle had before: 10, then 4.5. */
+const OLD_PLASMA_RIFLE_MP_COSTS = [10, 4.5];
+
+/** The paragraph the compendium's description had while it charged 4.5. */
+const OLD_PLASMA_RIFLE_NOTE = /\s*<p>Tech Revolution prints this weapon's cost as 10 × tier\..*?<\/p>/;
 
 /**
- * The cost an existing Plasma Rifle should have. Copies made from the old
- * compendium entry cost 10 per level.
+ * The cost an existing Plasma Rifle should have.
  *
  * @param {{type: string, name: string, system?: {mpCost?: number}}} item
  * @returns {number|null} The new cost, or null when the item is not a Plasma
- *     Rifle with the old cost.
+ *     Rifle with one of the compendium's old costs.
  */
 export function plasmaRifleMpCost(item) {
     if (item?.type !== "mechWeapon" || baseName(item.name) !== "plasma rifle") return null;
-    return Number(item.system?.mpCost) === 10 ? PLASMA_RIFLE_MP_COST : null;
+    return OLD_PLASMA_RIFLE_MP_COSTS.includes(Number(item.system?.mpCost)) ? PLASMA_RIFLE_MP_COST : null;
+}
+
+/**
+ * A Plasma Rifle's description without the paragraph that said the system
+ * charges 4.5 per level.
+ *
+ * @param {{type: string, name: string, system?: {description?: {value?: string}}}} item
+ * @returns {string|null} The new description, or null when the item is not a
+ *     Plasma Rifle with that paragraph.
+ */
+export function plasmaRifleDescription(item) {
+    if (item?.type !== "mechWeapon" || baseName(item.name) !== "plasma rifle") return null;
+    const description = item.system?.description?.value ?? "";
+    const corrected = description.replace(OLD_PLASMA_RIFLE_NOTE, "");
+    return corrected === description ? null : corrected;
 }
 
 /** The mech component types whose PP cost field is the component's own cost. */
