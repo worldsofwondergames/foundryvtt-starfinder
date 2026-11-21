@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, test } from "vitest";
-import { PLASMA_RIFLE_MP_COST, compendiumMpCosts, correctedMpCost, componentPpFix, ADDED_WEAPON_ACTIONS, attackPpCost, mechPointMinimum, plasmaRifleMpCost } from "./mech-points.js";
+import { PLASMA_RIFLE_MP_COST, compendiumMpCosts, correctedMpCost, componentPpFix, ADDED_WEAPON_ACTIONS, attackPpCost, mechPointMinimum, plasmaRifleDescription, plasmaRifleMpCost } from "./mech-points.js";
 
 const componentDir = join(__dirname, "../../items/mech-components");
 const components = readdirSync(componentDir)
@@ -80,8 +80,24 @@ describe("plasmaRifleMpCost", () => {
     });
 
     test("lowers an old copy's 10 per level", () => {
-        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle", system: { mpCost: 10 } })).toBe(4.5);
-        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle (Left Arm)", system: { mpCost: 10 } })).toBe(4.5);
+        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle", system: { mpCost: 10 } })).toBe(4);
+        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle (Left Arm)", system: { mpCost: 10 } })).toBe(4);
+    });
+
+    test("lowers a copy made while the compendium charged 4.5 per level", () => {
+        expect(plasmaRifleMpCost({ type: "mechWeapon", name: "Plasma Rifle", system: { mpCost: 4.5 } })).toBe(4);
+    });
+
+    test("takes the paragraph about 4.5 per level out of an old copy's description", () => {
+        const note = "<p>Tech Revolution prints this weapon's cost as 10 × tier. This system charges 4.5 × level, the same as the Flamethrower.</p>";
+        const old = { type: "mechWeapon", name: "Plasma Rifle", system: { description: { value: `<p>Fires plasma.</p>\n${note}` } } };
+        expect(plasmaRifleDescription(old)).toBe("<p>Fires plasma.</p>");
+        expect(plasmaRifleDescription({ ...old, name: "Laser Rifle" })).toBeNull();
+    });
+
+    test("leaves the compendium Plasma Rifle's description alone", () => {
+        const rifle = components.find(c => c.type === "mechWeapon" && c.name === "Plasma Rifle");
+        expect(plasmaRifleDescription(rifle)).toBeNull();
     });
 
     test("leaves a cost the GM set and other weapons alone", () => {

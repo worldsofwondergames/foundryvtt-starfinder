@@ -5,7 +5,7 @@ import { toughArmsHpGain, toughArmsTemplate, toughArmsUpdate } from "./rules/mec
 import { naniteSwarmUpdate } from "./rules/mech-heal.js";
 import { autotargetUpdate } from "./rules/mech-piloting-ranks.js";
 import { autospearSystemUpdate } from "./rules/mech-thrown.js";
-import { compendiumMpCosts, componentPpFix, correctedMpCost, plasmaRifleMpCost } from "./rules/mech-points.js";
+import { compendiumMpCosts, componentPpFix, correctedMpCost, plasmaRifleDescription, plasmaRifleMpCost } from "./rules/mech-points.js";
 import { upkeepDataFix } from "./rules/mech-upkeep.js";
 import { superiorComputerUpdate } from "./rules/mech-upgrade-rules.js";
 
@@ -26,9 +26,9 @@ const SFRPGMigrationSchemas = Object.freeze({
     AUTOTARGET_PILOTING_RANKS: 0.015, // Mark Accurate Strikes on copies of Autotarget, so using it changes the attack bonus.
     AUTOSPEAR_THROWN: 0.016, // Give copies of the Autospear "thrown (40 ft.)" as a melee weapon, so it can be thrown.
     SUPERIOR_COMPUTER_REPEAT: 0.018, // Stop copies of Superior Computer from costing more each time the mech buys another.
-    PLASMA_RIFLE_COST: 0.019, // Lower copies of the mech Plasma Rifle from 10 to 4.5 Mech Points per level.
     TOP_PP_COST: 0.020, // A component's PP cost is its own cost, so one whose costs belong to actions shows 0.
-    UPKEEP_SYSTEMS: 0.021 // Give the Holodouble Projector its Project Double action and the Emergency Defense Sphere its 3 PP cost.
+    UPKEEP_SYSTEMS: 0.021, // Give the Holodouble Projector its Project Double action and the Emergency Defense Sphere its 3 PP cost.
+    PLASMA_RIFLE_COST: 0.022 // Lower copies of the mech Plasma Rifle from 10 or 4.5 to the book's 4 Mech Points per level.
 });
 
 /** The compendium's Mech Point costs, read once when a world migrates past MECH_MP_COSTS. */
@@ -163,9 +163,9 @@ const migrateItem = async function(item, schema) {
     if (schema < SFRPGMigrationSchemas.AUTOTARGET_PILOTING_RANKS) Object.assign(updateData, autotargetUpdate(item));
     if (schema < SFRPGMigrationSchemas.AUTOSPEAR_THROWN) _migrateAutospear(item, updateData);
     if (schema < SFRPGMigrationSchemas.SUPERIOR_COMPUTER_REPEAT) _migrateSuperiorComputer(item, updateData);
-    if (schema < SFRPGMigrationSchemas.PLASMA_RIFLE_COST) _migratePlasmaRifle(item, updateData);
     if (schema < SFRPGMigrationSchemas.TOP_PP_COST) _migratePpCost(item, updateData);
     if (schema < SFRPGMigrationSchemas.UPKEEP_SYSTEMS) _migrateUpkeep(item, updateData);
+    if (schema < SFRPGMigrationSchemas.PLASMA_RIFLE_COST) _migratePlasmaRifle(item, updateData);
 
     return updateData;
 };
@@ -309,8 +309,9 @@ const _migratePpCost = function(item, updateData) {
 };
 
 /**
- * Lower a Plasma Rifle, and each Plasma Rifle template inside a mission pod,
- * from the old 10 Mech Points per level to the compendium's cost.
+ * Give a Plasma Rifle, and each Plasma Rifle template inside a mission pod,
+ * the compendium's cost in place of the old 10 or 4.5 Mech Points per level,
+ * and take the paragraph about the 4.5 out of its description.
  *
  * @param {Item} item
  * @param {object} updateData
@@ -318,15 +319,21 @@ const _migratePpCost = function(item, updateData) {
 const _migratePlasmaRifle = function(item, updateData) {
     const mpCost = plasmaRifleMpCost(item);
     if (mpCost !== null) updateData["system.mpCost"] = mpCost;
+    const description = plasmaRifleDescription(item);
+    if (description !== null) updateData["system.description.value"] = description;
 
     if (item.type === "mechMissionPod" && Array.isArray(item.system?.itemTemplates)) {
         const current = updateData["system.itemTemplates"] ?? item.system.itemTemplates;
         let changed = false;
         const templates = current.map(template => {
             const templateCost = plasmaRifleMpCost(template);
-            if (templateCost === null) return template;
+            const templateDescription = plasmaRifleDescription(template);
+            if (templateCost === null && templateDescription === null) return template;
             changed = true;
-            return { ...template, system: { ...template.system, mpCost: templateCost } };
+            const system = { ...template.system };
+            if (templateCost !== null) system.mpCost = templateCost;
+            if (templateDescription !== null) system.description = { ...system.description, value: templateDescription };
+            return { ...template, system };
         });
         if (changed) updateData["system.itemTemplates"] = templates;
     }
