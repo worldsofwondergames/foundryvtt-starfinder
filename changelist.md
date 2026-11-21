@@ -1,3 +1,10 @@
+# Version 14.3.2
+
+## New Features
+
+## Bugfixes
+- The mech Plasma Rifle costs 4 Mech Points per level, as Tech Revolution prints it. Version 14.3.0 set it to 4.5 after reading Archives of Nethys, which lists 10. Copies in worlds, on mechs, and in mission pods that cost 10 or 4.5 are changed when the world migrates, and the paragraph about the 4.5 is taken out of their descriptions
+
 # Version 14.3.1
 
 ## New Features
@@ -16,7 +23,6 @@
 - A mech component's PP cost field now holds only what the component itself costs. 62 components showed the cost of one of their actions there, and each now shows 0, since each action's button spends its own cost. The Emergency Defense Sphere keeps its 3 (#181)
 - The Anti-Materiel Gun Pod, Arc Pulserifle, Buzzblade, Flame Doshko, and Stinger Tail had no action for their PP abilities. Each now has one (#181)
 - Existing copies of these components in worlds, on mechs, and in mission pods are changed when the world migrates (#178, #181)
-- The mech Plasma Rifle costs 4 Mech Points per level, as Tech Revolution prints it. Version 14.3.0 set it to 4.5 after reading Archives of Nethys, which lists 10. Copies in worlds, on mechs, and in mission pods that cost 10 or 4.5 are changed when the world migrates, and the paragraph about the 4.5 is taken out of their descriptions
 
 # Version 14.3.0
 
