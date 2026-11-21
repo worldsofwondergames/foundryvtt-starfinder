@@ -15,7 +15,7 @@
   },
   "url": "https://github.com/worldsofwondergames/foundryvtt-starfinder",
   "manifest": "https://github.com/worldsofwondergames/foundryvtt-starfinder/releases/latest/download/system.json",
-  "download": "https://github.com/worldsofwondergames/foundryvtt-starfinder/releases/download/14.3.1/sfrpg-14.3.1.zip",
+  "download": "https://github.com/worldsofwondergames/foundryvtt-starfinder/releases/download/14.3.2/sfrpg-14.3.2.zip",
   "flags": {
     "sfrpg": {
       "schema": 0.022
